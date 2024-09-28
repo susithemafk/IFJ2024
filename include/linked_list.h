@@ -30,6 +30,7 @@ typedef struct LinkedList {
     struct Node *head; // start point of the list
     struct Node *tail; // end poitn of the list
     unsigned int size; // size of the list
+    bool freeData; // if true, the data will be freed when a node is removed
 } LinkedList;
 
 // >>>>>>>>>>>>>>>>> Function declarations <<<<<<<<<<<<<<<<<<<<
@@ -39,9 +40,11 @@ typedef struct LinkedList {
  * 
  * The allocated memory is the size of the LinkedList structure.
  * 
+ * @param freeData A boolean value, if true, when a node is removed, the data will be freed.
+ * 
  * @return A pointer to the newly allocated LinkedList structure.
  */
-struct LinkedList *initLinkedList(void);
+struct LinkedList *initLinkedList(bool freeData);
 
 /**
  * convert index to positive index
