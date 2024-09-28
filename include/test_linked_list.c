@@ -110,14 +110,14 @@ int main(void) {
 
     printf("$$ adding node to empty list, no malloc \n");
     //insertNodeAtIndex(list, &d1, 0);
-    _insertNodeAtHead(list, &d1);
+    insertNodeAtIndex(list, &d1, -1);
     printList(list, (void (*)(unsigned int, void *))print_char);
 
-    _insertNodeAtHead(list, &d2);
+    insertNodeAtIndex(list, &d2, -1);
     //insertNodeAtIndex(list, &d2, 0);
     printList(list, (void (*)(unsigned int, void *))print_char);
 
-    _insertNodeAtHead(list, &d3);
+    insertNodeAtIndex(list, &d3, -1);
     //insertNodeAtIndex(list, &d3, 0);
     printList(list, (void (*)(unsigned int, void *))print_char);
 
