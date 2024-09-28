@@ -10,7 +10,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
-#include "linked_list.h"
+#include "utility/linked_list.h"
 
 struct LinkedList *initLinkedList(bool freeData) {
     
