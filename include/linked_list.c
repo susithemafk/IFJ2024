@@ -15,7 +15,6 @@
 struct LinkedList *initLinkedList(bool freeData) {
     
     // create the instance of the linked list
-    printf("!! malloc list\n");
     struct LinkedList *list = (struct LinkedList *)malloc(sizeof(struct LinkedList)); 
 
     if (list == NULL) {
@@ -31,7 +30,7 @@ struct LinkedList *initLinkedList(bool freeData) {
 }
 
 unsigned int _convertIndex(int index, unsigned int size) {
-    return index < 0 ? size + index : index;
+    return index < 0 ? (unsigned int)(size + index) : (unsigned int)index;
 }
 
 int emptyList(struct LinkedList *list) {
@@ -48,7 +47,6 @@ int emptyList(struct LinkedList *list) {
 }
 
 struct Node *_createNewNode(void *data, struct Node * next, struct Node * prev) {
-    printf("!! malloc node\n");
     struct Node *newNode = (struct Node *)malloc(sizeof(struct Node));
 
     if (newNode == NULL)
@@ -156,7 +154,6 @@ bool _popTailNode(struct LinkedList *list, void **returnData) {
     if (list->tail != NULL) {
         list->tail->next = NULL;
     }
-    printf("-- free node _popTailNode\n");
     free(node);
 
     list->size--;
@@ -216,7 +213,6 @@ bool _popHeadNode(struct LinkedList *list, void **returnData) {
     if (list->head != NULL) {
         list->head->prev = NULL;
     }
-    printf("-- free node _popHeadNode\n");
     free(node);
 
     list->size--;
@@ -301,7 +297,6 @@ bool popNodeAtIndex(struct LinkedList *list, int index, void **returnData) {
 
     *returnData = node->data;
     
-    printf("-- free node popNodeAtIndex\n");
     free(node);
 
     list->size--;
@@ -315,7 +310,6 @@ bool removeNodeAtIndex(struct LinkedList *list, int index) {
         return false;
     
     if (list->freeData) {
-        printf("-- free data removeNodeAtIndex\n");
         free(data);
     }
 
@@ -334,16 +328,12 @@ bool removeList(struct LinkedList *list) {
 
     while (node != NULL) {
         nextNode = node->next;
-        printf("-- freeing: %p\n", (void *)node);
         if (list->freeData) {
-            printf("-- free data remove list\n");
             free(node->data);
         }
-        printf("-- freeing node remove list\n");
         free(node);
         node = nextNode;
     }
-    printf("-- free list\n");
     free(list);
 
     return true;
@@ -366,7 +356,6 @@ bool replaceDataAtIndex(struct LinkedList *list, int index, void *data, void **r
     if (returnData != NULL) {
         *returnData = node->data;
     } else if (list->freeData) {
-        printf("-- free data replaceDataAtIndex\n");
         free(node->data);
     }
 
@@ -406,7 +395,7 @@ void printList(struct LinkedList *list, void (*printFunc)(unsigned int, void *))
     while (node != NULL) {
         // Call the print function with the current index and node data
         printFunc(idx, node->data);
-        printf(", current: %p | next: %p | prev: %p\n", (void *)node, (void *)node->next, (void *)node->prev);
+        printf(",\n");
         node = node->next;
         idx++;
     }

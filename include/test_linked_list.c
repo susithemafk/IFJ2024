@@ -66,7 +66,6 @@ int main(void) {
     printf("$$ Popping node at index 1\n");
     if (popNodeAtIndex(list, 1, (void *)&removedData)) {
         printf("$$ Popped node at index 1: %d\n", *removedData);
-        free(removedData);  // free the removed data
     }
     printList(list, (void (*)(unsigned int, void *))print_int);
 
@@ -100,7 +99,7 @@ int main(void) {
     // Test 9: Try to pop from an empty list
     list = initLinkedList(false);  // reinitialize for test
 
-    printf("attempting to pop for empty list\n");
+    printf("$$ attempting to pop for empty list\n");
     if (popNodeAtIndex(list, 0, (void *)&removedData)) {
         printf("$$ Popped node from empty list (unexpected)\n");
     } else {
@@ -109,7 +108,7 @@ int main(void) {
 
     char d1 = 'c', d2 = 'd', d3 = 'a';
 
-    printf("adding node to empty list, no malloc \n");
+    printf("$$ adding node to empty list, no malloc \n");
     //insertNodeAtIndex(list, &d1, 0);
     _insertNodeAtHead(list, &d1);
     printList(list, (void (*)(unsigned int, void *))print_char);
@@ -124,15 +123,15 @@ int main(void) {
 
     // Test 10: Replace data at index
 
-    printf("$$ Replacing data at index 1 with 4\n");
+    printf("$$ Replacing data at index 1 with 'f'\n");
     char *oldData = NULL;
     char newData = 'f';
     if (replaceDataAtIndex(list, 1, &newData, (void *)&oldData)) {
-        printf("$$ Replaced data at index 1: %d\n", *oldData);
+        printf("$$ data that was at index 1: %c\n", *oldData);
     }
     printList(list, (void (*)(unsigned int, void *))print_char);
 
-    printf("removing, with maloc free setting\n");
+    printf("$$ removing, with maloc free setting\n");
     removeList(list);  // this will free the list and its nodes
 
     printf("$$ Freeing list\n");
