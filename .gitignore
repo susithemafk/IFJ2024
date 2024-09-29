@@ -2,3 +2,4 @@ main
 *.exe
 *.out
 susi.txt
+.DS_Store
