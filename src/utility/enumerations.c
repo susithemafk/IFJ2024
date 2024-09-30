@@ -1,3 +1,11 @@
+/** AUTHOR
+ * 
+ * @author <247581> Martin Mendl
+ * @file enumerations.c
+ * @date 28.9. 2024
+ * @brief Test file for the linked list implementation
+ */
+
 #include "utility/enumerations.h"
 #include <string.h>
 

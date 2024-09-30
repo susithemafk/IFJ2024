@@ -6,7 +6,6 @@
  * @brief Test file for the linked list implementation
  */
 
-#include <stdio.h>
 #include <stdlib.h>
 #include "utility/linked_list.h"
 
