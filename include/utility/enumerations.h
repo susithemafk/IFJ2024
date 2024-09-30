@@ -59,8 +59,8 @@ enum ERR_CODES {
 /**
  * @brief Struct for token, representing a meaningful part of the code
  */
-typedef struct {
-
+typedef struct TOKEN {
+    char* value; // the value of the token
 } TOKEN;
 
 /**
@@ -83,6 +83,12 @@ enum KEY_WORDS_SRC {
     W_WHILE = 12,
 };
 
+enum DATA_TYPES {
+    dTypeI32,
+    dTypeF64,
+    dTypeU8
+};
+
 /**
  * Return the coresponding string for the key word
  * 
@@ -98,5 +104,13 @@ char *_getKeyWordFromString(enum KEY_WORDS_SRC keyWord);
  * @return The enum representation of the key word, or -1 if the key word is not found
  */
 enum KEY_WORDS_SRC _getEnumfromKeyWord(char *keyWord);
+
+/**
+ * Function to hash a string
+ * 
+ * @param str The string to hash
+ * @return The hash of the string
+*/
+unsigned int hashString(const char* str);
 
 #endif // ENUMERATIONS_H

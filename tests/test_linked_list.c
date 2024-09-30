@@ -7,6 +7,7 @@
  */
 
 #include <stdlib.h>
+#include <stdio.h>
 #include "utility/linked_list.h"
 
 int main(void) {

@@ -10,6 +10,10 @@
 #define SYMTABLE_H
 
 #include <stdbool.h>
+#include "utility/linked_list.h"
+#include "utility/enumerations.h"
+
+// ####################### HB BINARY SEARCH TREE #######################
 
 /**
  * @brief Struct for the symbol table
@@ -20,7 +24,7 @@
 typedef struct BST {
     unsigned int size;
     struct TreeNode *root;
-    bool freeData;
+    void (*freeFunction)(void *data);  // Function pointer for freeing node data
 } BST;
 
 /**
@@ -43,7 +47,7 @@ typedef struct TreeNode{
  * @param freeData - flag, if true, the data of each node will be freed
  * @return pointer to the initialized symbol table
 */
-BST *bstInit(bool freeData);
+BST *bstInit(void (*freeFunction)(void *data));
 
 /**
  * Inserts data into the tree
@@ -98,7 +102,7 @@ bool bstFree(BST *tree);
  * @note this function is internal
  * @return true, if the node was successfully freed, false otherwise
 */
-bool _bstFreeNode(TreeNode *node, bool freeData);
+bool _bstFreeNode(TreeNode *node, void (*freeFunction)(void *data));
 
 /**
  * Calculates the height of the tree
@@ -153,5 +157,130 @@ TreeNode *_bstRotLeft(TreeNode *root);
  * @return pointer to the new root of the subtree
 */
 TreeNode *_bstRotRight(TreeNode *root);
+
+// ####################### SYMTABLE #######################
+
+
+// this might hvae to change in the future
+enum SYMTABLE_NODE_TYPES {
+    SYM_GLOBAL = 1,
+    SYM_FUNCTION = 2,
+    SYM_IF = 3,
+    SYM_WHILE = 4,
+    SYM_FOR = 5,
+    SYM_SWITCH = 6,
+};
+
+typedef struct SymVariable {
+    char *name; // the name of the variable
+    // void *value; // the value of the variable, not needed?
+    enum DATA_TYPES type; // the type of the variable
+    bool mutable; // if the variable is mutable (constants will have this false)
+} SymVariable;
+
+/**
+ * @brief Struct for the symTable Node
+ * @param type - type of the node
+ * @param key - key of the node
+ * @param parent - pointer to the parent node
+ * @param variables - pointer to the BST of the variables
+ * @param innerScopes - pointer to the linked list of the inner scopes
+*/
+typedef struct SymTableNode {
+    enum SYMTABLE_NODE_TYPES type;
+    unsigned int key;
+    struct SymTableNode *parent;
+    BST *variables;
+    LinkedList *innerScopes;
+} SymTableNode;
+
+/**
+ * @brief Struct for the symbol table
+ * @param root - pointer to the root of the tree
+ * @param innerScopesCount - amount of inner scopes in the tree
+*/
+typedef struct SymTable {
+    SymTableNode *root;
+    unsigned int scopeCount;
+    SymTableNode *currentScope;
+} SymTable;
+
+/**
+ * Initializes the symbol table
+ * @return pointer to the initialized symbol table
+*/
+SymTable *symTableInit(void);
+
+/**
+ * Insert a new scope into the symbol table, at the curretn location
+ * 
+ * @param table - pointer to the symbol table
+ * @param type - type of the scope
+ * @return true, if the scope was successfully inserted, false otherwise
+*/
+bool symTableAddScope(SymTable *table, enum SYMTABLE_NODE_TYPES type);
+
+/**
+ * Function to exit the current scope
+ * 
+ * @param table - pointer to the symbol table
+ * @return true, if the scope was successfully exited, false otherwise
+*/
+bool symTableExitScope(SymTable *table);
+
+/**
+ * Insert a new variable to the current scope
+ * 
+ * @param table - pointer to the symbol table
+ * @param name - name of the variable to insert
+ * @param type - type of the variable to insert
+ * @param mutable - flag, if the variable is mutable
+*/
+bool symTableDeclareVariable(SymTable *table, char *name, enum DATA_TYPES type, bool mutable);
+
+/**
+ * Search for a vairable based on its name, in same hash variables
+ * 
+ * @param list - pointer to the linked_list
+ * @param name - name of the variable to search for
+ * @return true if the variable was found, false otherwise
+*/
+bool _searchForVarSameHash(LinkedList *list, char *name);
+
+
+/**
+ * Function to check, if a variable can be found in the current scope
+ * 
+ * @param table - pointe to the symbol table
+ * @param name - name of the variable to search for
+ * @param returnData - pointer to which the data will be stored, if not NULL
+ * @return true, if the variable was found, false otherwise
+*/
+bool symTableFindVariable(SymTable *table, char *name, SymVariable **returnData);
+
+/**
+ * Function to determin, if a variable can be mutated
+ * 
+ * @param variable - pointer to the variable
+ * @return true, if the variable can be mutated, false otherwise
+*/
+bool symTableCanMutate(SymVariable *variable);
+
+/**
+ * Function to free the symbol table
+ * 
+ * @param table - pointer to the symbol table
+ * @return true, if the symbol table was successfully freed, false otherwise
+*/
+bool symTableFree(SymTable *table);
+
+/**
+ * Function to free the symTableNode
+ * 
+ * @param node - pointer to the symTableNode
+ * @return true, if the node was successfully freed, false otherwise
+*/
+bool _symTableFreeNode(SymTableNode *node);
+
 
 #endif // SYMTABLE_H

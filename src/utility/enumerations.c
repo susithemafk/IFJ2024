@@ -73,5 +73,14 @@ enum KEY_WORDS_SRC _getEnumfromKeyWord(char *keyWord) {
     }
 
     return -1;
-
 }
+
+unsigned int hashString(const char* str) {
+    unsigned long hash = 5381;
+    int c;
+    while ((c = *str++)) {
+        hash = ((hash << 5) + hash) + c; // hash * 33 + c
+    }
+    return (unsigned int)hash;
+}
+

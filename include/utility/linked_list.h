@@ -30,7 +30,7 @@ typedef struct LinkedList {
     struct Node *head; // start point of the list
     struct Node *tail; // end poitn of the list
     unsigned int size; // size of the list
-    bool freeData; // if true, the data will be freed when a node is removed
+    bool freeData; // Function pointer for freeing node data 
 } LinkedList;
 
 // >>>>>>>>>>>>>>>>> Function declarations <<<<<<<<<<<<<<<<<<<<

@@ -12,7 +12,7 @@
 
 void test_case_1(void) {
     // Create a new tree with freeData = true
-    BST *tree = bstInit(true);
+    BST *tree = bstInit(free);
     
     // Allocate some integers for testing
     int *data1 = (int *)malloc(sizeof(int));
@@ -61,7 +61,7 @@ void test_case_1(void) {
 
 void test_case_2(void) {
     // Create a new tree with freeData = false
-    BST *tree = bstInit(false);
+    BST *tree = bstInit(NULL);
     
     // Insert nodes with character data
     char data1 = 'A';
@@ -98,14 +98,150 @@ void test_case_2(void) {
     // Free the tree (without freeing data)
     bool freeResult = bstFree(tree);
     printf("$$ Tree freed: %s\n", freeResult ? "Success" : "Failure");
+
+}
+
+void test_case_3(void) {
+
+    // Create a new symbol table
+    SymTable *table = symTableInit();
+
+    if (table == NULL) {
+        printf("$$ Failed to initialize symbol table\n");
+        return;
+    }
+
+    // Declare some variables
+    printf("$$ Declaring mutable variable 'X' of type I32\n");
+    symTableDeclareVariable(table, "X", dTypeI32, true);
+
+    printf("$$ Declaring immutable variable 'Y' of type F64\n");
+    symTableDeclareVariable(table, "Y", dTypeF64, false);
+
+    // Find the variables
+    SymVariable *varX = NULL;
+    SymVariable *varY = NULL;
+    SymVariable *varZ = NULL;
+
+    printf("$$ Searching for variable 'X'\n");
+    if (symTableFindVariable(table, "X", &varX)) {
+        printf("$$ Found variable 'X' of type %d: %s\n", varX->type, varX->type == dTypeI32 ? "(expected)" : "(unexpected)");
+    }
+
+    printf("$$ Searching for variable 'Y'\n");
+    if (symTableFindVariable(table, "Y", &varY)) {
+        printf("$$ Found variable 'Y' of type %d: %s\n", varY->type, varY->type == dTypeF64 ? "(expected)" : "(unexpected)");
+    }
+
+    // check for unknown variable
+    printf("$$ Searching for unknown variable 'Z'\n");
+    if (!symTableFindVariable(table, "Z", NULL)) {
+        printf("$$ Variable 'Z' not found\n");
+    } else {
+        printf("$$ Variable 'Z' found (unexpected)\n");
+    }
+
+    printf("$$ Adding a new variable 'Z' of type u8 to the global scope\n");
+    if (symTableDeclareVariable(table, "Z", dTypeU8, true)) {
+        printf("$$ Declared variable 'Z' in the global scope (expected)\n");
+    } else {
+        printf("$$ Failed to declare variable 'Z' in the global scope (unexpected)\n");
+    }
+
+    // Check if the variables can be mutated
+    printf("$$ Variable 'X' is %s : %s\n", symTableCanMutate(varX) ? "mutable" : "immutable", symTableCanMutate(varX) ? "(expected)" : "(unexpected)");
+    printf("$$ Variable 'Y' is %s : %s\n", symTableCanMutate(varY) ? "mutable" : "immutable", symTableCanMutate(varY) ? "(unexpected)" : "(expected)");
+
+    // try to exit the global scope
+    printf("$$ Exiting the global scope\n");
+    if (!symTableExitScope(table)) {
+        printf("$$ Failed to exit the global scope (expected)\n");
+    } else {
+        printf("$$ Exited the global scope (unexpected)\n");
+    }
+
+    // add a new scope
+    printf("$$ Adding a new scope\n");
+    if (symTableAddScope(table, SYM_FUNCTION)) {
+        printf("$$ Added a new scope (expected)\n");
+    } else {
+        printf("$$ Failed to add a new scope (unexpected)\n");
+    }
+
+    // add the same variable to the new scope
+    printf("$$ Declaring variable 'X' in the new scope\n");
+    if (symTableDeclareVariable(table, "X", dTypeI32, true)) {
+        printf("$$ Declared variable 'X' in the new scope (expected)\n");
+    } else {
+        printf("$$ Failed to declare variable 'X' in the new scope (unexpected)\n");
+    }
+
+    // find the variable in the new scope
+    printf("$$ Searching for variable 'X' in the new scope\n");
+    if (symTableFindVariable(table, "X", &varX)) {
+        printf("$$ Found variable 'X' in the new scope (expected)\n");
+    } else {
+        printf("$$ Variable 'X' not found in the new scope (unexpacted)\n");
+    }
+
+    // add the y variable, but mutable
+
+    printf("$$ Declaring mutable variable 'Y' in the new scope\n");
+    if (symTableDeclareVariable(table, "Y", dTypeF64, true)) {
+        printf("$$ Declared mutable variable 'Y' in the new scope (expected)\n");
+    } else {
+        printf("$$ Failed to declare mutable variable 'Y' in the new scope (unexpected)\n");
+    }
+
+    // find the Y variable in the new scope
+    printf("$$ Searching for variable 'Y' in the new scope\n");
+    if (symTableFindVariable(table, "Y", &varY)) {
+        printf("$$ Found variable 'Y' in the new scope (expected)\n");
+    } else {
+        printf("$$ Variable 'Y' not found in the new scope (unexpected)\n");
+    }
+
+    // check if the variable can be mutated
+    printf("$$ Variable 'Y' is %s : %s\n", symTableCanMutate(varY) ? "mutable" : "immutable", symTableCanMutate(varY) ? "(expected)" : "(unexpected)");
+
+    // try to find the Z variable
+    printf("$$ Searching for unknown variable 'Z' in the new scope\n");
+    if (symTableFindVariable(table, "Z", &varZ)) {
+        printf("$$ Variable 'Z' found in the new scope (expected)\n");
+    } else {
+        printf("$$ Variable 'Z' not found in the new scope (unexpected)\n");
+    }
+
+    printf("Variable 'Z' is of type %d : %s\n", varZ->type, varZ->type == dTypeU8 ? "(expected)" : "(unexpected)");
+    printf("Variable 'Z' is %s : %s\n", symTableCanMutate(varZ) ? "mutable" : "immutable", symTableCanMutate(varZ) ? "(expected)" : "(unexpected)");
+
+    // exit the new scope
+    printf("$$ Exiting the new scope\n");
+    if (symTableExitScope(table)) {
+        printf("$$ Exited the new scope (expected)\n");
+    } else {
+        printf("$$ Failed to exit the new scope (unexpected)\n");
+    }
+
+    // free the symbol table
+    printf("$$ Freeing the symbol table\n");
+    if (symTableFree(table)) {
+        printf("$$ Symbol table freed (expected)\n");
+    } else {
+        printf("$$ Failed to free the symbol table (unexpected)\n");
+    }
 }
 
 
 int main(void) {
 
     // Run the test cases
+    printf("\n=========== Test BST malloced ==========\n");
     test_case_1();
+    printf("\n=========== Test BST not malloced ==========\n");
     test_case_2();
+    printf("\n=========== Test SymTable ==========\n");
+    test_case_3();
 
     return 0;
 }
