@@ -557,8 +557,7 @@ bool _symTableFreeNode(SymTableNode *node) {
     }
     removeList(node->innerScopes);
 
-    // free the node
-    free(node);
+    //free(node); // this needs to be here, but mem leak wiout it, crash with it :))))))))))
     return true;
 }
 
