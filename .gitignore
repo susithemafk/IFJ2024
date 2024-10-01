@@ -3,3 +3,4 @@ main
 *.out
 susi.txt
 .DS_Store
+.vscode
