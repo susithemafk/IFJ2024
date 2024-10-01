@@ -1,3 +1,11 @@
+/** AUTHOR
+ * 
+ * @author <247581> Martin Mendl
+ * @file enumerations.c
+ * @date 28.9. 2024
+ * @brief Test file for the linked list implementation
+ */
+
 #include "utility/enumerations.h"
 #include <string.h>
 
@@ -65,5 +73,14 @@ enum KEY_WORDS_SRC _getEnumfromKeyWord(char *keyWord) {
     }
 
     return -1;
-
 }
+
+unsigned int hashString(const char* str) {
+    unsigned long hash = 5381;
+    int c;
+    while ((c = *str++)) {
+        hash = ((hash << 5) + hash) + c; // hash * 33 + c
+    }
+    return (unsigned int)hash;
+}
+

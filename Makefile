@@ -26,7 +26,10 @@ SRC_FILES = $(wildcard $(CODE_GEN_DIR)/*.c) \
             $(wildcard $(SRC_DIR)/*.c)
 
 # Linked list test source files
-LINKED_LIST_TEST_SRC = $(UTILITY_DIR)/linked_list.c $(TEST_DIR)/test_linked_list.c
+LINKED_LIST_TEST_SRC = $(wildcard $(UTILITY_DIR)/*.c) $(TEST_DIR)/test_linked_list.c
+
+# Binary search tree test source files
+BST_TEST_SRC = $(wildcard $(UTILITY_DIR)/*.c) $(SEMANTICAL_DIR)/symtable.c $(TEST_DIR)/test_symtable.c
 
 # Targets
 all: main
@@ -35,7 +38,7 @@ main: $(SRC_FILES)
 	$(CC) $(CFLAGS) $(INCLUDES) $(SRC_FILES) -o main
 
 clean:
-	rm -f main test_list
+	rm -f main test_list test_bst
 
 run: main
 	./main
@@ -48,3 +51,9 @@ test-list: $(LINKED_LIST_TEST_SRC)
 	$(CC) $(CFLAGS) $(INCLUDES) $(LINKED_LIST_TEST_SRC) -o test_list
 	./test_list
 	rm -f test_list
+
+# Compile and run the test for the binary search tree (BST)
+test-bst: $(BST_TEST_SRC)
+	$(CC) $(CFLAGS) $(INCLUDES) $(BST_TEST_SRC) -o test_bst
+	./test_bst
+	rm -f test_bst

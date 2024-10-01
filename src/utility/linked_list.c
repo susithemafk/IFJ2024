@@ -93,9 +93,7 @@ struct Node *_findNode(struct LinkedList *list, unsigned int index) {
 
 
     enum startPoint start = _findStartPoint(list->size, index);
-
     unsigned int maxAmountOfSteps = start == HEAD ? index : list->size - index -1;
-
     struct Node *node = start == HEAD ? list->head : list->tail;
 
     // go through the list
@@ -312,7 +310,6 @@ bool removeNodeAtIndex(struct LinkedList *list, int index) {
     if (list->freeData) {
         free(data);
     }
-
 
     return true;
 }
