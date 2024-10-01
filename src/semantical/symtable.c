@@ -325,7 +325,6 @@ void *bstSearchForNode(BST *tree, unsigned int key) {
     return NULL; // Key not found
 } 
 
-
 // ####################### SYMTABLE #######################
 
 
@@ -357,10 +356,9 @@ SymTable *symTableInit(void) {
     SymTable *table = (SymTable *)malloc(sizeof(SymTable));
     SymTableNode *globalScope = (SymTableNode *)malloc(sizeof(SymTableNode));
     BST *variables = bstInit((void (*)(void *))removeList);
-    LinkedList *innerScopes = initLinkedList(true);
-
+    
     // check if the memory was allocated
-    if (table == NULL | globalScope == NULL | variables == NULL | innerScopes == NULL) {
+    if (table == NULL | globalScope == NULL | variables == NULL) {
         return NULL;
     }
 
@@ -369,7 +367,7 @@ SymTable *symTableInit(void) {
     globalScope->key = 0; // key for the global scope
     globalScope->parent = NULL; // no parent
     globalScope->variables = variables; // link to variables
-    globalScope->innerScopes = innerScopes; // link to other scopes
+    globalScope->innerScope = NULL; // link to other scopes
 
     // fill the table
     table->root = globalScope;
@@ -380,7 +378,7 @@ SymTable *symTableInit(void) {
 }
 
 // Function to insert a new scope into the symbol table
-bool symTableAddScope(SymTable *table, enum SYMTABLE_NODE_TYPES type) {
+bool symTableMoveScopeDown(SymTable *table, enum SYMTABLE_NODE_TYPES type) {
 
     // check if the table is not NULL
     if (table == NULL) {
@@ -390,11 +388,10 @@ bool symTableAddScope(SymTable *table, enum SYMTABLE_NODE_TYPES type) {
     // create the new scope
     SymTableNode *newScope = (SymTableNode *)malloc(sizeof(SymTableNode));
     BST *variables = bstInit((void (*)(void *))removeList);
-    LinkedList *innerScopes = initLinkedList(true);
 
     // check if the memory was allocated
 
-    if (newScope == NULL | variables == NULL | innerScopes == NULL) {
+    if (newScope == NULL | variables == NULL) {
         return false;
     }
 
@@ -403,10 +400,10 @@ bool symTableAddScope(SymTable *table, enum SYMTABLE_NODE_TYPES type) {
     newScope->key = table->scopeCount; // key for the new scope
     newScope->parent = table->currentScope; // parent is the current scope
     newScope->variables = variables; // link to variables
-    newScope->innerScopes = innerScopes; // link to other scopes
+    newScope->innerScope = NULL; // link to other scopes
 
     // insert the new scope into the current scope
-    insertNodeAtIndex(table->currentScope->innerScopes, (void *)newScope, -1);
+    table->currentScope->innerScope = newScope;
 
     // update the current scope
     table->currentScope = newScope;
@@ -415,23 +412,78 @@ bool symTableAddScope(SymTable *table, enum SYMTABLE_NODE_TYPES type) {
     return true;
 }
 
+// helper function to find if all varaibles were accesed
+void _symTableTraverseVariables(TreeNode *node, bool *result) {
+
+    if (node == NULL || *result == false) {
+        return;
+    }
+
+    _symTableTraverseVariables(node->left, result);
+    _symTableTraverseVariables(node->right, result);
+
+    SymVariable *variable = (SymVariable *)node->data;
+
+    if (variable == NULL || variable->accesed == false) 
+        *result = false;
+
+    return;
+}
+
+
+// Function to check if all variables in the symbol table were accesed
+bool _symTableAllVariablesAccesed(SymTableNode *node) {
+
+    if (node == NULL) {
+        return true;
+    }
+
+    BST *variables = node->variables;
+
+    if (variables == NULL) {
+        return true;
+    }
+
+    bool result = true;
+
+    _symTableTraverseVariables(node->variables->root, &result);
+    
+    return result == true;
+}
+
 // Function to exit the current scope
-bool symTableExitScope(SymTable *table) {
+bool symTableExitScope(SymTable *table, enum ERR_CODES *returnCode) {
 
     // check if the table is not NULL
     if (table == NULL) {
         return false;
     }
 
-    // check if the current scope is the global scope
-    if (table->currentScope->parent == NULL) {
-        return false;
-    }
+    // need to remove the current scope
+    SymTableNode *currentScope = table->currentScope;
 
     // update the current scope
     table->currentScope = table->currentScope->parent;
+    table->scopeCount--;
+    table->currentScope->innerScope = NULL;
 
-    return true;
+    // check if all variables were accesed
+    if (_symTableAllVariablesAccesed(currentScope)) {
+        if (returnCode != NULL) {
+            *returnCode = E_NONE;
+        }
+    } else {
+        if (returnCode != NULL) {
+            *returnCode = E_SEMANTIC_UNUSED_VAR;
+        }
+    }
+
+
+    // free the current scope
+    bool result = bstFree(currentScope->variables);
+    free(currentScope);
+
+    return result;
 }
 
 // Function to insert a new
@@ -455,6 +507,7 @@ bool symTableDeclareVariable(SymTable *table, char *name, enum DATA_TYPES type, 
     newVariable->name = name;
     newVariable->type = type;
     newVariable->mutable = mutable;
+    newVariable->accesed = false;
 
     unsigned int hash = hashString(name);
 
@@ -482,6 +535,7 @@ bool symTableDeclareVariable(SymTable *table, char *name, enum DATA_TYPES type, 
     }
 
     // save the new variable to the list
+
     return insertNodeAtIndex((LinkedList *)sameHashVariables, (void *)newVariable, -1);
 }
 
@@ -520,6 +574,8 @@ bool symTableFindVariable(SymTable *table, char *name, SymVariable **returnData)
             if (returnData != NULL) 
                 *returnData = variable;
 
+            variable->accesed = true;
+
             return true;
         }
     }
@@ -535,30 +591,20 @@ bool symTableCanMutate(SymVariable *variable) {
     return variable->mutable;
 }
 
-bool _symTableFreeNode(SymTableNode *node) {
+void _symTableFreeNode(SymTableNode *node) {
     if (node == NULL) {
-        return true;
+        return;
     }
+
+    _symTableFreeNode(node->innerScope);
 
     // free the variables
     if (node->variables != NULL) {
         bstFree(node->variables);
     }
 
-    // free the inner scopes
-    if (node->innerScopes != NULL) {
-        unsigned int size = getSize(node->innerScopes);
-        for (unsigned int i = 0; i < size; i++) {
-            SymTableNode *innerScope = (SymTableNode *)getDataAtIndex(node->innerScopes, i);
-            if (innerScope != NULL) {
-                _symTableFreeNode(innerScope);
-            }
-        }
-    }
-    removeList(node->innerScopes);
-
-    //free(node); // this needs to be here, but mem leak wiout it, crash with it :))))))))))
-    return true;
+    free(node); // this needs to be here, but mem leak wiout it, crash with it :))))))))))
+    return;
 }
 
 // Function to free the symbol table

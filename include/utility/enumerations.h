@@ -16,6 +16,9 @@
  * They are used as return values 
  */
 enum ERR_CODES {
+    E_NONE = 0, /*
+        no error
+    */
     E_LEXICAL = 1, /*
         lexical error
     */ 

@@ -152,17 +152,9 @@ void test_case_3(void) {
     printf("$$ Variable 'X' is %s : %s\n", symTableCanMutate(varX) ? "mutable" : "immutable", symTableCanMutate(varX) ? "(expected)" : "(unexpected)");
     printf("$$ Variable 'Y' is %s : %s\n", symTableCanMutate(varY) ? "mutable" : "immutable", symTableCanMutate(varY) ? "(unexpected)" : "(expected)");
 
-    // try to exit the global scope
-    printf("$$ Exiting the global scope\n");
-    if (!symTableExitScope(table)) {
-        printf("$$ Failed to exit the global scope (expected)\n");
-    } else {
-        printf("$$ Exited the global scope (unexpected)\n");
-    }
-
     // add a new scope
     printf("$$ Adding a new scope\n");
-    if (symTableAddScope(table, SYM_FUNCTION)) {
+    if (symTableMoveScopeDown(table, SYM_FUNCTION)) {
         printf("$$ Added a new scope (expected)\n");
     } else {
         printf("$$ Failed to add a new scope (unexpected)\n");
@@ -212,16 +204,29 @@ void test_case_3(void) {
         printf("$$ Variable 'Z' not found in the new scope (unexpected)\n");
     }
 
-    printf("Variable 'Z' is of type %d : %s\n", varZ->type, varZ->type == dTypeU8 ? "(expected)" : "(unexpected)");
-    printf("Variable 'Z' is %s : %s\n", symTableCanMutate(varZ) ? "mutable" : "immutable", symTableCanMutate(varZ) ? "(expected)" : "(unexpected)");
+
+    printf("$$ Variable 'Z' is of type %d : %s\n", varZ->type, varZ->type == dTypeU8 ? "(expected)" : "(unexpected)");
+    printf("$$ Variable 'Z' is %s : %s\n", symTableCanMutate(varZ) ? "mutable" : "immutable", symTableCanMutate(varZ) ? "(expected)" : "(unexpected)");
+
+    // delcare variable Z in the curretn scope, that will not be used
+    printf("$$ Declaring variable 'Z' in the current scope\n");
+    if (symTableDeclareVariable(table, "Z", dTypeU8, true)) {
+        printf("$$ Declared variable 'Z' in the current scope (expected)\n");
+    } else {
+        printf("$$ Failed to declare variable 'Z' in the current scope (unexpected)\n");
+    }
+
+    enum ERR_CODES code;
 
     // exit the new scope
     printf("$$ Exiting the new scope\n");
-    if (symTableExitScope(table)) {
+    if (symTableExitScope(table, &code)) {
         printf("$$ Exited the new scope (expected)\n");
     } else {
         printf("$$ Failed to exit the new scope (unexpected)\n");
     }
+
+    printf("$$ exit code: %d : %s\n", code, code == E_SEMANTIC_UNUSED_VAR ? "(expected)" : "(unexpected)");
 
     // free the symbol table
     printf("$$ Freeing the symbol table\n");

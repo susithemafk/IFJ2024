@@ -149,15 +149,6 @@ bool bstBalanceTree(BST *tree);
 */
 TreeNode *_bstRotLeft(TreeNode *root);
 
-/**
- * Rotates the tree to the right
- * 
- * @param root - pointer to the root of the subtree
- * @note this function is internal
- * @return pointer to the new root of the subtree
-*/
-TreeNode *_bstRotRight(TreeNode *root);
-
 // ####################### SYMTABLE #######################
 
 
@@ -176,6 +167,7 @@ typedef struct SymVariable {
     // void *value; // the value of the variable, not needed?
     enum DATA_TYPES type; // the type of the variable
     bool mutable; // if the variable is mutable (constants will have this false)
+    bool accesed; // if the variable was accessed
 } SymVariable;
 
 /**
@@ -191,7 +183,7 @@ typedef struct SymTableNode {
     unsigned int key;
     struct SymTableNode *parent;
     BST *variables;
-    LinkedList *innerScopes;
+    struct SymTableNode *innerScope;
 } SymTableNode;
 
 /**
@@ -218,7 +210,7 @@ SymTable *symTableInit(void);
  * @param type - type of the scope
  * @return true, if the scope was successfully inserted, false otherwise
 */
-bool symTableAddScope(SymTable *table, enum SYMTABLE_NODE_TYPES type);
+bool symTableMoveScopeDown(SymTable *table, enum SYMTABLE_NODE_TYPES type);
 
 /**
  * Function to exit the current scope
@@ -226,7 +218,7 @@ bool symTableAddScope(SymTable *table, enum SYMTABLE_NODE_TYPES type);
  * @param table - pointer to the symbol table
  * @return true, if the scope was successfully exited, false otherwise
 */
-bool symTableExitScope(SymTable *table);
+bool symTableExitScope(SymTable *table, enum ERR_CODES *returnCode);
 
 /**
  * Insert a new variable to the current scope
@@ -280,7 +272,24 @@ bool symTableFree(SymTable *table);
  * @param node - pointer to the symTableNode
  * @return true, if the node was successfully freed, false otherwise
 */
-bool _symTableFreeNode(SymTableNode *node);
+void _symTableFreeNode(SymTableNode *node);
+
+/**
+ * Function to check, if all the variables in the node ware accessed
+ * 
+ * @param node - pointer to the symTableNode
+*/
+bool _symTableAllVariablesAccesed(SymTableNode *node);
+
+/**
+ * Function to tranarse the variable tree
+ * 
+ * @param node - pointer to the symTableNode
+ * @param result - pointer to the result
+ * @note this function is internal
+ * @return void
+*/
+void _symTableTraverseVariables(TreeNode *node, bool *result);
 
 
 #endif // SYMTABLE_H
