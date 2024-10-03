@@ -25,7 +25,7 @@
 */
 typedef struct ASTNode {
     unsigned int key;
-    void *data; // holds the info, about the block, of the node
+    TOKEN data; // holds the info, about the block, of the node
     struct LinkedList *children; // holds the children of the node
     struct ASTNode *parent; // holds the parent of the node
 } *ASTNodePtr;
@@ -54,6 +54,7 @@ typedef struct AST {
  * @return pointer to the new node
 */
 ASTNodePtr _astCreateNewNode(unsigned int key, void *data, ASTNodePtr parent);
+
 
 /**
  * Init function for the AST

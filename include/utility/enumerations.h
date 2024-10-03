@@ -63,6 +63,7 @@ enum ERR_CODES {
  * @brief Struct for token, representing a meaningful part of the code
  */
 typedef struct TOKEN {
+    enum KEY_WORDS_TYPES keyWord; // the key word of the token
     char* value; // the value of the token
 } TOKEN;
 
@@ -85,6 +86,7 @@ enum KEY_WORDS_TYPES {
     WT_VAR = 10,
     WT_VOID = 11,
     WT_WHILE = 12,
+    WT_UNKNOWN = 13
 };
 
 enum DATA_TYPES {
