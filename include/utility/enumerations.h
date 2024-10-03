@@ -68,22 +68,23 @@ typedef struct TOKEN {
 
 /**
  * @brief Enums for key words
- * @note used in condunction with some func
+ * @note used in condunction with some functions
+ * @note WT stands for Word Type
  */
-enum KEY_WORDS_SRC {
-    W_CONST = 0,
-    W_ELSE = 1,
-    W_FN = 2,
-    W_IF = 3,
-    W_I32 = 4,
-    W_F64 = 5,
-    W_NULL = 6,
-    W_PUB = 7,
-    W_RETURN = 8,
-    W_U8 = 9,
-    W_VAR = 10,
-    W_VOID = 11,
-    W_WHILE = 12,
+enum KEY_WORDS_TYPES {
+    WT_CONST = 0,
+    WT_ELSE = 1,
+    WT_FN = 2,
+    WT_IF = 3,
+    WT_I32 = 4,
+    WT_F64 = 5,
+    WT_NULL = 6,
+    WT_PUB = 7,
+    WT_RETURN = 8,
+    WT_U8 = 9,
+    WT_VAR = 10,
+    WT_VOID = 11,
+    WT_WHILE = 12,
 };
 
 enum DATA_TYPES {
@@ -98,7 +99,7 @@ enum DATA_TYPES {
  * @param keyWord The key, for which the string should be returned
  * @return The string representation of the key word
  */
-char *_getKeyWordFromString(enum KEY_WORDS_SRC keyWord);
+char *_getKeyWordFromString(enum KEY_WORDS_TYPES keyWord);
 
 /**
  * Return the coresponding enum keyWord for the string
@@ -106,7 +107,7 @@ char *_getKeyWordFromString(enum KEY_WORDS_SRC keyWord);
  * @param keyWord The string, for which the key should be returned
  * @return The enum representation of the key word, or -1 if the key word is not found
  */
-enum KEY_WORDS_SRC _getEnumfromKeyWord(char *keyWord);
+enum KEY_WORDS_TYPES _getEnumfromKeyWord(char *keyWord);
 
 /**
  * Function to hash a string

@@ -9,67 +9,67 @@
 #include "utility/enumerations.h"
 #include <string.h>
 
-char *_getKeyWordFromString(enum KEY_WORDS_SRC keyWord) {
+char *_getKeyWordFromString(enum KEY_WORDS_TYPES keyWord) {
     switch (keyWord) {
-        case W_CONST:
+        case WT_CONST:
             return "const";
-        case W_ELSE:
+        case WT_ELSE:
             return "else";
-        case W_FN:
+        case WT_FN:
             return "fn";
-        case W_IF:
+        case WT_IF:
             return "if";
-        case W_I32:
+        case WT_I32:
             return "i32";
-        case W_F64:
+        case WT_F64:
             return "f64";
-        case W_NULL:
+        case WT_NULL:
             return "null";
-        case W_PUB:
+        case WT_PUB:
             return "pub";
-        case W_RETURN:
+        case WT_RETURN:
             return "return";
-        case W_U8:
+        case WT_U8:
             return "u8";
-        case W_VAR:
+        case WT_VAR:
             return "var";
-        case W_VOID:
+        case WT_VOID:
             return "void";
-        case W_WHILE:
+        case WT_WHILE:
             return "while";
         default:
             return "unknown";
     }
 }
 
-enum KEY_WORDS_SRC _getEnumfromKeyWord(char *keyWord) {
+enum KEY_WORDS_TYPES _getEnumfromKeyWord(char *keyWord) {
 
     if (strcmp(keyWord, "const") == 0) {
-        return W_CONST;
+        return WT_CONST;
     } else if (strcmp(keyWord, "else") == 0) {
-        return W_ELSE;
+        return WT_ELSE;
     } else if (strcmp(keyWord, "fn") == 0) {
-        return W_FN;
+        return WT_FN;
     } else if (strcmp(keyWord, "if") == 0) {
-        return W_IF;
+        return WT_IF;
     } else if (strcmp(keyWord, "i32") == 0) {
-        return W_I32;
+        return WT_I32;
     } else if (strcmp(keyWord, "f64") == 0) {
-        return W_F64;
+        return WT_F64;
     } else if (strcmp(keyWord, "null") == 0) {
-        return W_NULL;
+        return WT_NULL;
     } else if (strcmp(keyWord, "pub") == 0) {
-        return W_PUB;
+        return WT_PUB;
     } else if (strcmp(keyWord, "return") == 0) {
-        return W_RETURN;
+        return WT_RETURN;
     } else if (strcmp(keyWord, "u8") == 0) {
-        return W_U8;
+        return WT_U8;
     } else if (strcmp(keyWord, "var") == 0) {
-        return W_VAR;
+        return WT_VAR;
     } else if (strcmp(keyWord, "void") == 0) {
-        return W_VOID;
+        return WT_VOID;
     } else if (strcmp(keyWord, "while") == 0) {
-        return W_WHILE;
+        return WT_WHILE;
     }
 
     return -1;

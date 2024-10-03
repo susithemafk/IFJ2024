@@ -115,45 +115,6 @@ bool bstBalanceTree(BST *tree) {
     return true; // Tree is balanced
 }
 
-// Internal function for freeing a node
-bool _bstFreeNode(TreeNode *node, void (*freeFunction)(void *data)) {
-    if (node == NULL) {
-        return true; // Base case: nothing to free
-    }
-
-    // Recursively free the left and right subtrees
-    if (!_bstFreeNode(node->left, freeFunction) || !_bstFreeNode(node->right, freeFunction)) {
-        return false; // Return false if any recursive call fails
-    }
-
-    // Free the data if a free function is provided
-    if (freeFunction != NULL && node->data != NULL) {
-        freeFunction(node->data);  // Call the function pointer to free the data
-    }
-
-    // Free the node itself
-    free(node);
-
-    return true; // Success
-}
-
-
-// Function to free the whole tree
-bool bstFree(BST *tree) {
-    if (tree == NULL) {
-        return false; // Handle null tree pointer
-    }
-
-    // Free the root node (and all sub-nodes)
-    bool result = _bstFreeNode(tree->root, tree->freeFunction);
-
-    // Free the tree structure itself
-    free(tree);
-
-    return result; // Return the result of freeing nodes
-}
-
-
 // Function to insert a node, to the tree
 bool bstInsertNode(BST *tree, unsigned int key, void *data) {
 
@@ -325,6 +286,45 @@ void *bstSearchForNode(BST *tree, unsigned int key) {
     return NULL; // Key not found
 } 
 
+
+// Internal function for freeing a node
+bool _bstFreeNode(TreeNode *node, void (*freeFunction)(void *data)) {
+    if (node == NULL) {
+        return true; // Base case: nothing to free
+    }
+
+    // Recursively free the left and right subtrees
+    if (!_bstFreeNode(node->left, freeFunction) || !_bstFreeNode(node->right, freeFunction)) {
+        return false; // Return false if any recursive call fails
+    }
+
+    // Free the data if a free function is provided
+    if (freeFunction != NULL && node->data != NULL) {
+        freeFunction(node->data);  // Call the function pointer to free the data
+    }
+
+    // Free the node itself
+    free(node);
+
+    return true; // Success
+}
+
+
+// Function to free the whole tree
+bool bstFree(BST *tree) {
+    if (tree == NULL) {
+        return false; // Handle null tree pointer
+    }
+
+    // Free the root node (and all sub-nodes)
+    bool result = _bstFreeNode(tree->root, tree->freeFunction);
+
+    // Free the tree structure itself
+    free(tree);
+
+    return result; // Return the result of freeing nodes
+}
+
 // ####################### SYMTABLE #######################
 
 
@@ -457,6 +457,14 @@ bool symTableExitScope(SymTable *table, enum ERR_CODES *returnCode) {
     // check if the table is not NULL
     if (table == NULL) {
         return false;
+    }
+
+    // in case we are trying to exit the global scope
+    if (
+        table->currentScope->innerScope == NULL && 
+        table->currentScope->type == SYM_GLOBAL) {
+        symTableFree(table);
+        return true;
     }
 
     // need to remove the current scope
