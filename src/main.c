@@ -12,8 +12,24 @@
 #include <string.h>
 #include "utility/enumerations.h"
 
-int main(void) {
+#include "lexical/scanner.h"
 
-	printf("Hello world \n");
+static enum ERR_CODES status;
+static TOKEN token;
+
+int main()
+{
+	FILE *input = stdin;
+	scanner_init(input);
+
+	status = scanner_get_token(&token);
+
+	while (status == SUCCESS && token.type != TOKEN_EOF)
+	{
+		// printf("Token type: %d\n", token.type);
+		printf("Token value: %s\n", token.value);
+		status = scanner_get_token(&token);
+	}
+
 	return 0;
 }
