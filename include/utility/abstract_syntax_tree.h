@@ -25,7 +25,7 @@
 */
 typedef struct ASTNode {
     unsigned int key;
-    TOKEN data; // holds the info, about the block, of the node
+    struct TOKEN data; // holds the info, about the block, of the node
     struct LinkedList *children; // holds the children of the node
     struct ASTNode *parent; // holds the parent of the node
 } *ASTNodePtr;
@@ -53,18 +53,17 @@ typedef struct AST {
  * @note This function is internal
  * @return pointer to the new node
 */
-ASTNodePtr _astCreateNewNode(unsigned int key, void *data, ASTNodePtr parent);
+ASTNodePtr _astCreateNewNode(unsigned int key, struct TOKEN data, ASTNodePtr parent);
 
 
 /**
  * Init function for the AST
  * 
  * @param freeFunctionData - Function pointer for freeing node data
- * @param startIdx - index of the starting node
  * @note after inti, the tree will be empty, need to use astAddChild to add the first node
  * @return pointer to the initialized AST
 */
-ASTPtr astInit(void (*freeFunctionData)(void *data), unsigned int startIdx);
+ASTPtr astInit(void (*freeFunctionData)(void *data));
 
 /**
  * Function to add a node to as a child node at the end of the children list
@@ -75,7 +74,7 @@ ASTPtr astInit(void (*freeFunctionData)(void *data), unsigned int startIdx);
  * @note if the tree is empty, the first node will be added as the root
  * @return true, if the data was successfully inserted, false otherwise
 */
-bool astAddChildToCurrent(ASTPtr tree, void *data, bool switchTo);
+bool astAddChildToCurrent(ASTPtr tree, struct TOKEN data, bool switchTo);
 
 /**
  * Function to add a node next to the current node
@@ -86,7 +85,7 @@ bool astAddChildToCurrent(ASTPtr tree, void *data, bool switchTo);
  * @note if the tree is empty, nothing will be added
  * @return true, if the data was successfully inserted, false otherwise
 */
-bool astAddNextToCurrent(ASTPtr tree, void *data, bool switchTo);
+bool astAddNextToCurrent(ASTPtr tree, struct TOKEN data, bool switchTo);
 
 /**
  * Function to switch the current node to the parent node

@@ -358,7 +358,7 @@ SymTable *symTableInit(void) {
     BST *variables = bstInit((void (*)(void *))removeList);
     
     // check if the memory was allocated
-    if (table == NULL | globalScope == NULL | variables == NULL) {
+    if (table == NULL || globalScope == NULL || variables == NULL) {
         return NULL;
     }
 
@@ -391,7 +391,7 @@ bool symTableMoveScopeDown(SymTable *table, enum SYMTABLE_NODE_TYPES type) {
 
     // check if the memory was allocated
 
-    if (newScope == NULL | variables == NULL) {
+    if (newScope == NULL || variables == NULL) {
         return false;
     }
 
@@ -497,9 +497,14 @@ bool symTableExitScope(SymTable *table, enum ERR_CODES *returnCode) {
 // Function to insert a new
 bool symTableDeclareVariable(SymTable *table, char *name, enum DATA_TYPES type, bool mutable) {
 
-    // check if the table is not NULL
+    // check if the table is not NULL, and the current scope is not the global scope
+    if (table == NULL || table->currentScope->type == SYM_GLOBAL) {
+        return false;
+    }
 
-    if (table == NULL) {
+    // need to find out, if the variable is allready defined, in the current scope
+    SymVariable *var = NULL;
+    if (symTableFindVariable(table, name, &var)) {
         return false;
     }
 
@@ -536,14 +541,7 @@ bool symTableDeclareVariable(SymTable *table, char *name, enum DATA_TYPES type, 
 
     // in here, we have a list of variables, with the same hash
 
-    // variable with the same name is allready defined, in the current scope
-    if (_searchForVarSameHash((LinkedList *)sameHashVariables, name)) {
-        free(newVariable);
-        return false;
-    }
-
     // save the new variable to the list
-
     return insertNodeAtIndex((LinkedList *)sameHashVariables, (void *)newVariable, -1);
 }
 
@@ -611,7 +609,7 @@ void _symTableFreeNode(SymTableNode *node) {
         bstFree(node->variables);
     }
 
-    free(node); // this needs to be here, but mem leak wiout it, crash with it :))))))))))
+    free(node);
     return;
 }
 

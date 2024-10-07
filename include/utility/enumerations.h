@@ -59,13 +59,7 @@ enum ERR_CODES {
     */
 };
 
-/**
- * @brief Struct for token, representing a meaningful part of the code
- */
-typedef struct TOKEN {
-    enum KEY_WORDS_TYPES keyWord; // the key word of the token
-    char* value; // the value of the token
-} TOKEN;
+
 
 /**
  * @brief Enums for key words
@@ -88,6 +82,66 @@ enum KEY_WORDS_TYPES {
     WT_WHILE = 12,
     WT_UNKNOWN = 13
 };
+
+typedef enum
+{
+    TOKEN_NONE,           // No token
+    TOKEN_IDENTIFIER,     // Identifier (variable/function name)
+    TOKEN_EOF,            // End of file
+
+    TOKEN_PLUS,           // "+"
+    TOKEN_MINUS,          // "-"
+    TOKEN_DIVIDE,         // "/"
+    TOKEN_INT_DIVIDE,     // "//"
+    TOKEN_MULTIPLY,       // "*"
+    TOKEN_EQUALS,         // "="
+
+    // literals
+    TOKEN_INTEGER_LIT,    // Integer literal
+    TOKEN_DOUBLE_LIT,     // Double literal
+    TOKEN_STRING_LIT,     // String literal
+
+    TOKEN_LT,             // "<"
+    TOKEN_LEQ,            // "<="
+    TOKEN_GT,             // ">"
+    TOKEN_GEQ,            // ">="
+    TOKEN_NEQ,            // "!="
+
+    /**
+     * Keywords: const, else, fn, if, i32, f64, null, pub, return, u8, var, void, while
+     */
+    TOKEN_CONST,          // "const"
+    TOKEN_ELSE,           // "else"
+    TOKEN_FN,             // "fn"
+    TOKEN_IF,             // "if"
+    TOKEN_I32,            // "i32"
+    TOKEN_F64,            // "f64"
+    TOKEN_NULL,           // "null"
+    TOKEN_PUB,            // "pub"
+    TOKEN_RETURN,         // "return"
+    TOKEN_U8,             // "u8"
+    TOKEN_VAR,            // "var"
+    TOKEN_VOID,           // "void"
+    TOKEN_WHILE,          // "while"
+
+    TOKEN_CONCATENATE,    // Concatenation operator
+    TOKEN_GET_LENGTH,     // Get length operator
+    TOKEN_ASSIGN,         // Assignment operator
+    TOKEN_COLON,          // ":"
+    TOKEN_COMMA,          // ","
+    TOKEN_PAR_L,          // "("
+    TOKEN_PAR_R,          // ")"
+} TokenType;
+
+/**
+ * @brief Struct for token, representing a meaningful part of the code
+ */
+typedef struct TOKEN {
+    char *str;
+    TokenType type;
+    unsigned lineNumber;
+    unsigned characterNumber;
+} Token;
 
 enum DATA_TYPES {
     dTypeI32,

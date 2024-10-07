@@ -15,7 +15,7 @@
 #include "utility/enumerations.h"
 
 // Internal function to create a new node
-ASTNodePtr _astCreateNewNode(unsigned int key, void *data, ASTNodePtr parent) {
+ASTNodePtr _astCreateNewNode(unsigned int key, struct TOKEN data, ASTNodePtr parent) {
 
     // alocate the memeory for the new node
     ASTNodePtr newNode = (ASTNodePtr)malloc(sizeof(struct ASTNode));
@@ -43,7 +43,7 @@ ASTNodePtr _astCreateNewNode(unsigned int key, void *data, ASTNodePtr parent) {
 }
 
 // Function to init the AST
-ASTPtr astInit(void (*freeFunctionData)(void *data), unsigned int startIdx) {
+ASTPtr astInit(void (*freeFunctionData)(void *data)) {
 
     // allocate the mem for the tree
     ASTPtr tree = (ASTPtr)malloc(sizeof(struct AST));
@@ -63,7 +63,7 @@ ASTPtr astInit(void (*freeFunctionData)(void *data), unsigned int startIdx) {
 }
 
 // Function to add a child to the tree, at the current node
-bool astAddChildToCurrent(ASTPtr tree, void *data, bool switchTo) {
+bool astAddChildToCurrent(ASTPtr tree, struct TOKEN data, bool switchTo) {
 
     // chekc if the tree is valid
     if (tree == NULL) {
@@ -101,7 +101,7 @@ bool astAddChildToCurrent(ASTPtr tree, void *data, bool switchTo) {
 }
 
 // Function to add a node next to the current node
-bool astAddNextToCurrent(ASTPtr tree, void *data, bool switchTo) {
+bool astAddNextToCurrent(ASTPtr tree, struct TOKEN data, bool switchTo) {
 
     // check, if the tree is valid
     if (tree == NULL || tree->current == NULL || tree->size == 0) {
@@ -128,9 +128,7 @@ bool astAddNextToCurrent(ASTPtr tree, void *data, bool switchTo) {
     tree->size++;
 
     return true;
-
 }
-
 
 // Function to switch the current node to the parent node
 bool astSwitchToParent(ASTPtr tree) {
@@ -194,7 +192,7 @@ ASTNodePtr astSearchForNode(ASTPtr tree, unsigned int key) {
     for (unsigned int i = 0; i < size; i++) {
         ASTNodePtr node = (ASTNodePtr)getDataAtIndex(list, i);
         if (node->key == key) {
-            return node->data;
+            return node;
         }
     }
 
@@ -219,11 +217,6 @@ bool _astFree(ASTNodePtr node) {
     // at this point, we know, that all the children are freed
     removeList(node->children);
 
-    // free the data
-    if (node->data != NULL) {
-        free(node->data);
-    }
-
     // free the node
     free(node);
 
@@ -246,6 +239,5 @@ bool astFree(ASTPtr tree) {
     // free the tree
     free(tree);
 
-    return true;
+    return result;
 }
-
