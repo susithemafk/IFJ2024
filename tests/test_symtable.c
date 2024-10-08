@@ -13,7 +13,8 @@
 
 
 void test_case_1(void) {
-    unsigned int testNumber = 1;
+
+    TestInstancePtr testInstance = initTestInstance("Binary Search Tree (BST) Test with ints, malloc");
 
     // Create a new tree with freeData = free (free data when nodes are removed)
     BST *tree = bstInit(free);
@@ -29,7 +30,7 @@ void test_case_1(void) {
 
     // Insert node with key 10 and data 10
     testCase(
-        &testNumber,
+        testInstance,
         bstInsertNode(tree, 10, data1),
         "Inserting node with key 10 and data 10",
         "Successfully inserted node with key 10 (expected)",
@@ -38,7 +39,7 @@ void test_case_1(void) {
 
     // Insert node with key 20 and data 20
     testCase(
-        &testNumber,
+        testInstance,
         bstInsertNode(tree, 20, data2),
         "Inserting node with key 20 and data 20",
         "Successfully inserted node with key 20 (expected)",
@@ -47,7 +48,7 @@ void test_case_1(void) {
 
     // Insert node with key 5 and data 5
     testCase(
-        &testNumber,
+        testInstance,
         bstInsertNode(tree, 5, data3),
         "Inserting node with key 5 and data 5",
         "Successfully inserted node with key 5 (expected)",
@@ -57,7 +58,7 @@ void test_case_1(void) {
     // Test search for key 20
     int *searchResult = (int *)bstSearchForNode(tree, 20);
     testCase(
-        &testNumber,
+        testInstance,
         searchResult != NULL,
         "Searching for node with key 20",
         "Found node with key 20 (expected)",
@@ -70,7 +71,7 @@ void test_case_1(void) {
     // Test search for key 5
     searchResult = (int *)bstSearchForNode(tree, 5);
     testCase(
-        &testNumber,
+        testInstance,
         searchResult != NULL,
         "Searching for node with key 5",
         "Found node with key 5 (expected)",
@@ -83,7 +84,7 @@ void test_case_1(void) {
     // Test search for key 10
     searchResult = (int *)bstSearchForNode(tree, 10);
     testCase(
-        &testNumber,
+        testInstance,
         searchResult != NULL,
         "Searching for node with key 10",
         "Found node with key 10 (expected)",
@@ -96,7 +97,7 @@ void test_case_1(void) {
     // Test search for key 15 (not in the tree)
     searchResult = (int *)bstSearchForNode(tree, 15);
     testCase(
-        &testNumber,
+        testInstance,
         searchResult == NULL,
         "Searching for node with key 15 (not in the tree)",
         "Node with key 15 not found (expected)",
@@ -106,7 +107,7 @@ void test_case_1(void) {
     // Test remove node with key 10
     bool removeResult = bstRemoveNode(tree, 10);
     testCase(
-        &testNumber,
+        testInstance,
         removeResult,
         "Removing node with key 10",
         "Successfully removed node with key 10 (expected)",
@@ -118,7 +119,7 @@ void test_case_1(void) {
     int *removedData = NULL;
     removeResult = bstPopNode(tree, 20, (void *)&removedData);
     testCase(
-        &testNumber,
+        testInstance,
         removeResult,
         "Popping node with key 20",
         "Successfully popped node with key 20 (expected)",
@@ -131,7 +132,7 @@ void test_case_1(void) {
     // Test search for key 20 after removal
     searchResult = (int *)bstSearchForNode(tree, 20);
     testCase(
-        &testNumber,
+        testInstance,
         searchResult == NULL,
         "Searching for node with key 20 after removal",
         "Node with key 20 not found (expected)",
@@ -141,7 +142,7 @@ void test_case_1(void) {
     // Free the entire tree (and its data)
     bool freeResult = bstFree(tree);
     testCase(
-        &testNumber,
+        testInstance,
         freeResult,
         "Freeing the binary search tree",
         "Tree freed successfully (expected)",
@@ -151,11 +152,14 @@ void test_case_1(void) {
 
     // Free the remaining data that was manually popped
     free(removedData);
+
+    finishTestInstance(testInstance);
 }
 
 
 void test_case_2(void) {
-    unsigned int testNumber = 1;
+
+    TestInstancePtr testInstance = initTestInstance("Binary Search Tree (BST) Test with chars, no malloc");
 
     // Create a new tree with freeData = NULL (no free function for data)
     BST *tree = bstInit(NULL);
@@ -167,7 +171,7 @@ void test_case_2(void) {
 
     // Insert node 1 with 'A'
     testCase(
-        &testNumber,
+        testInstance,
         bstInsertNode(tree, 1, &data1),
         "Inserting node with key 1 and data 'A'",
         "Successfully inserted node with key 1 (expected)",
@@ -176,7 +180,7 @@ void test_case_2(void) {
 
     // Insert node 2 with 'B'
     testCase(
-        &testNumber,
+        testInstance,
         bstInsertNode(tree, 2, &data2),
         "Inserting node with key 2 and data 'B'",
         "Successfully inserted node with key 2 (expected)",
@@ -185,7 +189,7 @@ void test_case_2(void) {
 
     // Insert node 3 with 'C'
     testCase(
-        &testNumber,
+        testInstance,
         bstInsertNode(tree, 3, &data3),
         "Inserting node with key 3 and data 'C'",
         "Successfully inserted node with key 3 (expected)",
@@ -195,7 +199,7 @@ void test_case_2(void) {
     // Test search for key 1
     char *searchResult = (char *)bstSearchForNode(tree, 1);
     testCase(
-        &testNumber,
+        testInstance,
         searchResult != NULL,
         "Searching for node with key 1",
         "Found node with key 1 (expected)",
@@ -208,7 +212,7 @@ void test_case_2(void) {
     // Test search for key 2
     searchResult = (char *)bstSearchForNode(tree, 2);
     testCase(
-        &testNumber,
+        testInstance,
         searchResult != NULL,
         "Searching for node with key 2",
         "Found node with key 2 (expected)",
@@ -221,7 +225,7 @@ void test_case_2(void) {
     // Test search for key 3
     searchResult = (char *)bstSearchForNode(tree, 3);
     testCase(
-        &testNumber,
+        testInstance,
         searchResult != NULL,
         "Searching for node with key 3",
         "Found node with key 3 (expected)",
@@ -234,7 +238,7 @@ void test_case_2(void) {
     // Test remove node with key 1
     bool removeResult = bstRemoveNode(tree, 1);
     testCase(
-        &testNumber,
+        testInstance,
         removeResult,
         "Removing node with key 1",
         "Successfully removed node with key 1 (expected)",
@@ -246,7 +250,7 @@ void test_case_2(void) {
     char *removedData = NULL;
     removeResult = bstPopNode(tree, 2, (void *)&removedData);
     testCase(
-        &testNumber,
+        testInstance,
         removeResult,
         "Popping node with key 2",
         "Successfully popped node with key 2 (expected)",
@@ -259,7 +263,7 @@ void test_case_2(void) {
     // Test search for key 2 after removal
     searchResult = (char *)bstSearchForNode(tree, 2);
     testCase(
-        &testNumber,
+        testInstance,
         searchResult == NULL,
         "Searching for node with key 2 after removal",
         "Node with key 2 not found (expected)",
@@ -269,24 +273,27 @@ void test_case_2(void) {
     // Free the tree (without freeing data)
     bool freeResult = bstFree(tree);
     testCase(
-        &testNumber,
+        testInstance,
         freeResult,
         "Freeing the binary search tree",
         "Tree freed successfully (expected)",
         "Failed to free the tree (unexpected)"
     );
     printf("$$ Tree freed: %s\n", freeResult ? "Success" : "Failure");
+
+    finishTestInstance(testInstance);
 }
 
 
 
 void test_case_3(void) {
-    unsigned int testNumber = 1;
+
+    TestInstancePtr testInstance = initTestInstance("Symbol Table Tests");
 
     // Initialize a new symbol table
     SymTable *table = symTableInit();
     testCase(
-        &testNumber,
+        testInstance,
         table != NULL,
         "Initializing a new symbol table",
         "Successfully initialized a new symbol table (expected)",
@@ -295,7 +302,7 @@ void test_case_3(void) {
 
     // Test that declaring variables in the global scope fails
     testCase(
-        &testNumber,
+        testInstance,
         !symTableDeclareVariable(table, "X", dTypeI32, true),
         "Attempting to declare variable 'X' in the global scope (should fail)",
         "Correctly failed to declare 'X' in the global scope (expected)",
@@ -304,7 +311,7 @@ void test_case_3(void) {
 
     // Add a new scope (e.g., function)
     testCase(
-        &testNumber,
+        testInstance,
         symTableMoveScopeDown(table, SYM_FUNCTION),
         "Adding a new function scope",
         "Successfully added a new function scope (expected)",
@@ -313,7 +320,7 @@ void test_case_3(void) {
 
     // Declare variable 'X' inside the function scope
     testCase(
-        &testNumber,
+        testInstance,
         symTableDeclareVariable(table, "X", dTypeI32, true),
         "Declaring variable 'X' in the function scope",
         "Successfully declared 'X' in the function scope (expected)",
@@ -322,7 +329,7 @@ void test_case_3(void) {
 
     // Move down to a new scope (e.g., inside a block)
     testCase(
-        &testNumber,
+        testInstance,
         symTableMoveScopeDown(table, SYM_IF),
         "Adding a new block scope inside the function",
         "Successfully added a block scope (expected)",
@@ -331,7 +338,7 @@ void test_case_3(void) {
 
     // Redeclare variable 'X' in the block scope (should fail)
     testCase(
-        &testNumber,
+        testInstance,
         !symTableDeclareVariable(table, "X", dTypeI32, true),
         "Attempting to redeclare variable 'X' in the block scope (should fail)",
         "Correctly failed to redeclare 'X' in the block scope (expected)",
@@ -340,7 +347,7 @@ void test_case_3(void) {
 
     // Declare a new variable 'Y' in the block scope
     testCase(
-        &testNumber,
+        testInstance,
         symTableDeclareVariable(table, "Y", dTypeF64, true),
         "Declaring variable 'Y' in the block scope",
         "Successfully declared 'Y' in the block scope (expected)",
@@ -350,7 +357,7 @@ void test_case_3(void) {
     // Test finding 'Y' in the current scope
     SymVariable *varY = NULL;
     testCase(
-        &testNumber,
+        testInstance,
         symTableFindVariable(table, "Y", &varY),
         "Searching for variable 'Y' in the block scope",
         "Found 'Y' in the block scope (expected)",
@@ -360,7 +367,7 @@ void test_case_3(void) {
     // Test finding 'X' from the function scope
     SymVariable *varX = NULL;
     testCase(
-        &testNumber,
+        testInstance,
         symTableFindVariable(table, "X", &varX),
         "Searching for variable 'X' from the function scope",
         "Found 'X' from the function scope (expected)",
@@ -369,7 +376,7 @@ void test_case_3(void) {
 
     // Check if 'X' is mutable
     testCase(
-        &testNumber,
+        testInstance,
         symTableCanMutate(varX),
         "Testing if variable 'X' is mutable",
         "Variable 'X' is mutable (expected)",
@@ -379,7 +386,7 @@ void test_case_3(void) {
     // Exit block scope and test variable access
     enum ERR_CODES code;
     testCase(
-        &testNumber,
+        testInstance,
         symTableExitScope(table, &code),
         "Exiting block scope (we have searched for all the variables)",
         "Exited block scope (expected)",
@@ -388,7 +395,7 @@ void test_case_3(void) {
 
     // Check for unused variables
     testCase(
-        &testNumber,
+        testInstance,
         code == E_NONE,
         "Checking for unused variables in exited block scope",
         "All variables were used (expected)",
@@ -397,7 +404,7 @@ void test_case_3(void) {
 
     // Exit function scope and test variable access
     testCase(
-        &testNumber,
+        testInstance,
         symTableExitScope(table, &code),
         "Exiting function scope",
         "Exited function scope (expected)",
@@ -406,7 +413,7 @@ void test_case_3(void) {
 
     // Check for unused variables in function scope
     testCase(
-        &testNumber,
+        testInstance,
         code == E_NONE,
         "Checking for unused variables in exited function scope",
         "All variables were used (expected)",
@@ -415,7 +422,7 @@ void test_case_3(void) {
 
     // Exit global scope and test variable access
     testCase(
-        &testNumber,
+        testInstance,
         symTableExitScope(table, &code),
         "Exiting global scope",
         "Exited global scope (expected)",
@@ -424,7 +431,7 @@ void test_case_3(void) {
 
     // Check for unused variables in global scope
     testCase(
-        &testNumber,
+        testInstance,
         code == E_NONE,
         "Checking for unused variables in exited global scope",
         "All variables were used (expected)",
@@ -433,16 +440,15 @@ void test_case_3(void) {
 
     // Free the symbol table
     printf("-- Freeing the symbol table (when exiting the global scope)\n");
+
+    finishTestInstance(testInstance);
 }
 
 int main(void) {
 
     // Run the test cases
-    printf("\n=========== Test BST malloced ==========\n");
     test_case_1();
-    printf("\n=========== Test BST not malloced ==========\n");
     test_case_2();
-    printf("\n=========== Test SymTable ==========\n");
     test_case_3();
 
     return 0;

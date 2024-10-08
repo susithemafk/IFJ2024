@@ -14,6 +14,7 @@
 // ANSI color codes for console output
 #define COLOR_PASS "\033[0;32m"  // Green
 #define COLOR_FAIL "\033[0;31m"  // Red
+#define COLOR_WARN "\033[0;33m"  // Yellow
 #define COLOR_RESET "\033[0m"    // Reset to default
 
 /**
@@ -180,15 +181,38 @@ enum KEY_WORDS_TYPES _getEnumfromKeyWord(char *keyWord);
 */
 unsigned int hashString(const char* str);
 
+
+typedef struct TestInstance {
+    char *testName;
+    unsigned int testNumber;
+    unsigned int fails;
+    unsigned int passes;
+} *TestInstancePtr;
+
+/**
+ *  Function to create a new test instance
+ *  
+ * @param testName The name of the test
+ * @return The new test instance
+*/
+TestInstancePtr initTestInstance(char *testName);
+
+/**
+ * Function to finish the test instance
+ * 
+ * @param testInstance The test instance to finish
+*/
+void finishTestInstance(TestInstancePtr testInstance);
+
 /**
  * Function to make it ez to create a testn case
  * 
- * @param testNumber A pointer to an unsigned int that will be incremented
+ * @param testInstance A pointer to an unsigned int that will be incremented
  * @param testResult The result of the test
  * @param testName The name of the test
  * @param testResultPassMsg The message to print if the test passes
  * @param testResultFailMsg The message to print if the test fails
 */
-void testCase(unsigned int *testNumber, bool testResult, char *testName, char *testResultPassMsg, char *testResultFailMsg);
+void testCase(TestInstancePtr testInstance, bool testResult, char *testName, char *testResultPassMsg, char *testResultFailMsg);
 
 #endif // ENUMERATIONS_H
