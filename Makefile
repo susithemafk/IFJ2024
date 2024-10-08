@@ -48,12 +48,12 @@ valgrind: main
 
 # Compile and run the test for the linked list
 test-list: $(LINKED_LIST_TEST_SRC)
-	$(CC) $(CFLAGS) $(INCLUDES) $(LINKED_LIST_TEST_SRC) -o test_list
+	$(CC) $(CFLAGS) $(INCLUDES) $(LINKED_LIST_TEST_SRC) -o test_list -std=c99
 	./test_list
 	rm -f test_list
 
 # Compile and run the test for the binary search tree (BST)
 test-bst: $(BST_TEST_SRC)
-	$(CC) $(CFLAGS) $(INCLUDES) $(BST_TEST_SRC) -o test_bst
+	$(CC) $(CFLAGS) $(INCLUDES) $(BST_TEST_SRC) -o test_bst -std=c99
 	./test_bst
 	rm -f test_bst

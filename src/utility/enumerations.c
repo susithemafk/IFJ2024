@@ -8,6 +8,7 @@
 
 #include "utility/enumerations.h"
 #include <string.h>
+#include <stdio.h>
 
 char *_getKeyWordFromString(enum KEY_WORDS_TYPES keyWord) {
     switch (keyWord) {
@@ -83,4 +84,20 @@ unsigned int hashString(const char* str) {
     }
     return (unsigned int)hash;
 }
+
+// Function to make it easier to test any function
+void testCase(unsigned int *testNumber, bool testResult, char *testName, char *testResultPassMsg, char *testResultFailMsg) {
+    // Print the test name
+    printf("TEST %u: %s\n", *testNumber, testName);
+    (*testNumber)++;
+
+    // Check the test result and print either PASS or FAIL with appropriate color
+    if (testResult) {
+        printf("  %sPASS%s: %s\n", COLOR_PASS, COLOR_RESET, testResultPassMsg);
+    } else {
+        printf("  %sFAIL%s: %s\n", COLOR_FAIL, COLOR_RESET, testResultFailMsg);
+    }
+    printf("\n");
+}
+
 

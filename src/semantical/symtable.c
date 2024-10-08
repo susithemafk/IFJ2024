@@ -355,10 +355,9 @@ SymTable *symTableInit(void) {
     // create the global scope structures
     SymTable *table = (SymTable *)malloc(sizeof(SymTable));
     SymTableNode *globalScope = (SymTableNode *)malloc(sizeof(SymTableNode));
-    BST *variables = bstInit((void (*)(void *))removeList);
     
     // check if the memory was allocated
-    if (table == NULL || globalScope == NULL || variables == NULL) {
+    if (table == NULL || globalScope == NULL) {
         return NULL;
     }
 
@@ -366,7 +365,7 @@ SymTable *symTableInit(void) {
     globalScope->type = SYM_GLOBAL;
     globalScope->key = 0; // key for the global scope
     globalScope->parent = NULL; // no parent
-    globalScope->variables = variables; // link to variables
+    globalScope->variables = NULL; // link to variables, in global scope disabled
     globalScope->innerScope = NULL; // link to other scopes
 
     // fill the table
@@ -419,12 +418,30 @@ void _symTableTraverseVariables(TreeNode *node, bool *result) {
         return;
     }
 
+    // the linked list of the variables, with the same hash
+    LinkedList *variables = (LinkedList *)node->data;
+    if (variables == NULL) {
+        *result = false;
+        return;
+    }
+    // recursive call for the left and right node
     _symTableTraverseVariables(node->left, result);
     _symTableTraverseVariables(node->right, result);
 
-    SymVariable *variable = (SymVariable *)node->data;
+    // check if all the variables in the list ware accesed
 
-    if (variable == NULL || variable->accesed == false) 
+    SymVariable *variable = NULL;
+
+    unsigned int size = getSize(variables);
+    for (unsigned i = 0; i < size; i++) {
+        variable = (SymVariable *)getDataAtIndex(variables, i);
+        if (variable == NULL || variable->accesed == false) {
+            *result = false;
+            return;
+        }
+    }
+
+    if (variables == NULL) 
         *result = false;
 
     return;
@@ -434,18 +451,11 @@ void _symTableTraverseVariables(TreeNode *node, bool *result) {
 // Function to check if all variables in the symbol table were accesed
 bool _symTableAllVariablesAccesed(SymTableNode *node) {
 
-    if (node == NULL) {
-        return true;
-    }
-
-    BST *variables = node->variables;
-
-    if (variables == NULL) {
+    if (node == NULL || node->type == SYM_GLOBAL || node->variables == NULL) {
         return true;
     }
 
     bool result = true;
-
     _symTableTraverseVariables(node->variables->root, &result);
     
     return result == true;
@@ -464,16 +474,14 @@ bool symTableExitScope(SymTable *table, enum ERR_CODES *returnCode) {
         table->currentScope->innerScope == NULL && 
         table->currentScope->type == SYM_GLOBAL) {
         symTableFree(table);
+        if (returnCode != NULL) {
+            *returnCode = E_NONE;
+        }
         return true;
     }
 
     // need to remove the current scope
     SymTableNode *currentScope = table->currentScope;
-
-    // update the current scope
-    table->currentScope = table->currentScope->parent;
-    table->scopeCount--;
-    table->currentScope->innerScope = NULL;
 
     // check if all variables were accesed
     if (_symTableAllVariablesAccesed(currentScope)) {
@@ -486,6 +494,10 @@ bool symTableExitScope(SymTable *table, enum ERR_CODES *returnCode) {
         }
     }
 
+    // update the current scope
+    table->currentScope = table->currentScope->parent;
+    table->scopeCount--;
+    table->currentScope->innerScope = NULL;
 
     // free the current scope
     bool result = bstFree(currentScope->variables);
@@ -496,96 +508,105 @@ bool symTableExitScope(SymTable *table, enum ERR_CODES *returnCode) {
 
 // Function to insert a new
 bool symTableDeclareVariable(SymTable *table, char *name, enum DATA_TYPES type, bool mutable) {
-
-    // check if the table is not NULL, and the current scope is not the global scope
+    // Check if the table or current scope is invalid (if global scope declaration is disallowed)
     if (table == NULL || table->currentScope->type == SYM_GLOBAL) {
         return false;
     }
 
-    // need to find out, if the variable is allready defined, in the current scope
+    // Check if the variable already exists in the current scope
     SymVariable *var = NULL;
     if (symTableFindVariable(table, name, &var)) {
-        return false;
+        return false; // Variable already exists
     }
 
-    // create the new variable
+    // Allocate memory for a new variable
     SymVariable *newVariable = (SymVariable *)malloc(sizeof(SymVariable));
-
-    // check if the memory was allocated
     if (newVariable == NULL) {
         return false;
     }
 
-    // fill the new variable
+    // Duplicate the name and check if strdup succeeded
     newVariable->name = name;
+    if (newVariable->name == NULL) {
+        free(newVariable); // Cleanup if strdup fails
+        return false;
+    }
+
+    // Initialize other fields
     newVariable->type = type;
     newVariable->mutable = mutable;
     newVariable->accesed = false;
 
+    // Get the hash of the variable's name
     unsigned int hash = hashString(name);
 
+    // Get the variables list in the current scope's hash table
     BST *variables = table->currentScope->variables;
-
-    //first we try to find out, if the variable is allready in the scope
     void *sameHashVariables = bstSearchForNode(variables, hash);
 
     if (sameHashVariables == NULL) {
-        // init the linked list for the same hash variables
+        // Create a new linked list for variables with the same hash
         sameHashVariables = initLinkedList(true);
-        // save the new variable to the list
-        insertNodeAtIndex((LinkedList *)sameHashVariables, (void *)newVariable, -1); 
-        // save the list to the tree
+        insertNodeAtIndex((LinkedList *)sameHashVariables, (void *)newVariable, -1);
         bstInsertNode(variables, hash, (void *)sameHashVariables);
-        return true;
+        return true;    
+    } 
+
+    // Insert the new variable into the existing list
+    if (!insertNodeAtIndex((LinkedList *)sameHashVariables, (void *)newVariable, -1)) {
+        free(newVariable->name);
+        free(newVariable); // Cleanup if insertion fails
+        return false;
     }
 
-    // in here, we have a list of variables, with the same hash
-
-    // save the new variable to the list
-    return insertNodeAtIndex((LinkedList *)sameHashVariables, (void *)newVariable, -1);
+    return true; // Success
 }
 
 // Function to find a variable in the current scope (including parent scopes)
 bool symTableFindVariable(SymTable *table, char *name, SymVariable **returnData) {
 
-    // check if the table is not NULL and the name is not NULL
+    // Check if the table or name is null
     if (table == NULL || name == NULL) 
         return false;
-    
-    // hash the name
+
+    // Hash the name to find the corresponding variables
     unsigned int hash = hashString(name);
 
-    // start searching in the current scope
+    // Traverse the current and parent scopes
     SymTableNode *currentScope = table->currentScope;
-
     while (currentScope != NULL) {
         BST *variables = currentScope->variables;
         void *sameHashVariables = bstSearchForNode(variables, hash);
 
-        // variable not found in the current scope
+        // If no variables with the same hash, go to the parent scope
         if (sameHashVariables == NULL) {
-            // go up in the scop tree
             currentScope = currentScope->parent;
             continue;
         }
-        // some variables found, go thought same hash variables
+
+        // Go through the variables with the same hash
         unsigned int size = getSize((LinkedList *)sameHashVariables);
-        for (unsigned int i = 0; i< size; i++) {
+        for (unsigned int i = 0; i < size; i++) {
             SymVariable *variable = (SymVariable *)getDataAtIndex((LinkedList *)sameHashVariables, i);
-            // variable not the same
+
+            // Skip null or mismatched variables
             if (variable == NULL || strcmp(variable->name, name) != 0) 
-                continue;   
-            
-            // save the data to the returnData
+                continue;
+
+            // Mark the variable as accessed if found
             if (returnData != NULL) 
                 *returnData = variable;
 
-            variable->accesed = true;
+            variable->accesed = true; // Only mark if you intend to track access
 
             return true;
         }
+        
+        // Move up to the parent scope if not found
+        currentScope = currentScope->parent;
     }
-    return false;
+    
+    return false; // Variable not found
 }
 
 // Function to check, if a variable can be mutated

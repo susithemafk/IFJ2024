@@ -9,6 +9,13 @@
 #ifndef ENUMERATIONS_H
 #define ENUMERATIONS_H
 
+#include <stdbool.h>
+
+// ANSI color codes for console output
+#define COLOR_PASS "\033[0;32m"  // Green
+#define COLOR_FAIL "\033[0;31m"  // Red
+#define COLOR_RESET "\033[0m"    // Reset to default
+
 /**
  * @brief Enums for error codes
  * 
@@ -172,5 +179,16 @@ enum KEY_WORDS_TYPES _getEnumfromKeyWord(char *keyWord);
  * @return The hash of the string
 */
 unsigned int hashString(const char* str);
+
+/**
+ * Function to make it ez to create a testn case
+ * 
+ * @param testNumber A pointer to an unsigned int that will be incremented
+ * @param testResult The result of the test
+ * @param testName The name of the test
+ * @param testResultPassMsg The message to print if the test passes
+ * @param testResultFailMsg The message to print if the test fails
+*/
+void testCase(unsigned int *testNumber, bool testResult, char *testName, char *testResultPassMsg, char *testResultFailMsg);
 
 #endif // ENUMERATIONS_H
