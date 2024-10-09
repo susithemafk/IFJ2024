@@ -6,28 +6,29 @@
 
 #include <ctype.h>
 #include <string.h>
-#include <malloc.h>
+#include <stdlib.h> // cound use the <malloc.h> instead, however it is not recommended.
 #include "lexical/scanner.h"
+#include "utility/enumerations.h"
 
 #define ALLOC_SIZE 64
 
 static FILE *file;
 static int nextCharacter;
-static TOKEN nextToken;
+static struct TOKEN nextToken;
 
-enum ERR_CODES scanner_unget_token(TOKEN token)
+enum ERR_CODES scanner_unget_token(struct TOKEN token)
 {
 	nextToken = token;
 	return SUCCESS;
 }
 
-enum ERR_CODES scanner_token_free(TOKEN *tokenPointer)
+enum ERR_CODES scanner_token_free(TOKEN_PTR tokenPointer)
 {
 	free(tokenPointer->value);
 	return SUCCESS;
 }
 
-enum ERR_CODES scanner_destroy()
+enum ERR_CODES scanner_destroy(void)
 {
 	fclose(file);
 	return SUCCESS;
@@ -42,14 +43,14 @@ enum ERR_CODES scanner_init(FILE *input)
 	return SUCCESS;
 }
 
-enum ERR_CODES scanner_end(char input, int *nextCharacter, TOKEN *tokenPointer, int string_index)
+enum ERR_CODES scanner_end(char input, int *nextCharacter, struct TOKEN *tokenPointer, int string_index)
 {
 	tokenPointer->value[string_index] = '\0';
 	*nextCharacter = input;
 	return SUCCESS;
 }
 
-enum ERR_CODES scanner_get_token(TOKEN *tokenPointer)
+enum ERR_CODES scanner_get_token(struct TOKEN *tokenPointer)
 {
 	SCANNER_STATUS state = SCANNER_START;
 	unsigned string_index;

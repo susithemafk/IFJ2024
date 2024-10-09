@@ -21,60 +21,6 @@
 
 typedef enum
 {
-	TOKEN_NONE,		  // No token
-	TOKEN_IDENTIFIER, // Název proměnné, funkce, ...
-	TOKEN_EOF,		  // End of file
-
-	TOKEN_PLUS,		// +
-	TOKEN_MINUS,	// -
-	TOKEN_DIVIDE,	// /
-	TOKEN_MULTIPLY, // *
-	TOKEN_EQUALS,	// ==
-
-	TOKEN_LESSTHAN,		  // <
-	TOKEN_LESSOREQUAL,	  // <=
-	TOKEN_GREATERTHAN,	  // >
-	TOKEN_GREATEROREQUAL, // >=
-	TOKEN_NOTEQUAL,		  // !=
-
-	TOKEN_STRING, // "string"
-
-	TOKEN_CONCATENATE, // .
-	TOKEN_ASSIGN,	   // =
-	TOKEN_COLON,	   // :
-	TOKEN_COMMA,	   // ,
-	TOKEN_LPAR,		   // (
-	TOKEN_RPAR,		   // )
-	TOKEN_LBRACE,	   // {
-	TOKEN_RBRACE,	   // }
-	TOKEN_SEMICOLON,   // ;
-
-	/**
-	 * Keywords: const, else, fn, if, i32, f64, null, pub, return, u8, var, void, while
-	 */
-	TOKEN_CONST,  // const
-	TOKEN_ELSE,	  // else
-	TOKEN_FN,	  // fn
-	TOKEN_IF,	  // if
-	TOKEN_I32,	  // i32
-	TOKEN_F64,	  // f64
-	TOKEN_NULL,	  // null
-	TOKEN_PUB,	  // pub
-	TOKEN_RETURN, // return
-	TOKEN_U8,	  // u8
-	TOKEN_VAR,	  // var
-	TOKEN_VOID,	  // void
-	TOKEN_WHILE,  // while
-} TOKEN_TYPE;
-
-typedef struct
-{
-	char *value;	// Token value
-	TOKEN_TYPE type; // Token type
-} TOKEN;
-
-typedef enum
-{
 	SCANNER_START,
 
 	SCANNER_STRING_START,
@@ -119,9 +65,9 @@ typedef enum
 } SCANNER_STATUS;
 
 enum ERR_CODES scanner_init(FILE *input);
-enum ERR_CODES scanner_get_token(TOKEN *tokenPointer);
-enum ERR_CODES scanner_unget_token(TOKEN token);
-enum ERR_CODES scanner_token_free(TOKEN *tokenPointer);
-enum ERR_CODES scanner_destroy();
+enum ERR_CODES scanner_get_token(struct TOKEN *tokenPointer);
+enum ERR_CODES scanner_unget_token(struct TOKEN token);
+enum ERR_CODES scanner_token_free(TOKEN_PTR tokenPointer);
+enum ERR_CODES scanner_destroy(void);
 
 #endif

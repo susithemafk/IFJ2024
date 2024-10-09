@@ -1,6 +1,12 @@
 {
     "files.associations": {
         "linked_list.h": "c",
+        "scanner.h": "c",
+        "type_traits": "c",
+        "xtr1common": "c",
+        "common.h": "c",
+        "initializer_list": "c",
+        "enumerations.h": "c",
         "stdbool.h": "c"
     }
 }

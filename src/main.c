@@ -15,9 +15,9 @@
 #include "lexical/scanner.h"
 
 static enum ERR_CODES status;
-static TOKEN token;
+static struct TOKEN token;
 
-int main()
+int main(void)
 {
 	FILE *input = stdin;
 	scanner_init(input);

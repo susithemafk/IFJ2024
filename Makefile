@@ -31,6 +31,10 @@ LINKED_LIST_TEST_SRC = $(wildcard $(UTILITY_DIR)/*.c) $(TEST_DIR)/test_linked_li
 # Binary search tree test source files
 BST_TEST_SRC = $(wildcard $(UTILITY_DIR)/*.c) $(SEMANTICAL_DIR)/symtable.c $(TEST_DIR)/test_symtable.c
 
+# Lexical analyzer test source files
+LEX_TEST_SRC = $(wildcard $(LEXICAL_DIR)/*.c) $(wildcard $(UTILITY_DIR)/*.c) $(TEST_DIR)/test_lex.c
+
+
 # Targets
 all: main
 
@@ -38,7 +42,7 @@ main: $(SRC_FILES)
 	$(CC) $(CFLAGS) $(INCLUDES) $(SRC_FILES) -o main
 
 clean:
-	rm -f main test_list test_bst
+	rm -f main test_list test_bst test_lex
 
 run: main
 	./main < src/input.txt
@@ -57,3 +61,9 @@ test-bst: $(BST_TEST_SRC)
 	$(CC) $(CFLAGS) $(INCLUDES) $(BST_TEST_SRC) -o test_bst -std=c99
 	./test_bst
 	rm -f test_bst
+
+# Compile and run the test for the lexical analyzer (LEX)
+test-lex: $(LEX_TEST_SRC)
+	$(CC) $(CFLAGS) $(INCLUDES) $(LEX_TEST_SRC) -o test_lex -std=c99
+	./test_lex < ./src/input.txt
+	rm -f test_lex

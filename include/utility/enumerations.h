@@ -70,87 +70,59 @@ enum ERR_CODES {
                        */
 };
 
-/**
- * @brief Enums for key words
- * @note used in condunction with some functions
- * @note WT stands for Word Type
- */
-enum KEY_WORDS_SRC
+enum TOKEN_TYPE
 {
-    WT_CONST = 0,
-    WT_ELSE = 1,
-    WT_FN = 2,
-    WT_IF = 3,
-    WT_I32 = 4,
-    WT_F64 = 5,
-    WT_NULL = 6,
-    WT_PUB = 7,
-    WT_RETURN = 8,
-    WT_U8 = 9,
-    WT_VAR = 10,
-    WT_VOID = 11,
-    WT_WHILE = 12,
+	TOKEN_NONE,		  // No token
+	TOKEN_IDENTIFIER, // Název proměnné, funkce, ...
+	TOKEN_EOF,		  // End of file
+
+	TOKEN_PLUS,		// +
+	TOKEN_MINUS,	// -
+	TOKEN_DIVIDE,	// /
+	TOKEN_MULTIPLY, // *
+	TOKEN_EQUALS,	// ==
+
+	TOKEN_LESSTHAN,		  // <
+	TOKEN_LESSOREQUAL,	  // <=
+	TOKEN_GREATERTHAN,	  // >
+	TOKEN_GREATEROREQUAL, // >=
+	TOKEN_NOTEQUAL,		  // !=
+
+	TOKEN_STRING, // "string"
+
+	TOKEN_CONCATENATE, // .
+	TOKEN_ASSIGN,	   // =
+	TOKEN_COLON,	   // :
+	TOKEN_COMMA,	   // ,
+	TOKEN_LPAR,		   // (
+	TOKEN_RPAR,		   // )
+	TOKEN_LBRACE,	   // {
+	TOKEN_RBRACE,	   // }
+	TOKEN_SEMICOLON,   // ;
+
+	/**
+	 * Keywords: const, else, fn, if, i32, f64, null, pub, return, u8, var, void, while
+	 */
+	TOKEN_CONST,  // const
+	TOKEN_ELSE,	  // else
+	TOKEN_FN,	  // fn
+	TOKEN_IF,	  // if
+	TOKEN_I32,	  // i32
+	TOKEN_F64,	  // f64
+	TOKEN_NULL,	  // null
+	TOKEN_PUB,	  // pub
+	TOKEN_RETURN, // return
+	TOKEN_U8,	  // u8
+	TOKEN_VAR,	  // var
+	TOKEN_VOID,	  // void
+	TOKEN_WHILE,  // while
 };
 
-typedef enum
-{
-    TOKEN_NONE,           // No token
-    TOKEN_IDENTIFIER,     // Identifier (variable/function name)
-    TOKEN_EOF,            // End of file
-
-    TOKEN_PLUS,           // "+"
-    TOKEN_MINUS,          // "-"
-    TOKEN_DIVIDE,         // "/"
-    TOKEN_INT_DIVIDE,     // "//"
-    TOKEN_MULTIPLY,       // "*"
-    TOKEN_EQUALS,         // "="
-
-    // literals
-    TOKEN_INTEGER_LIT,    // Integer literal
-    TOKEN_DOUBLE_LIT,     // Double literal
-    TOKEN_STRING_LIT,     // String literal
-
-    TOKEN_LT,             // "<"
-    TOKEN_LEQ,            // "<="
-    TOKEN_GT,             // ">"
-    TOKEN_GEQ,            // ">="
-    TOKEN_NEQ,            // "!="
-
-    /**
-     * Keywords: const, else, fn, if, i32, f64, null, pub, return, u8, var, void, while
-     */
-    TOKEN_CONST,          // "const"
-    TOKEN_ELSE,           // "else"
-    TOKEN_FN,             // "fn"
-    TOKEN_IF,             // "if"
-    TOKEN_I32,            // "i32"
-    TOKEN_F64,            // "f64"
-    TOKEN_NULL,           // "null"
-    TOKEN_PUB,            // "pub"
-    TOKEN_RETURN,         // "return"
-    TOKEN_U8,             // "u8"
-    TOKEN_VAR,            // "var"
-    TOKEN_VOID,           // "void"
-    TOKEN_WHILE,          // "while"
-
-    TOKEN_CONCATENATE,    // Concatenation operator
-    TOKEN_GET_LENGTH,     // Get length operator
-    TOKEN_ASSIGN,         // Assignment operator
-    TOKEN_COLON,          // ":"
-    TOKEN_COMMA,          // ","
-    TOKEN_PAR_L,          // "("
-    TOKEN_PAR_R,          // ")"
-} TokenType;
-
-/**
- * @brief Struct for token, representing a meaningful part of the code
- */
 typedef struct TOKEN {
-    char *str;
-    TokenType type;
-    unsigned lineNumber;
-    unsigned characterNumber;
-} Token;
+	char *value;	// Token value
+	enum TOKEN_TYPE type; // Token type
+} *TOKEN_PTR;
+
 
 enum DATA_TYPES {
     dTypeI32,
@@ -158,21 +130,6 @@ enum DATA_TYPES {
     dTypeU8
 };
 
-/**
- * Return the coresponding string for the key word
- *
- * @param keyWord The key, for which the string should be returned
- * @return The string representation of the key word
- */
-char *_getKeyWordFromString(enum KEY_WORDS_SRC keyWord);
-
-/**
- * Return the coresponding enum keyWord for the string
- *
- * @param keyWord The string, for which the key should be returned
- * @return The enum representation of the key word, or -1 if the key word is not found
- */
-enum KEY_WORDS_SRC _getEnumfromKeyWord(char *keyWord);
 
 /**
  * Function to hash a string
