@@ -11,7 +11,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-char *_getKeyWordFromString(enum KEY_WORDS_TYPES keyWord) {
+char *_getKeyWordFromString(enum KEY_WORDS_SRC keyWord) {
     switch (keyWord) {
         case WT_CONST:
             return "const";
@@ -44,7 +44,7 @@ char *_getKeyWordFromString(enum KEY_WORDS_TYPES keyWord) {
     }
 }
 
-enum KEY_WORDS_TYPES _getEnumfromKeyWord(char *keyWord) {
+enum KEY_WORDS_SRC _getEnumfromKeyWord(char *keyWord) {
 
     if (strcmp(keyWord, "const") == 0) {
         return WT_CONST;
