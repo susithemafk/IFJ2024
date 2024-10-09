@@ -9,6 +9,14 @@
 #ifndef ENUMERATIONS_H
 #define ENUMERATIONS_H
 
+#include <stdbool.h>
+
+// ANSI color codes for console output
+#define COLOR_PASS "\033[0;32m"  // Green
+#define COLOR_FAIL "\033[0;31m"  // Red
+#define COLOR_WARN "\033[0;33m"  // Yellow
+#define COLOR_RESET "\033[0m"    // Reset to default
+
 /**
  * @brief Enums for error codes
  *
@@ -64,7 +72,8 @@ enum ERR_CODES {
 
 /**
  * @brief Enums for key words
- * @note used in condunction with some func
+ * @note used in condunction with some functions
+ * @note WT stands for Word Type
  */
 enum KEY_WORDS_SRC
 {
@@ -83,6 +92,66 @@ enum KEY_WORDS_SRC
     W_WHILE = 12,
 };
 
+typedef enum
+{
+    TOKEN_NONE,           // No token
+    TOKEN_IDENTIFIER,     // Identifier (variable/function name)
+    TOKEN_EOF,            // End of file
+
+    TOKEN_PLUS,           // "+"
+    TOKEN_MINUS,          // "-"
+    TOKEN_DIVIDE,         // "/"
+    TOKEN_INT_DIVIDE,     // "//"
+    TOKEN_MULTIPLY,       // "*"
+    TOKEN_EQUALS,         // "="
+
+    // literals
+    TOKEN_INTEGER_LIT,    // Integer literal
+    TOKEN_DOUBLE_LIT,     // Double literal
+    TOKEN_STRING_LIT,     // String literal
+
+    TOKEN_LT,             // "<"
+    TOKEN_LEQ,            // "<="
+    TOKEN_GT,             // ">"
+    TOKEN_GEQ,            // ">="
+    TOKEN_NEQ,            // "!="
+
+    /**
+     * Keywords: const, else, fn, if, i32, f64, null, pub, return, u8, var, void, while
+     */
+    TOKEN_CONST,          // "const"
+    TOKEN_ELSE,           // "else"
+    TOKEN_FN,             // "fn"
+    TOKEN_IF,             // "if"
+    TOKEN_I32,            // "i32"
+    TOKEN_F64,            // "f64"
+    TOKEN_NULL,           // "null"
+    TOKEN_PUB,            // "pub"
+    TOKEN_RETURN,         // "return"
+    TOKEN_U8,             // "u8"
+    TOKEN_VAR,            // "var"
+    TOKEN_VOID,           // "void"
+    TOKEN_WHILE,          // "while"
+
+    TOKEN_CONCATENATE,    // Concatenation operator
+    TOKEN_GET_LENGTH,     // Get length operator
+    TOKEN_ASSIGN,         // Assignment operator
+    TOKEN_COLON,          // ":"
+    TOKEN_COMMA,          // ","
+    TOKEN_PAR_L,          // "("
+    TOKEN_PAR_R,          // ")"
+} TokenType;
+
+/**
+ * @brief Struct for token, representing a meaningful part of the code
+ */
+typedef struct TOKEN {
+    char *str;
+    TokenType type;
+    unsigned lineNumber;
+    unsigned characterNumber;
+} Token;
+
 enum DATA_TYPES {
     dTypeI32,
     dTypeF64,
@@ -95,7 +164,7 @@ enum DATA_TYPES {
  * @param keyWord The key, for which the string should be returned
  * @return The string representation of the key word
  */
-char *_getKeyWordFromString(enum KEY_WORDS_SRC keyWord);
+char *_getKeyWordFromString(enum KEY_WORDS_TYPES keyWord);
 
 /**
  * Return the coresponding enum keyWord for the string
@@ -103,7 +172,7 @@ char *_getKeyWordFromString(enum KEY_WORDS_SRC keyWord);
  * @param keyWord The string, for which the key should be returned
  * @return The enum representation of the key word, or -1 if the key word is not found
  */
-enum KEY_WORDS_SRC _getEnumfromKeyWord(char *keyWord);
+enum KEY_WORDS_TYPES _getEnumfromKeyWord(char *keyWord);
 
 /**
  * Function to hash a string
@@ -112,5 +181,39 @@ enum KEY_WORDS_SRC _getEnumfromKeyWord(char *keyWord);
  * @return The hash of the string
 */
 unsigned int hashString(const char* str);
+
+
+typedef struct TestInstance {
+    char *testName;
+    unsigned int testNumber;
+    unsigned int fails;
+    unsigned int passes;
+} *TestInstancePtr;
+
+/**
+ *  Function to create a new test instance
+ *  
+ * @param testName The name of the test
+ * @return The new test instance
+*/
+TestInstancePtr initTestInstance(char *testName);
+
+/**
+ * Function to finish the test instance
+ * 
+ * @param testInstance The test instance to finish
+*/
+void finishTestInstance(TestInstancePtr testInstance);
+
+/**
+ * Function to make it ez to create a testn case
+ * 
+ * @param testInstance A pointer to an unsigned int that will be incremented
+ * @param testResult The result of the test
+ * @param testName The name of the test
+ * @param testResultPassMsg The message to print if the test passes
+ * @param testResultFailMsg The message to print if the test fails
+*/
+void testCase(TestInstancePtr testInstance, bool testResult, char *testName, char *testResultPassMsg, char *testResultFailMsg);
 
 #endif // ENUMERATIONS_H

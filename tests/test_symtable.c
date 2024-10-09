@@ -9,243 +9,446 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "semantical/symtable.h"
+#include "utility/enumerations.h"
+
 
 void test_case_1(void) {
-    // Create a new tree with freeData = true
+
+    TestInstancePtr testInstance = initTestInstance("Binary Search Tree (BST) Test with ints, malloc");
+
+    // Create a new tree with freeData = free (free data when nodes are removed)
     BST *tree = bstInit(free);
-    
+
     // Allocate some integers for testing
     int *data1 = (int *)malloc(sizeof(int));
     int *data2 = (int *)malloc(sizeof(int));
     int *data3 = (int *)malloc(sizeof(int));
-    
+
     *data1 = 10;
     *data2 = 20;
     *data3 = 5;
 
-    // Insert nodes
-    bstInsertNode(tree, 10, data1);
-    bstInsertNode(tree, 20, data2);
-    bstInsertNode(tree, 5, data3);
+    // Insert node with key 10 and data 10
+    testCase(
+        testInstance,
+        bstInsertNode(tree, 10, data1),
+        "Inserting node with key 10 and data 10",
+        "Successfully inserted node with key 10 (expected)",
+        "Failed to insert node with key 10 (unexpected)"
+    );
 
-    // Test search
+    // Insert node with key 20 and data 20
+    testCase(
+        testInstance,
+        bstInsertNode(tree, 20, data2),
+        "Inserting node with key 20 and data 20",
+        "Successfully inserted node with key 20 (expected)",
+        "Failed to insert node with key 20 (unexpected)"
+    );
+
+    // Insert node with key 5 and data 5
+    testCase(
+        testInstance,
+        bstInsertNode(tree, 5, data3),
+        "Inserting node with key 5 and data 5",
+        "Successfully inserted node with key 5 (expected)",
+        "Failed to insert node with key 5 (unexpected)"
+    );
+
+    // Test search for key 20
     int *searchResult = (int *)bstSearchForNode(tree, 20);
-    printf("$$ Search result for key 20: %d\n", *searchResult);
+    testCase(
+        testInstance,
+        searchResult != NULL,
+        "Searching for node with key 20",
+        "Found node with key 20 (expected)",
+        "Failed to find node with key 20 (unexpected)"
+    );
+    if (searchResult) {
+        printf("$$ Search result for key 20: %d\n", *searchResult);
+    }
 
+    // Test search for key 5
     searchResult = (int *)bstSearchForNode(tree, 5);
-    printf("$$ Search result for key 5: %d\n", *searchResult);
+    testCase(
+        testInstance,
+        searchResult != NULL,
+        "Searching for node with key 5",
+        "Found node with key 5 (expected)",
+        "Failed to find node with key 5 (unexpected)"
+    );
+    if (searchResult) {
+        printf("$$ Search result for key 5: %d\n", *searchResult);
+    }
 
+    // Test search for key 10
     searchResult = (int *)bstSearchForNode(tree, 10);
-    printf("$$ Search result for key 10: %d\n", *searchResult);
+    testCase(
+        testInstance,
+        searchResult != NULL,
+        "Searching for node with key 10",
+        "Found node with key 10 (expected)",
+        "Failed to find node with key 10 (unexpected)"
+    );
+    if (searchResult) {
+        printf("$$ Search result for key 10: %d\n", *searchResult);
+    }
 
-    searchResult = (int *)bstSearchForNode(tree, 15);   
-    printf("$$ Search result for key 15 (not in the tree): %s\n", searchResult == NULL ? "Not found" : "Found");
+    // Test search for key 15 (not in the tree)
+    searchResult = (int *)bstSearchForNode(tree, 15);
+    testCase(
+        testInstance,
+        searchResult == NULL,
+        "Searching for node with key 15 (not in the tree)",
+        "Node with key 15 not found (expected)",
+        "Found node with key 15 (unexpected)"
+    );
 
-    // Test remove node
+    // Test remove node with key 10
     bool removeResult = bstRemoveNode(tree, 10);
+    testCase(
+        testInstance,
+        removeResult,
+        "Removing node with key 10",
+        "Successfully removed node with key 10 (expected)",
+        "Failed to remove node with key 10 (unexpected)"
+    );
     printf("$$ Remove result for key 10: %s\n", removeResult ? "Success" : "Failure");
 
+    // Test pop node with key 20
     int *removedData = NULL;
     removeResult = bstPopNode(tree, 20, (void *)&removedData);
-    printf("$$ Popped node at key 20: %d\n", *removedData);
+    testCase(
+        testInstance,
+        removeResult,
+        "Popping node with key 20",
+        "Successfully popped node with key 20 (expected)",
+        "Failed to pop node with key 20 (unexpected)"
+    );
+    if (removedData) {
+        printf("$$ Popped node at key 20: %d\n", *removedData);
+    }
 
+    // Test search for key 20 after removal
     searchResult = (int *)bstSearchForNode(tree, 20);
-    printf("$$ Search result for key 20 (after removal): %s\n", searchResult == NULL ? "Not found" : "Found");
+    testCase(
+        testInstance,
+        searchResult == NULL,
+        "Searching for node with key 20 after removal",
+        "Node with key 20 not found (expected)",
+        "Found node with key 20 (unexpected)"
+    );
 
     // Free the entire tree (and its data)
     bool freeResult = bstFree(tree);
+    testCase(
+        testInstance,
+        freeResult,
+        "Freeing the binary search tree",
+        "Tree freed successfully (expected)",
+        "Failed to free the tree (unexpected)"
+    );
     printf("$$ Tree freed: %s\n", freeResult ? "Success" : "Failure");
 
-    free(data2);
+    // Free the remaining data that was manually popped
+    free(removedData);
+
+    finishTestInstance(testInstance);
 }
 
+
 void test_case_2(void) {
-    // Create a new tree with freeData = false
+
+    TestInstancePtr testInstance = initTestInstance("Binary Search Tree (BST) Test with chars, no malloc");
+
+    // Create a new tree with freeData = NULL (no free function for data)
     BST *tree = bstInit(NULL);
-    
+
     // Insert nodes with character data
     char data1 = 'A';
     char data2 = 'B';
     char data3 = 'C';
 
-    // Insert nodes
-    bstInsertNode(tree, 1, &data1);
-    bstInsertNode(tree, 2, &data2);
-    bstInsertNode(tree, 3, &data3);
+    // Insert node 1 with 'A'
+    testCase(
+        testInstance,
+        bstInsertNode(tree, 1, &data1),
+        "Inserting node with key 1 and data 'A'",
+        "Successfully inserted node with key 1 (expected)",
+        "Failed to insert node with key 1 (unexpected)"
+    );
 
-    // Test search
+    // Insert node 2 with 'B'
+    testCase(
+        testInstance,
+        bstInsertNode(tree, 2, &data2),
+        "Inserting node with key 2 and data 'B'",
+        "Successfully inserted node with key 2 (expected)",
+        "Failed to insert node with key 2 (unexpected)"
+    );
+
+    // Insert node 3 with 'C'
+    testCase(
+        testInstance,
+        bstInsertNode(tree, 3, &data3),
+        "Inserting node with key 3 and data 'C'",
+        "Successfully inserted node with key 3 (expected)",
+        "Failed to insert node with key 3 (unexpected)"
+    );
+
+    // Test search for key 1
     char *searchResult = (char *)bstSearchForNode(tree, 1);
-    printf("$$ Search result for key 1: %c\n", *searchResult);
+    testCase(
+        testInstance,
+        searchResult != NULL,
+        "Searching for node with key 1",
+        "Found node with key 1 (expected)",
+        "Failed to find node with key 1 (unexpected)"
+    );
+    if (searchResult) {
+        printf("$$ Search result for key 1: %c\n", *searchResult);
+    }
 
+    // Test search for key 2
     searchResult = (char *)bstSearchForNode(tree, 2);
-    printf("$$ Search result for key 2: %c\n", *searchResult);
+    testCase(
+        testInstance,
+        searchResult != NULL,
+        "Searching for node with key 2",
+        "Found node with key 2 (expected)",
+        "Failed to find node with key 2 (unexpected)"
+    );
+    if (searchResult) {
+        printf("$$ Search result for key 2: %c\n", *searchResult);
+    }
 
+    // Test search for key 3
     searchResult = (char *)bstSearchForNode(tree, 3);
-    printf("$$ Search result for key 3: %c\n", *searchResult);
+    testCase(
+        testInstance,
+        searchResult != NULL,
+        "Searching for node with key 3",
+        "Found node with key 3 (expected)",
+        "Failed to find node with key 3 (unexpected)"
+    );
+    if (searchResult) {
+        printf("$$ Search result for key 3: %c\n", *searchResult);
+    }
 
-    // Test remove node
+    // Test remove node with key 1
     bool removeResult = bstRemoveNode(tree, 1);
+    testCase(
+        testInstance,
+        removeResult,
+        "Removing node with key 1",
+        "Successfully removed node with key 1 (expected)",
+        "Failed to remove node with key 1 (unexpected)"
+    );
     printf("$$ Remove result for key 1: %s\n", removeResult ? "Success" : "Failure");
 
-    // Test pop node
+    // Test pop node with key 2
     char *removedData = NULL;
     removeResult = bstPopNode(tree, 2, (void *)&removedData);
-    printf("$$ Popped node at key 2: %c\n", *removedData);
+    testCase(
+        testInstance,
+        removeResult,
+        "Popping node with key 2",
+        "Successfully popped node with key 2 (expected)",
+        "Failed to pop node with key 2 (unexpected)"
+    );
+    if (removedData) {
+        printf("$$ Popped node at key 2: %c\n", *removedData);
+    }
 
+    // Test search for key 2 after removal
     searchResult = (char *)bstSearchForNode(tree, 2);
-    printf("$$ Search result for key 2 (after removal): %s\n", searchResult == NULL ? "Not found" : "Found");
+    testCase(
+        testInstance,
+        searchResult == NULL,
+        "Searching for node with key 2 after removal",
+        "Node with key 2 not found (expected)",
+        "Found node with key 2 (unexpected)"
+    );
 
     // Free the tree (without freeing data)
     bool freeResult = bstFree(tree);
+    testCase(
+        testInstance,
+        freeResult,
+        "Freeing the binary search tree",
+        "Tree freed successfully (expected)",
+        "Failed to free the tree (unexpected)"
+    );
     printf("$$ Tree freed: %s\n", freeResult ? "Success" : "Failure");
 
+    finishTestInstance(testInstance);
 }
+
+
 
 void test_case_3(void) {
 
-    // Create a new symbol table
+    TestInstancePtr testInstance = initTestInstance("Symbol Table Tests");
+
+    // Initialize a new symbol table
     SymTable *table = symTableInit();
+    testCase(
+        testInstance,
+        table != NULL,
+        "Initializing a new symbol table",
+        "Successfully initialized a new symbol table (expected)",
+        "Failed to initialize a new symbol table (unexpected)"
+    );
 
-    if (table == NULL) {
-        printf("$$ Failed to initialize symbol table\n");
-        return;
-    }
+    // Test that declaring variables in the global scope fails
+    testCase(
+        testInstance,
+        !symTableDeclareVariable(table, "X", dTypeI32, true),
+        "Attempting to declare variable 'X' in the global scope (should fail)",
+        "Correctly failed to declare 'X' in the global scope (expected)",
+        "Unexpectedly succeeded in declaring 'X' in the global scope (unexpected)"
+    );
 
-    // Declare some variables
-    printf("$$ Declaring mutable variable 'X' of type I32\n");
-    symTableDeclareVariable(table, "X", dTypeI32, true);
+    // Add a new scope (e.g., function)
+    testCase(
+        testInstance,
+        symTableMoveScopeDown(table, SYM_FUNCTION),
+        "Adding a new function scope",
+        "Successfully added a new function scope (expected)",
+        "Failed to add function scope (unexpected)"
+    );
 
-    printf("$$ Declaring immutable variable 'Y' of type F64\n");
-    symTableDeclareVariable(table, "Y", dTypeF64, false);
+    // Declare variable 'X' inside the function scope
+    testCase(
+        testInstance,
+        symTableDeclareVariable(table, "X", dTypeI32, true),
+        "Declaring variable 'X' in the function scope",
+        "Successfully declared 'X' in the function scope (expected)",
+        "Failed to declare 'X' in the function scope (unexpected)"
+    );
 
-    // Find the variables
-    SymVariable *varX = NULL;
+    // Move down to a new scope (e.g., inside a block)
+    testCase(
+        testInstance,
+        symTableMoveScopeDown(table, SYM_IF),
+        "Adding a new block scope inside the function",
+        "Successfully added a block scope (expected)",
+        "Failed to add block scope (unexpected)"
+    );
+
+    // Redeclare variable 'X' in the block scope (should fail)
+    testCase(
+        testInstance,
+        !symTableDeclareVariable(table, "X", dTypeI32, true),
+        "Attempting to redeclare variable 'X' in the block scope (should fail)",
+        "Correctly failed to redeclare 'X' in the block scope (expected)",
+        "Unexpectedly succeeded in redeclaring 'X' in the block scope (unexpected)"
+    );
+
+    // Declare a new variable 'Y' in the block scope
+    testCase(
+        testInstance,
+        symTableDeclareVariable(table, "Y", dTypeF64, true),
+        "Declaring variable 'Y' in the block scope",
+        "Successfully declared 'Y' in the block scope (expected)",
+        "Failed to declare 'Y' in the block scope (unexpected)"
+    );
+
+    // Test finding 'Y' in the current scope
     SymVariable *varY = NULL;
-    SymVariable *varZ = NULL;
+    testCase(
+        testInstance,
+        symTableFindVariable(table, "Y", &varY),
+        "Searching for variable 'Y' in the block scope",
+        "Found 'Y' in the block scope (expected)",
+        "Failed to find 'Y' in the block scope (unexpected)"
+    );
 
-    printf("$$ Searching for variable 'X'\n");
-    if (symTableFindVariable(table, "X", &varX)) {
-        printf("$$ Found variable 'X' of type %d: %s\n", varX->type, varX->type == dTypeI32 ? "(expected)" : "(unexpected)");
-    }
+    // Test finding 'X' from the function scope
+    SymVariable *varX = NULL;
+    testCase(
+        testInstance,
+        symTableFindVariable(table, "X", &varX),
+        "Searching for variable 'X' from the function scope",
+        "Found 'X' from the function scope (expected)",
+        "Failed to find 'X' from the function scope (unexpected)"
+    );
 
-    printf("$$ Searching for variable 'Y'\n");
-    if (symTableFindVariable(table, "Y", &varY)) {
-        printf("$$ Found variable 'Y' of type %d: %s\n", varY->type, varY->type == dTypeF64 ? "(expected)" : "(unexpected)");
-    }
+    // Check if 'X' is mutable
+    testCase(
+        testInstance,
+        symTableCanMutate(varX),
+        "Testing if variable 'X' is mutable",
+        "Variable 'X' is mutable (expected)",
+        "Variable 'X' is immutable (unexpected)"
+    );
 
-    // check for unknown variable
-    printf("$$ Searching for unknown variable 'Z'\n");
-    if (!symTableFindVariable(table, "Z", NULL)) {
-        printf("$$ Variable 'Z' not found\n");
-    } else {
-        printf("$$ Variable 'Z' found (unexpected)\n");
-    }
-
-    printf("$$ Adding a new variable 'Z' of type u8 to the global scope\n");
-    if (symTableDeclareVariable(table, "Z", dTypeU8, true)) {
-        printf("$$ Declared variable 'Z' in the global scope (expected)\n");
-    } else {
-        printf("$$ Failed to declare variable 'Z' in the global scope (unexpected)\n");
-    }
-
-    // Check if the variables can be mutated
-    printf("$$ Variable 'X' is %s : %s\n", symTableCanMutate(varX) ? "mutable" : "immutable", symTableCanMutate(varX) ? "(expected)" : "(unexpected)");
-    printf("$$ Variable 'Y' is %s : %s\n", symTableCanMutate(varY) ? "mutable" : "immutable", symTableCanMutate(varY) ? "(unexpected)" : "(expected)");
-
-    // add a new scope
-    printf("$$ Adding a new scope\n");
-    if (symTableMoveScopeDown(table, SYM_FUNCTION)) {
-        printf("$$ Added a new scope (expected)\n");
-    } else {
-        printf("$$ Failed to add a new scope (unexpected)\n");
-    }
-
-    // add the same variable to the new scope
-    printf("$$ Declaring variable 'X' in the new scope\n");
-    if (symTableDeclareVariable(table, "X", dTypeI32, true)) {
-        printf("$$ Declared variable 'X' in the new scope (expected)\n");
-    } else {
-        printf("$$ Failed to declare variable 'X' in the new scope (unexpected)\n");
-    }
-
-    // find the variable in the new scope
-    printf("$$ Searching for variable 'X' in the new scope\n");
-    if (symTableFindVariable(table, "X", &varX)) {
-        printf("$$ Found variable 'X' in the new scope (expected)\n");
-    } else {
-        printf("$$ Variable 'X' not found in the new scope (unexpacted)\n");
-    }
-
-    // add the y variable, but mutable
-
-    printf("$$ Declaring mutable variable 'Y' in the new scope\n");
-    if (symTableDeclareVariable(table, "Y", dTypeF64, true)) {
-        printf("$$ Declared mutable variable 'Y' in the new scope (expected)\n");
-    } else {
-        printf("$$ Failed to declare mutable variable 'Y' in the new scope (unexpected)\n");
-    }
-
-    // find the Y variable in the new scope
-    printf("$$ Searching for variable 'Y' in the new scope\n");
-    if (symTableFindVariable(table, "Y", &varY)) {
-        printf("$$ Found variable 'Y' in the new scope (expected)\n");
-    } else {
-        printf("$$ Variable 'Y' not found in the new scope (unexpected)\n");
-    }
-
-    // check if the variable can be mutated
-    printf("$$ Variable 'Y' is %s : %s\n", symTableCanMutate(varY) ? "mutable" : "immutable", symTableCanMutate(varY) ? "(expected)" : "(unexpected)");
-
-    // try to find the Z variable
-    printf("$$ Searching for unknown variable 'Z' in the new scope\n");
-    if (symTableFindVariable(table, "Z", &varZ)) {
-        printf("$$ Variable 'Z' found in the new scope (expected)\n");
-    } else {
-        printf("$$ Variable 'Z' not found in the new scope (unexpected)\n");
-    }
-
-
-    printf("$$ Variable 'Z' is of type %d : %s\n", varZ->type, varZ->type == dTypeU8 ? "(expected)" : "(unexpected)");
-    printf("$$ Variable 'Z' is %s : %s\n", symTableCanMutate(varZ) ? "mutable" : "immutable", symTableCanMutate(varZ) ? "(expected)" : "(unexpected)");
-
-    // delcare variable Z in the curretn scope, that will not be used
-    printf("$$ Declaring variable 'Z' in the current scope\n");
-    if (symTableDeclareVariable(table, "Z", dTypeU8, true)) {
-        printf("$$ Declared variable 'Z' in the current scope (expected)\n");
-    } else {
-        printf("$$ Failed to declare variable 'Z' in the current scope (unexpected)\n");
-    }
-
+    // Exit block scope and test variable access
     enum ERR_CODES code;
+    testCase(
+        testInstance,
+        symTableExitScope(table, &code),
+        "Exiting block scope (we have searched for all the variables)",
+        "Exited block scope (expected)",
+        "Failed to exit block scope (unexpected)"
+    );
 
-    // exit the new scope
-    printf("$$ Exiting the new scope\n");
-    if (symTableExitScope(table, &code)) {
-        printf("$$ Exited the new scope (expected)\n");
-    } else {
-        printf("$$ Failed to exit the new scope (unexpected)\n");
-    }
+    // Check for unused variables
+    testCase(
+        testInstance,
+        code == E_NONE,
+        "Checking for unused variables in exited block scope",
+        "All variables were used (expected)",
+        "Not all variables were used (unexpected)"
+    );
 
-    printf("$$ exit code: %d : %s\n", code, code == E_SEMANTIC_UNUSED_VAR ? "(expected)" : "(unexpected)");
+    // Exit function scope and test variable access
+    testCase(
+        testInstance,
+        symTableExitScope(table, &code),
+        "Exiting function scope",
+        "Exited function scope (expected)",
+        "Failed to exit function scope (unexpected)"
+    );
 
-    // free the symbol table
-    printf("$$ Freeing the symbol table\n");
-    if (symTableFree(table)) {
-        printf("$$ Symbol table freed (expected)\n");
-    } else {
-        printf("$$ Failed to free the symbol table (unexpected)\n");
-    }
+    // Check for unused variables in function scope
+    testCase(
+        testInstance,
+        code == E_NONE,
+        "Checking for unused variables in exited function scope",
+        "All variables were used (expected)",
+        "Not all variables were used (unexpected)"
+    );
+
+    // Exit global scope and test variable access
+    testCase(
+        testInstance,
+        symTableExitScope(table, &code),
+        "Exiting global scope",
+        "Exited global scope (expected)",
+        "Failed to exit global scope (unexpected)"
+    );
+
+    // Check for unused variables in global scope
+    testCase(
+        testInstance,
+        code == E_NONE,
+        "Checking for unused variables in exited global scope",
+        "All variables were used (expected)",
+        "Not all variables were used (unexpected)"
+    );
+
+    // Free the symbol table
+    printf("-- Freeing the symbol table (when exiting the global scope)\n");
+
+    finishTestInstance(testInstance);
 }
-
 
 int main(void) {
 
     // Run the test cases
-    printf("\n=========== Test BST malloced ==========\n");
     test_case_1();
-    printf("\n=========== Test BST not malloced ==========\n");
     test_case_2();
-    printf("\n=========== Test SymTable ==========\n");
     test_case_3();
 
     return 0;
