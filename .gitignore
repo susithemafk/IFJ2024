@@ -1,6 +1,6 @@
 main
 *.exe
 *.out
-susi.txt
+susifolder
 .DS_Store
 .vscode

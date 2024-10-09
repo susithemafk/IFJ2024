@@ -41,7 +41,7 @@ clean:
 	rm -f main test_list test_bst
 
 run: main
-	./main
+	./main < src/input.txt
 
 valgrind: main
 	valgrind -s --leak-check=full --track-origins=yes --dsymutil=yes ./main
