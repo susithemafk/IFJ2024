@@ -9,6 +9,7 @@
 #include <stdlib.h> // cound use the <malloc.h> instead, however it is not recommended.
 #include "lexical/scanner.h"
 #include "utility/enumerations.h"
+#include "utility/my_utils.h"
 
 #define ALLOC_SIZE 64
 
@@ -164,7 +165,7 @@ enum ERR_CODES scanner_get_token(struct TOKEN *tokenPointer)
 					// identifikátor
 					state = SCANNER_IDENTIFIER;
 				}
-				else if (input >= '0' && input <= '9')
+				else if (isDigit(input))
 				{
 					// číslo
 					state = SCANNER_I32;
@@ -179,7 +180,7 @@ enum ERR_CODES scanner_get_token(struct TOKEN *tokenPointer)
 		case SCANNER_STRING_START:
 			if (input == '"')
 			{
-				state = SCANNER_STRING_FINAL;
+				state = SCANNER_STRING_END;
 			}
 			else if (input >= ' ')
 			{
@@ -194,7 +195,7 @@ enum ERR_CODES scanner_get_token(struct TOKEN *tokenPointer)
 		case SCANNER_STRING_VALUE:
 			if (input == '"')
 			{
-				state = SCANNER_STRING_FINAL;
+				state = SCANNER_STRING_END;
 			}
 			else if (input < ' ')
 			{
@@ -202,7 +203,7 @@ enum ERR_CODES scanner_get_token(struct TOKEN *tokenPointer)
 			}
 			break;
 
-		case SCANNER_STRING_FINAL:
+		case SCANNER_STRING_END:
 			tokenPointer->type = TOKEN_STRING;
 			return scanner_end(input, &nextCharacter, tokenPointer, string_index);
 
@@ -293,54 +294,65 @@ enum ERR_CODES scanner_get_token(struct TOKEN *tokenPointer)
 			}
 			break;
 
-		case SCANNER_I32: // TODO: dořešit čísla s exponenty
-			if (input >= '0' && input <= '9')
+		case SCANNER_I32:
+			if (!isDigit(input))
 			{
-			}
-			// f64 je rozdělen znakem tečka
-			else if (input == '.')
-			{
-				state = SCANNER_I64;
-			}
-			else if (input == 'e' || input == 'E')
-			{
-				state = SCANNER_EXP_BASE;
-			}
-			else
-			{
-				tokenPointer->type = TOKEN_I32;
-				return scanner_end(input, &nextCharacter, tokenPointer, string_index);
+				if (input == '.')
+				{
+					// f64 je rozdělen znakem tečka
+					state = SCANNER_I64_POINT;
+				}
+				else if (input == 'e' || input == 'E')
+				{
+					state = SCANNER_EXP_BASE;
+				}
+				else
+				{
+					tokenPointer->type = TOKEN_I32;
+					return scanner_end(input, &nextCharacter, tokenPointer, string_index);
+				}
 			}
 			break;
 
-		case SCANNER_I64:
-			if (input >= '0' && input <= '9')
-			{
-				state = SCANNER_EXP_I64;
-			}
+		case SCANNER_I64_POINT:
+			if (isDigit(input))
+				state = SCANNER_I64;
 			else
-			{
 				return E_LEXICAL;
+			break;
+
+		case SCANNER_I64:
+			if (!isDigit(input))
+			{
+				if (input == 'e' || input == 'E')
+				{
+					state = SCANNER_EXP_BASE;
+				}
+				else
+				{
+					tokenPointer->type = TOKEN_F64;
+					return scanner_end(input, &nextCharacter, tokenPointer, string_index);
+				}
 			}
 			break;
 
 		case SCANNER_EXP_I64:
-			if (input >= '0' && input <= '9')
+			if (isDigit(input))
 			{
-			}
-			else if (input == 'e' || input == 'E')
-			{
-				state = SCANNER_EXP_BASE;
-			}
-			else
-			{
-				tokenPointer->type = TOKEN_F64;
-				return scanner_end(input, &nextCharacter, tokenPointer, string_index);
+				if (input == 'e' || input == 'E')
+				{
+					state = SCANNER_EXP_BASE;
+				}
+				else
+				{
+					tokenPointer->type = TOKEN_F64;
+					return scanner_end(input, &nextCharacter, tokenPointer, string_index);
+				}
 			}
 			break;
 
 		case SCANNER_EXP_BASE:
-			if (input >= '0' && input <= '9')
+			if (isDigit(input))
 			{
 				state = SCANNER_EXP;
 			}
@@ -355,7 +367,7 @@ enum ERR_CODES scanner_get_token(struct TOKEN *tokenPointer)
 			break;
 
 		case SCANNER_EXP_SIGN:
-			if (input >= '0' && input <= '9')
+			if (isDigit(input))
 			{
 				state = SCANNER_EXP;
 			}
@@ -366,7 +378,7 @@ enum ERR_CODES scanner_get_token(struct TOKEN *tokenPointer)
 			break;
 
 		case SCANNER_EXP:
-			if (!(input >= '0' && input <= '9'))
+			if (!(isDigit(input)))
 			{
 				tokenPointer->type = TOKEN_F64;
 				return scanner_end(input, &nextCharacter, tokenPointer, string_index);
@@ -402,7 +414,7 @@ enum ERR_CODES scanner_get_token(struct TOKEN *tokenPointer)
 
 		case SCANNER_IDENTIFIER:
 			if (!((input >= 'A' && input <= 'Z') || (input >= 'a' && input <= 'z') || input == '_' ||
-				  (input >= '0' && input <= '9')))
+				  (isDigit(input))))
 			{
 				/**
 				 * Keywords: const, else, fn, if, i32, f64, null, pub, return, []u8, var, void, while

@@ -3,7 +3,7 @@
  * @date 9.10. 2024
  * @author <247581> Martin Mendl
  * @brief Test file for the lexical analysis
-*/
+ */
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -14,24 +14,25 @@
 #define MAX_TOKEN_LEN 100
 #define SUCCESS 0
 
-
-char* read_line(FILE *file) {
+char *read_line(FILE *file)
+{
     static char buffer[MAX_TOKEN_LEN];
-    
-    if (fgets(buffer, MAX_TOKEN_LEN, file) != NULL) {
+
+    if (fgets(buffer, MAX_TOKEN_LEN, file) != NULL)
+    {
         buffer[strcspn(buffer, "\n")] = 0; // Remove newline character
         return buffer;
     }
-    
+
     return NULL; // Return NULL if no more lines to read
 }
-
 
 // Custom test macros (adjust as needed)
 TestInstancePtr testInstance;
 
 // Function to compare tokens from the lexical analyzer and expected output
-void compare_tokens(FILE *expected_file) {
+void compare_tokens(FILE *expected_file)
+{
     static struct TOKEN token;
     enum ERR_CODES status;
     char expected_token[MAX_TOKEN_LEN];
@@ -50,13 +51,14 @@ void compare_tokens(FILE *expected_file) {
     status = scanner_get_token(&token);
 
     // Loop through tokens from both lexical analyzer and expected file
-    while (expectedLine != NULL) {
+    while (expectedLine != NULL)
+    {
         // Copy expected token into expected_token
         strncpy(expected_token, expectedLine, MAX_TOKEN_LEN);
 
         // Prepare the error message for token comparison
         char tokenErrorMessage[256]; // Adjust size as necessary
-        snprintf(tokenErrorMessage, sizeof(tokenErrorMessage), 
+        snprintf(tokenErrorMessage, sizeof(tokenErrorMessage),
                  "Token does not match expected token: Expected '%s', but got '%s'",
                  expected_token, token.value);
 
@@ -71,7 +73,7 @@ void compare_tokens(FILE *expected_file) {
 
         // Prepare the error message for status check
         char statusErrorMessage[256]; // Adjust size as necessary
-        snprintf(statusErrorMessage, sizeof(statusErrorMessage), 
+        snprintf(statusErrorMessage, sizeof(statusErrorMessage),
                  "Token read unsuccessful: Expected status SUCCESS but got '%d'",
                  status);
 
@@ -93,11 +95,12 @@ void compare_tokens(FILE *expected_file) {
     finishTestInstance(testInstance);
 }
 
-
-int main(void) {
+int main(void)
+{
     // Open the expected tokens file
-    FILE *expected_file = fopen("./src/expected_lex_out.txt", "r");
-    if (expected_file == NULL) {
+    FILE *expected_file = fopen("./tests/lexical/expected_output.txt", "r");
+    if (expected_file == NULL)
+    {
         perror("Error opening expected token file");
         return 1;
     }

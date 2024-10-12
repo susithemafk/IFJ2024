@@ -65,5 +65,5 @@ test-bst: $(BST_TEST_SRC)
 # Compile and run the test for the lexical analyzer (LEX)
 test-lex: $(LEX_TEST_SRC)
 	$(CC) $(CFLAGS) $(INCLUDES) $(LEX_TEST_SRC) -o test_lex -std=c99
-	./test_lex < ./src/input.txt
+	./test_lex < ./tests/lexical/input.txt
 	rm -f test_lex
