@@ -9,6 +9,14 @@
 #ifndef ENUMERATIONS_H
 #define ENUMERATIONS_H
 
+#include <stdbool.h>
+
+// ANSI color codes for console output
+#define COLOR_PASS "\033[0;32m"  // Green
+#define COLOR_FAIL "\033[0;31m"  // Red
+#define COLOR_WARN "\033[0;33m"  // Yellow
+#define COLOR_RESET "\033[0m"    // Reset to default
+
 /**
  * @brief Enums for error codes
  *
@@ -62,26 +70,59 @@ enum ERR_CODES {
                        */
 };
 
-/**
- * @brief Enums for key words
- * @note used in condunction with some func
- */
-enum KEY_WORDS_SRC
+enum TOKEN_TYPE
 {
-    W_CONST = 0,
-    W_ELSE = 1,
-    W_FN = 2,
-    W_IF = 3,
-    W_I32 = 4,
-    W_F64 = 5,
-    W_NULL = 6,
-    W_PUB = 7,
-    W_RETURN = 8,
-    W_U8 = 9,
-    W_VAR = 10,
-    W_VOID = 11,
-    W_WHILE = 12,
+	TOKEN_NONE,		  // No token
+	TOKEN_IDENTIFIER, // Název proměnné, funkce, ...
+	TOKEN_EOF,		  // End of file
+
+	TOKEN_PLUS,		// +
+	TOKEN_MINUS,	// -
+	TOKEN_DIVIDE,	// /
+	TOKEN_MULTIPLY, // *
+	TOKEN_EQUALS,	// ==
+
+	TOKEN_LESSTHAN,		  // <
+	TOKEN_LESSOREQUAL,	  // <=
+	TOKEN_GREATERTHAN,	  // >
+	TOKEN_GREATEROREQUAL, // >=
+	TOKEN_NOTEQUAL,		  // !=
+
+	TOKEN_STRING, // "string"
+
+	TOKEN_CONCATENATE, // .
+	TOKEN_ASSIGN,	   // =
+	TOKEN_COLON,	   // :
+	TOKEN_COMMA,	   // ,
+	TOKEN_LPAR,		   // (
+	TOKEN_RPAR,		   // )
+	TOKEN_LBRACE,	   // {
+	TOKEN_RBRACE,	   // }
+	TOKEN_SEMICOLON,   // ;
+
+	/**
+	 * Keywords: const, else, fn, if, i32, f64, null, pub, return, u8, var, void, while
+	 */
+	TOKEN_CONST,  // const
+	TOKEN_ELSE,	  // else
+	TOKEN_FN,	  // fn
+	TOKEN_IF,	  // if
+	TOKEN_I32,	  // i32
+	TOKEN_F64,	  // f64
+	TOKEN_NULL,	  // null
+	TOKEN_PUB,	  // pub
+	TOKEN_RETURN, // return
+	TOKEN_U8,	  // u8
+	TOKEN_VAR,	  // var
+	TOKEN_VOID,	  // void
+	TOKEN_WHILE,  // while
 };
+
+typedef struct TOKEN {
+	char *value;	// Token value
+	enum TOKEN_TYPE type; // Token type
+} *TOKEN_PTR;
+
 
 enum DATA_TYPES {
     dTypeI32,
@@ -89,21 +130,6 @@ enum DATA_TYPES {
     dTypeU8
 };
 
-/**
- * Return the coresponding string for the key word
- *
- * @param keyWord The key, for which the string should be returned
- * @return The string representation of the key word
- */
-char *_getKeyWordFromString(enum KEY_WORDS_SRC keyWord);
-
-/**
- * Return the coresponding enum keyWord for the string
- *
- * @param keyWord The string, for which the key should be returned
- * @return The enum representation of the key word, or -1 if the key word is not found
- */
-enum KEY_WORDS_SRC _getEnumfromKeyWord(char *keyWord);
 
 /**
  * Function to hash a string
@@ -112,5 +138,39 @@ enum KEY_WORDS_SRC _getEnumfromKeyWord(char *keyWord);
  * @return The hash of the string
 */
 unsigned int hashString(const char* str);
+
+
+typedef struct TestInstance {
+    char *testName;
+    unsigned int testNumber;
+    unsigned int fails;
+    unsigned int passes;
+} *TestInstancePtr;
+
+/**
+ *  Function to create a new test instance
+ *  
+ * @param testName The name of the test
+ * @return The new test instance
+*/
+TestInstancePtr initTestInstance(char *testName);
+
+/**
+ * Function to finish the test instance
+ * 
+ * @param testInstance The test instance to finish
+*/
+void finishTestInstance(TestInstancePtr testInstance);
+
+/**
+ * Function to make it ez to create a testn case
+ * 
+ * @param testInstance A pointer to an unsigned int that will be incremented
+ * @param testResult The result of the test
+ * @param testName The name of the test
+ * @param testResultPassMsg The message to print if the test passes
+ * @param testResultFailMsg The message to print if the test fails
+*/
+void testCase(TestInstancePtr testInstance, bool testResult, char *testName, char *testResultPassMsg, char *testResultFailMsg);
 
 #endif // ENUMERATIONS_H

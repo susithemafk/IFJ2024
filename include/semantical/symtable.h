@@ -216,6 +216,7 @@ bool symTableMoveScopeDown(SymTable *table, enum SYMTABLE_NODE_TYPES type);
  * Function to exit the current scope
  * 
  * @param table - pointer to the symbol table
+ * @note in case we try to exit the global scope, the table will be freed
  * @return true, if the scope was successfully exited, false otherwise
 */
 bool symTableExitScope(SymTable *table, enum ERR_CODES *returnCode);

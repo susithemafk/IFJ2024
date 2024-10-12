@@ -8,72 +8,8 @@
 
 #include "utility/enumerations.h"
 #include <string.h>
-
-char *_getKeyWordFromString(enum KEY_WORDS_SRC keyWord) {
-    switch (keyWord) {
-        case W_CONST:
-            return "const";
-        case W_ELSE:
-            return "else";
-        case W_FN:
-            return "fn";
-        case W_IF:
-            return "if";
-        case W_I32:
-            return "i32";
-        case W_F64:
-            return "f64";
-        case W_NULL:
-            return "null";
-        case W_PUB:
-            return "pub";
-        case W_RETURN:
-            return "return";
-        case W_U8:
-            return "u8";
-        case W_VAR:
-            return "var";
-        case W_VOID:
-            return "void";
-        case W_WHILE:
-            return "while";
-        default:
-            return "unknown";
-    }
-}
-
-enum KEY_WORDS_SRC _getEnumfromKeyWord(char *keyWord) {
-
-    if (strcmp(keyWord, "const") == 0) {
-        return W_CONST;
-    } else if (strcmp(keyWord, "else") == 0) {
-        return W_ELSE;
-    } else if (strcmp(keyWord, "fn") == 0) {
-        return W_FN;
-    } else if (strcmp(keyWord, "if") == 0) {
-        return W_IF;
-    } else if (strcmp(keyWord, "i32") == 0) {
-        return W_I32;
-    } else if (strcmp(keyWord, "f64") == 0) {
-        return W_F64;
-    } else if (strcmp(keyWord, "null") == 0) {
-        return W_NULL;
-    } else if (strcmp(keyWord, "pub") == 0) {
-        return W_PUB;
-    } else if (strcmp(keyWord, "return") == 0) {
-        return W_RETURN;
-    } else if (strcmp(keyWord, "u8") == 0) {
-        return W_U8;
-    } else if (strcmp(keyWord, "var") == 0) {
-        return W_VAR;
-    } else if (strcmp(keyWord, "void") == 0) {
-        return W_VOID;
-    } else if (strcmp(keyWord, "while") == 0) {
-        return W_WHILE;
-    }
-
-    return -1;
-}
+#include <stdio.h>
+#include <stdlib.h>
 
 unsigned int hashString(const char* str) {
     unsigned long hash = 5381;
@@ -83,4 +19,45 @@ unsigned int hashString(const char* str) {
     }
     return (unsigned int)hash;
 }
+
+TestInstancePtr initTestInstance(char *testName) {
+    TestInstancePtr testInstance = (TestInstancePtr)malloc(sizeof(struct TestInstance));
+    testInstance->testNumber = 0;
+    testInstance->passes = 0;
+    testInstance->fails = 0;
+    printf("\n\n%s=========== %s ==========%s\n", COLOR_WARN, testName, COLOR_RESET);
+    return testInstance;
+}
+
+void finishTestInstance(TestInstancePtr testInstance) {
+    printf("\n%s=========== SUMMARY ==========%s\n", COLOR_WARN, COLOR_RESET);
+    printf("%sPASSED%s: %u/%u\n", COLOR_PASS, COLOR_RESET, testInstance->passes, testInstance->testNumber);
+    printf("%sFAILED%s: %u/%u\n", COLOR_FAIL, COLOR_RESET, testInstance->fails, testInstance->testNumber);
+    if (testInstance->fails == 0) {
+        printf("%s** ALL TESTS PASSED **%s\n", COLOR_PASS, COLOR_RESET);
+        printf("Note: This is the part where we do a happy dance!\n");
+    } else {
+        printf("%sSOME TESTS FAILED%s\n", COLOR_FAIL, COLOR_RESET);
+        printf("What are you doing here ?? !! Get back to work ...\n");
+    }
+    free(testInstance);
+}
+
+// Function to make it easier to test any function
+void testCase(TestInstancePtr testInstance, bool testResult, char *testName, char *testResultPassMsg, char *testResultFailMsg) {
+    // Print the test name
+    printf("TEST %u: %s\n", testInstance->testNumber, testName);
+    testInstance->testNumber++;
+
+    // Check the test result and print either PASS or FAIL with appropriate color
+    if (testResult) {
+        printf("  %sPASS%s: %s\n", COLOR_PASS, COLOR_RESET, testResultPassMsg);
+        testInstance->passes++;
+    } else {
+        printf("  %sFAIL%s: %s\n", COLOR_FAIL, COLOR_RESET, testResultFailMsg);
+        testInstance->fails++;
+    }
+    printf("\n");
+}
+
 
