@@ -151,6 +151,9 @@ enum ERR_CODES scanner_get_token(struct TOKEN *tokenPointer)
 				state = SCANNER_RBRACE;
 				tokenPointer->type = TOKEN_RBRACE;
 				break;
+			case '[':
+				state = SCANNER_LSQUARE;
+				break;
 
 			default:
 				if (isspace(input))
@@ -370,12 +373,39 @@ enum ERR_CODES scanner_get_token(struct TOKEN *tokenPointer)
 			}
 			break;
 
+		case SCANNER_LSQUARE:
+			if (input == ']')
+				state = SCANNER_RSQUARE;
+			else
+				return E_LEXICAL;
+			break;
+
+		case SCANNER_RSQUARE:
+			if (input == 'u')
+				state = SCANNER_U;
+			else
+				return E_LEXICAL;
+			break;
+
+		case SCANNER_U:
+			if (input == '8')
+			{
+				state = SCANNER_8;
+				tokenPointer->type = TOKEN_U8_ARRAY;
+			}
+			else
+				return E_LEXICAL;
+			break;
+
+		case SCANNER_8:
+			return scanner_end(input, &nextCharacter, tokenPointer, string_index);
+
 		case SCANNER_IDENTIFIER:
 			if (!((input >= 'A' && input <= 'Z') || (input >= 'a' && input <= 'z') || input == '_' ||
 				  (input >= '0' && input <= '9')))
 			{
 				/**
-				 * Keywords: const, else, fn, if, i32, f64, null, pub, return, u8, var, void, while
+				 * Keywords: const, else, fn, if, i32, f64, null, pub, return, []u8, var, void, while
 				 */
 				tokenPointer->value[string_index] = '\0';
 				nextCharacter = input;
@@ -414,10 +444,6 @@ enum ERR_CODES scanner_get_token(struct TOKEN *tokenPointer)
 				else if (!strcmp(tokenPointer->value, "return"))
 				{
 					tokenPointer->type = TOKEN_RETURN;
-				}
-				else if (!strcmp(tokenPointer->value, "u8")) // TODO: []u8 remove u8
-				{
-					tokenPointer->type = TOKEN_U8;
 				}
 				else if (!strcmp(tokenPointer->value, "var"))
 				{
@@ -465,6 +491,8 @@ enum ERR_CODES scanner_get_token(struct TOKEN *tokenPointer)
 
 			tokenPointer->value = temp;
 		}
+		// print char input
+		// printf("Input: %c\n", input);
 		tokenPointer->value[string_index++] = (char)input;
 	}
 }
