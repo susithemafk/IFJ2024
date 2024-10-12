@@ -290,7 +290,7 @@ void test_case_3(void) {
 
     TestInstancePtr testInstance = initTestInstance("Symbol Table Tests");
 
-    // Initialize a new symbol table
+    // 1. Initialize a new symbol table
     SymTable *table = symTableInit();
     testCase(
         testInstance,
@@ -300,16 +300,16 @@ void test_case_3(void) {
         "Failed to initialize a new symbol table (unexpected)"
     );
 
-    // Test that declaring variables in the global scope fails
+    // 2. Test that declaring variables in the global scope fails
     testCase(
         testInstance,
-        !symTableDeclareVariable(table, "X", dTypeI32, true),
+        symTableDeclareVariable(table, "X", dTypeI32, true) == NULL,
         "Attempting to declare variable 'X' in the global scope (should fail)",
         "Correctly failed to declare 'X' in the global scope (expected)",
         "Unexpectedly succeeded in declaring 'X' in the global scope (unexpected)"
     );
 
-    // Add a new scope (e.g., function)
+    // 3. Add a new scope (e.g., function)
     testCase(
         testInstance,
         symTableMoveScopeDown(table, SYM_FUNCTION),
@@ -318,16 +318,16 @@ void test_case_3(void) {
         "Failed to add function scope (unexpected)"
     );
 
-    // Declare variable 'X' inside the function scope
+    // 4. Declare variable 'X' inside the function scope
     testCase(
         testInstance,
-        symTableDeclareVariable(table, "X", dTypeI32, true),
+        symTableDeclareVariable(table, "X", dTypeI32, true) != NULL,
         "Declaring variable 'X' in the function scope",
         "Successfully declared 'X' in the function scope (expected)",
         "Failed to declare 'X' in the function scope (unexpected)"
     );
 
-    // Move down to a new scope (e.g., inside a block)
+    // 5. Move down to a new scope (e.g., inside a block)
     testCase(
         testInstance,
         symTableMoveScopeDown(table, SYM_IF),
@@ -336,25 +336,25 @@ void test_case_3(void) {
         "Failed to add block scope (unexpected)"
     );
 
-    // Redeclare variable 'X' in the block scope (should fail)
+    // 6. Redeclare variable 'X' in the block scope (should fail)
     testCase(
         testInstance,
-        !symTableDeclareVariable(table, "X", dTypeI32, true),
+        symTableDeclareVariable(table, "X", dTypeI32, true) == NULL,
         "Attempting to redeclare variable 'X' in the block scope (should fail)",
         "Correctly failed to redeclare 'X' in the block scope (expected)",
         "Unexpectedly succeeded in redeclaring 'X' in the block scope (unexpected)"
     );
 
-    // Declare a new variable 'Y' in the block scope
+    // 7. Declare a new variable 'Y' in the block scope
     testCase(
         testInstance,
-        symTableDeclareVariable(table, "Y", dTypeF64, true),
+        symTableDeclareVariable(table, "Y", dTypeF64, true) != NULL,
         "Declaring variable 'Y' in the block scope",
         "Successfully declared 'Y' in the block scope (expected)",
         "Failed to declare 'Y' in the block scope (unexpected)"
     );
 
-    // Test finding 'Y' in the current scope
+    // 8. Test finding 'Y' in the current scope
     SymVariable *varY = NULL;
     testCase(
         testInstance,
@@ -364,7 +364,7 @@ void test_case_3(void) {
         "Failed to find 'Y' in the block scope (unexpected)"
     );
 
-    // Test finding 'X' from the function scope
+    // 9. Test finding 'X' from the function scope
     SymVariable *varX = NULL;
     testCase(
         testInstance,
@@ -374,7 +374,7 @@ void test_case_3(void) {
         "Failed to find 'X' from the function scope (unexpected)"
     );
 
-    // Check if 'X' is mutable
+    // 10. Check if 'X' is mutable
     testCase(
         testInstance,
         symTableCanMutate(varX),
@@ -383,7 +383,7 @@ void test_case_3(void) {
         "Variable 'X' is immutable (unexpected)"
     );
 
-    // Exit block scope and test variable access
+    // 11. Exit block scope and test variable access
     enum ERR_CODES code;
     testCase(
         testInstance,
@@ -393,16 +393,16 @@ void test_case_3(void) {
         "Failed to exit block scope (unexpected)"
     );
 
-    // Check for unused variables
+    // 12. Check for unused variables
     testCase(
         testInstance,
-        code == E_NONE,
+        code == SUCCESS,
         "Checking for unused variables in exited block scope",
         "All variables were used (expected)",
         "Not all variables were used (unexpected)"
     );
 
-    // Exit function scope and test variable access
+    // 13. Exit function scope and test variable access
     testCase(
         testInstance,
         symTableExitScope(table, &code),
@@ -411,16 +411,16 @@ void test_case_3(void) {
         "Failed to exit function scope (unexpected)"
     );
 
-    // Check for unused variables in function scope
+    // 14. Check for unused variables in function scope
     testCase(
         testInstance,
-        code == E_NONE,
+        code == SUCCESS,
         "Checking for unused variables in exited function scope",
         "All variables were used (expected)",
         "Not all variables were used (unexpected)"
     );
 
-    // Exit global scope and test variable access
+    // 15. Exit global scope and test variable access
     testCase(
         testInstance,
         symTableExitScope(table, &code),
@@ -429,10 +429,10 @@ void test_case_3(void) {
         "Failed to exit global scope (unexpected)"
     );
 
-    // Check for unused variables in global scope
+    // 16. Check for unused variables in global scope
     testCase(
         testInstance,
-        code == E_NONE,
+        code == SUCCESS,
         "Checking for unused variables in exited global scope",
         "All variables were used (expected)",
         "Not all variables were used (unexpected)"

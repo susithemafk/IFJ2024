@@ -34,6 +34,9 @@ BST_TEST_SRC = $(wildcard $(UTILITY_DIR)/*.c) $(SEMANTICAL_DIR)/symtable.c $(TES
 # Lexical analyzer test source files
 LEX_TEST_SRC = $(wildcard $(LEXICAL_DIR)/*.c) $(wildcard $(UTILITY_DIR)/*.c) $(TEST_DIR)/test_lex.c
 
+# Function calling validation test source files
+FUNC_CALL_TEST_SRC = $(wildcard $(SEMANTICAL_DIR)/*.c) $(wildcard $(UTILITY_DIR)/*.c) $(TEST_DIR)/test_function_validation.c
+
 
 # Targets
 all: main
@@ -67,3 +70,9 @@ test-lex: $(LEX_TEST_SRC)
 	$(CC) $(CFLAGS) $(INCLUDES) $(LEX_TEST_SRC) -o test_lex -std=c99
 	./test_lex < ./src/input.txt
 	rm -f test_lex
+
+# Compile and run the test for the function calling validation
+test-func-call: $(FUNC_CALL_TEST_SRC)
+	$(CC) $(CFLAGS) $(INCLUDES) $(FUNC_CALL_TEST_SRC) -o test_func_call -std=c99
+	./test_func_call
+	rm -f test_func_call

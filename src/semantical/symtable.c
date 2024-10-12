@@ -475,7 +475,7 @@ bool symTableExitScope(SymTable *table, enum ERR_CODES *returnCode) {
         table->currentScope->type == SYM_GLOBAL) {
         symTableFree(table);
         if (returnCode != NULL) {
-            *returnCode = E_NONE;
+            *returnCode = SUCCESS;
         }
         return true;
     }
@@ -486,7 +486,7 @@ bool symTableExitScope(SymTable *table, enum ERR_CODES *returnCode) {
     // check if all variables were accesed
     if (_symTableAllVariablesAccesed(currentScope)) {
         if (returnCode != NULL) {
-            *returnCode = E_NONE;
+            *returnCode = SUCCESS;
         }
     } else {
         if (returnCode != NULL) {
@@ -507,29 +507,29 @@ bool symTableExitScope(SymTable *table, enum ERR_CODES *returnCode) {
 }
 
 // Function to insert a new
-bool symTableDeclareVariable(SymTable *table, char *name, enum DATA_TYPES type, bool mutable) {
+SymVariable *symTableDeclareVariable(SymTable *table, char *name, enum DATA_TYPES type, bool mutable) {
     // Check if the table or current scope is invalid (if global scope declaration is disallowed)
     if (table == NULL || table->currentScope->type == SYM_GLOBAL) {
-        return false;
+        return NULL;
     }
 
     // Check if the variable already exists in the current scope
     SymVariable *var = NULL;
     if (symTableFindVariable(table, name, &var)) {
-        return false; // Variable already exists
+        return NULL; // Variable already exists
     }
 
     // Allocate memory for a new variable
     SymVariable *newVariable = (SymVariable *)malloc(sizeof(SymVariable));
     if (newVariable == NULL) {
-        return false;
+        return NULL;
     }
 
     // Duplicate the name and check if strdup succeeded
     newVariable->name = name;
     if (newVariable->name == NULL) {
         free(newVariable); // Cleanup if strdup fails
-        return false;
+        return NULL;
     }
 
     // Initialize other fields
@@ -549,17 +549,17 @@ bool symTableDeclareVariable(SymTable *table, char *name, enum DATA_TYPES type, 
         sameHashVariables = initLinkedList(true);
         insertNodeAtIndex((LinkedList *)sameHashVariables, (void *)newVariable, -1);
         bstInsertNode(variables, hash, (void *)sameHashVariables);
-        return true;    
+        return newVariable;    
     } 
 
     // Insert the new variable into the existing list
     if (!insertNodeAtIndex((LinkedList *)sameHashVariables, (void *)newVariable, -1)) {
         free(newVariable->name);
         free(newVariable); // Cleanup if insertion fails
-        return false;
+        return NULL;
     }
 
-    return true; // Success
+    return newVariable; // Success
 }
 
 // Function to find a variable in the current scope (including parent scopes)

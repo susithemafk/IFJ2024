@@ -14,230 +14,224 @@
 #include "utility/linked_list.h"
 #include "utility/enumerations.h"
 
-// Internal function to create a new node
-ASTNodePtr _astCreateNewNode(unsigned int key, struct TOKEN data, ASTNodePtr parent) {
+// Function to create a new AST Node
+ASTNodePtr ASTcreateNode(enum ASTNodeTypes type) {
 
-    // alocate the memeory for the new node
-    ASTNodePtr newNode = (ASTNodePtr)malloc(sizeof(struct ASTNode));
+    // 1st malloc: Allocate memory for the AST node itself
+    ASTNodePtr node = (ASTNodePtr)malloc(sizeof(struct ASTNode));
 
-    // check if the allocation was successful
-    if (newNode == NULL) {
+    // Check if memory allocation was successful for the node
+    if (node == NULL) return NULL;
+
+    // Initialize the node type and the finished flag
+    node->type = type;
+    node->finished = false;
+
+    // 2nd malloc: Allocate memory for the union (ASTNodeData)
+    node->data = (ASTNodeDataPtr)malloc(sizeof(union ASTNodeData));
+    if (node->data == NULL) {
+        free(node);
         return NULL;
     }
 
-    // set the node data
-    newNode->key = key;
-    newNode->data = data;
-    newNode->parent = parent;
+    // 3rd malloc: Allocate memory for the specific member inside the union based on node type
+    switch (type) {
+        case AST_NODE_DECLARE:
+            node->data->declare = (ASTNodeDeclarePtr)malloc(sizeof(struct ASTNodeDeclare));
+            if (node->data->declare == NULL) {
+                free(node->data);
+                free(node);
+                return NULL;
+            }
+            break;
 
-    // init the linked list
-    newNode->children = initLinkedList(true);
+        case AST_NODE_ASSIGN:
+            node->data->assign = (ASTNodeAssignPtr)malloc(sizeof(struct ASTNodeAssign));
+            if (node->data->assign == NULL) {
+                free(node->data);
+                free(node);
+                return NULL;
+            }
+            break;
 
-    // check if the list was initialized
-    if (newNode->children == NULL) {
-        free(newNode);
-        return NULL;
+        case AST_NODE_TRUTH_EXPRESION:
+            node->data->truthExpresion = (ASTNodeTruthExpresionPtr)malloc(sizeof(struct ASTNodeTruthExpresion));
+            if (node->data->truthExpresion == NULL) {
+                free(node->data);
+                free(node);
+                return NULL;
+            }
+            break;
+
+        case ASB_NODE_EXPRESION:
+            node->data->expresion = (ASTNodeExpresionRootPtr)malloc(sizeof(struct ASTNodeExpresion));
+            if (node->data->expresion == NULL) {
+                free(node->data);
+                free(node);
+                return NULL;
+            }
+            // space for the expresion (stored in a linked list)
+            node->data->expresion->root = initLinkedList(true);
+            if (node->data->expresion->root == NULL) {
+                free(node->data->expresion);
+                free(node->data);
+                free(node);
+                return NULL;
+            }
+            break;
+
+        case AST_NODE_IF_ELSE:
+            node->data->ifElse = (ASTNodeIfPtr)malloc(sizeof(struct ASTNodeIf));
+            if (node->data->ifElse == NULL) {
+                free(node->data);
+                free(node);
+                return NULL;
+            }
+            break;
+
+        case AST_NODE_FUNC_CALL:
+            node->data->functionCall = (ASTNodeFunctionCallPtr)malloc(sizeof(struct ASTNodeFunctionCall));
+            if (node->data->functionCall == NULL) {
+                free(node->data);
+                free(node);
+                return NULL;
+            }
+            // space for the arguments (stored in a linked list)
+            node->data->functionCall->arguments = initLinkedList(true);
+            if (node->data->functionCall->arguments == NULL) {
+                free(node->data->functionCall);
+                free(node->data);
+                free(node);
+                return NULL;
+            }
+            break;
+
+        case AST_NODE_FUNCTION:
+            node->data->function = (ASTNodeFunctionPtr)malloc(sizeof(struct ASTNodeFunction));
+            if (node->data->function == NULL) {
+                free(node->data);
+                free(node);
+                return NULL;
+            }
+            // space for the arguments (stored in a linked list)
+            node->data->function->arguments = initLinkedList(true);
+            if (node->data->function->arguments == NULL) {
+                free(node->data->function);
+                free(node->data);
+                free(node);
+                return NULL;
+            }
+            break;
+
+        case AST_NODE_WHILE:
+            node->data->whileLoop = (ASTNodeWhilePtr)malloc(sizeof(struct ASTNodeWhile));
+            if (node->data->whileLoop == NULL) {
+                free(node->data);
+                free(node);
+                return NULL;
+            }
+            break;
+
+        case AST_NODE_VALUE:
+            node->data->value = (ASTNodeValuePtr)malloc(sizeof(struct ASTNodeValue));
+            if (node->data->value == NULL) {
+                free(node->data);
+                free(node);
+                return NULL;
+            }
+            break;
+
+        default:
+            free(node->data);
+            free(node);  // Free the node and data if the type is not recognized
+            return NULL;
     }
 
-    return newNode;
+    return node;  // Return the fully initialized node
 }
 
-// Function to init the AST
-ASTPtr astInit(void (*freeFunctionData)(void *data)) {
+// Function to Free an ABS node
+bool ASTfreeNode(ASTNodePtr node) {
 
-    // allocate the mem for the tree
-    ASTPtr tree = (ASTPtr)malloc(sizeof(struct AST));
-
-    // check if the allocation was successful
-    if (tree == NULL) {
-        return NULL;
-    }
-
-    // set the tree data
-    tree->current = NULL;
-    tree->root = NULL;
-    tree->size = 0;
-    tree->freeFunctionData = freeFunctionData;
-
-    return tree;
-}
-
-// Function to add a child to the tree, at the current node
-bool astAddChildToCurrent(ASTPtr tree, struct TOKEN data, bool switchTo) {
-
-    // chekc if the tree is valid
-    if (tree == NULL) {
-        return false;
-    }
-
-    // create the new node
-    ASTNodePtr newNode = _astCreateNewNode(tree->size, data, tree->current);
-
-    // check if the node was created
-    if (newNode == NULL) {
-        return false;
-    }
-
-    // check if the tree is empty
-    if (switchTo && tree->current == NULL && tree->root == NULL) {
-        tree->root = newNode;
-        tree->current = newNode;
-        tree->size++;
-        return true;
-    }
-
-    // add the new node to the childrens list
-    if (!insertNodeAtIndex(tree->current->children, (void *)newNode, -1))
-        return false;
-
-    // check if the current node should be switched
-    if (switchTo) {
-        tree->current = newNode;
-    }
-
-    tree->size++;
-
-    return true;
-}
-
-// Function to add a node next to the current node
-bool astAddNextToCurrent(ASTPtr tree, struct TOKEN data, bool switchTo) {
-
-    // check, if the tree is valid
-    if (tree == NULL || tree->current == NULL || tree->size == 0) {
-        return false;
-    }
-
-    // create the new node
-    ASTNodePtr newNode = _astCreateNewNode(tree->size, data, tree->current->parent);
-
-    // check if the node was created
-    if (newNode == NULL) {
-        return false;
-    }
-
-    // add the new node to the children list, of the parent node
-    if (!insertNodeAtIndex(tree->current->parent->children, (void *)newNode, -1))
-        return false;   
-
-    // check if the current node should be switched
-    if (switchTo) {
-        tree->current = newNode;
-    }
-
-    tree->size++;
-
-    return true;
-}
-
-// Function to switch the current node to the parent node
-bool astSwitchToParent(ASTPtr tree) {
-    
-    // check if the tree is valid
-    if (tree == NULL) {
-        return false;
-    }
-
-    // check if the current node is the root
-    if (tree->current == tree->root) {
-        return false;
-    }
-
-    // set the current node to the parent
-    tree->current = tree->current->parent;
-
-    return true;
-
-}
-
-// Function to switch the current node to the child node
-bool astSwitchToChild(ASTPtr tree, int index) {
-
-    // check if the tree is valid
-    if (tree == NULL) {
-        return false;
-    }
-
-    // get the node from the children list
-    ASTNodePtr node = (ASTNodePtr)getDataAtIndex(tree->current->children, index);
-
-    // invalid index
     if (node == NULL) {
         return false;
     }
 
-    // set the current node
-    tree->current = node;
+    // here i can add some other swithc for recusive stuff of all the nodes, perhaps not needed doe
 
-    return true;
-}
-
-// Function to search for a node in the tree
-ASTNodePtr astSearchForNode(ASTPtr tree, unsigned int key) {
-
-    // check if the tree is valid
-    if (tree == NULL) {
-        return NULL;
+    bool result = true;
+    // make sure, in case we have a linked list, that we free it
+    switch(node->type) {
+        case AST_NODE_DECLARE:
+            free(node->data->declare);
+            break;
+        case AST_NODE_ASSIGN:
+            free(node->data->assign);
+            break;
+        case AST_NODE_TRUTH_EXPRESION:
+            free(node->data->truthExpresion);
+            break;
+        case ASB_NODE_EXPRESION:
+            result = removeList(node->data->expresion->root);
+            free(node->data->expresion);    
+            break;
+        case AST_NODE_IF_ELSE:
+            free(node->data->ifElse);
+            break;
+        case AST_NODE_FUNC_CALL:
+            result = removeList(node->data->functionCall->arguments);
+            free(node->data->functionCall);
+            break;
+        case AST_NODE_FUNCTION:
+            result = removeList(node->data->function->arguments);
+            free(node->data->function);
+            break;
+        case AST_NODE_WHILE:
+            free(node->data->whileLoop);
+            break;
+        case AST_NODE_VALUE:
+            free(node->data->value->value); // free the string value
+            free(node->data->value);
+            break;
+        default:
+            break;
     }
-
-    // check if the tree is empty
-    if (tree->root == NULL || tree->size == 0) {
-        return NULL;
-    }
-
-    // go throught the current children list and search for the key
-    LinkedList *list = tree->current->children;
-
-    unsigned int size = getSize(list);
-    for (unsigned int i = 0; i < size; i++) {
-        ASTNodePtr node = (ASTNodePtr)getDataAtIndex(list, i);
-        if (node->key == key) {
-            return node;
-        }
-    }
-
-    return NULL;
-}
-
-bool _astFree(ASTNodePtr node) {
-
-    // check if the node is valid
-    if (node == NULL) {
-        return false;
-    }
-
-    // free the children list, utilizing recursion
-    if (node->children != NULL && getSize(node->children) > 0) {
-        for (unsigned int i = 0; i < getSize(node->children); i++) {
-            ASTNodePtr child = (ASTNodePtr)getDataAtIndex(node->children, i);
-            _astFree(child);
-        }
-    }
-
-    // at this point, we know, that all the children are freed
-    removeList(node->children);
-
-    // free the node
+    free(node->data);
     free(node);
 
-    return true;
+    return result;
 }
 
-bool astFree(ASTPtr tree) {
+// Function to edit the value node
+enum ERR_CODES ASTeditNodeValue(ASTNodePtr valueNode, TOKEN_PTR value) {
 
-    // check if the tree is valid
-    if (tree == NULL) {
-        return false;
+    // internal error handeling
+    if (valueNode == NULL || value == NULL)  return E_INTERNAL;
+
+    // check if the node is of the correct type
+    if (valueNode->type != AST_NODE_VALUE) return E_INTERNAL;
+
+    ASTNodeValuePtr node = valueNode->data->value;
+
+    // copy the values
+    node->value = malloc(sizeof(char) * (strlen(value->value) + 1));
+    if (node->value == NULL) return E_INTERNAL;
+    
+    strcpy(node->value, value->value);
+    node->type = value->type;
+
+    return SUCCESS;
+}
+
+// Function to add a node to an expresion
+enum ERR_CODES ASTaddNodeToExpresion(ASTNodePtr expresionRoot, TOKEN_PTR oneToken) {
+
+    if (expresionRoot == NULL) return E_INTERNAL;
+
+    if (oneToken->type > TOKEN_MULTIPLY || oneToken->type < TOKEN_PLUS) {
+        // we have something form here + - / *
+        // which needs to be added to the operand, or to the next available node in the left/right thing
+        // meaning, that in we have to set the operator, or add a new node, goint from left to right
     }
 
-    // free the tree, utilizing recursion
-    bool result = false;
-    if (tree->root != NULL) {
-        result = _astFree(tree->root);
-    }
-
-    // free the tree
-    free(tree);
-
-    return result;
 }

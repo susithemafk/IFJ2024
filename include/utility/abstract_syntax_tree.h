@@ -12,124 +12,315 @@
 #include <stdbool.h>
 #include "utility/enumerations.h"
 #include "utility/linked_list.h"
+#include "semantical/symtable.h"
 
 
-// ####################### ABSTRACT SYNTAX TREE #######################
+// ####################### ASTTRACT SYNTAX TREE #######################
+
+// types of nodes in the ASTtract syntax tree
+enum ASTNodeTypes {
+    AST_NODE_DECLARE, // node for declaration -> var a = 6
+    AST_NODE_ASSIGN, // node for assignment -> a = 6
+    AST_NODE_TRUTH_EXPRESION, // node for truth expresion -> a == 6
+    ASB_NODE_EXPRESION, // node for expresion -> a + 6
+    AST_NODE_IF_ELSE, // node for if else statement -> if (a == 6) { ... } else { ... }
+    AST_NODE_FUNC_CALL, // node for function call -> func(a, b, c)
+    AST_NODE_FUNCTION, // node for function -> func(a, b, c) { ... }
+    AST_NODE_WHILE, // node for while loop -> while (a == 6) { ... }
+    AST_NODE_VALUE, // node for value -> 6, 3.14, 'a', "string"
+};
+
+// >>>>>>>>>>>>>>>>>>> AST NODES START <<<<<<<<<<<<<<<<<<<<
 
 /**
- * @brief Struct for the AST node
- * @param key - key of the node, used for searching in the tree
- * @param data - pointer to the data, in each node
- * @param children - pointer to the children of the node
- * @param parent - pointer to the parent of the node
+ * @brief Struct for the AST Tree
+ * @param root - root of the tree
+ * @param current - current node in the tree
+ * @param finished - if the tree is finished
 */
-typedef struct ASTNode {
-    unsigned int key;
-    struct TOKEN data; // holds the info, about the block, of the node
-    struct LinkedList *children; // holds the children of the node
-    struct ASTNode *parent; // holds the parent of the node
+typedef struct ASTTree {
+    enum ASTNodeTypes type; // type of tree (command, expresion, ...)
+    struct ASTNode *root; // root of the tree
+    struct ASTNode *current; // current node in the tree
+    bool finished; // if the tree is finished
+} *ASTTreePtr;
+
+
+typedef union ASTNodeData {
+    struct ASTNodeDeclare *declare; // for declarations
+    struct ASTNodeAssign *assign; // for assignments
+    struct ASTNodeTruthExpresion *truthExpresion; // for truth expresions
+    struct ASTNodeExpresionRoot *expresion; // for expresions
+    struct ASTNodeIf *ifElse; // for if else statements
+    struct ASTNodeFunctionCall *functionCall; // for function calls
+    struct ASTNodeFunction *function; // for functions
+    struct ASTNodeWhile *whileLoop; // for while loops
+    struct ASTNodeValue *value; // for values
+} *ASTNodeDataPtr;
+
+/**
+ * @brief Struct for the AST Node
+ * @param type - type of the node
+ * @param data - a union of the possible data types
+*/
+typedef struct ASTNode  {
+    enum ASTNodeTypes type; // type of the node
+    bool finished; // if the node is finished inicializing
+    ASTNodeDataPtr data; // data of the node 
 } *ASTNodePtr;
 
 /**
- * @brief Struct for the AST
- * @param size - amount of nodes in the tree
- * @param root - root of the tree
- * @param current - current node
- * @param freeFunctionData - Function pointer for freeing node data
+ * @brief Struct for the AST Node Declare
+ * @param varName - name of the variable
+ * @param variable - pointer to the variable in the symbol table
+ * @param value - value of the variable (can be a value, expresion, function call, ....)
+ * @note this stuct represents a variabel declaration, not the value
 */
-typedef struct AST {
-    unsigned int size; // amoutn of inner nodes in the tree
-    struct ASTNode *root; // root of the tree
-    struct ASTNode *current; // current node
-    void (*freeFunctionData)(void *data); // Function pointer for freeing node data
-} *ASTPtr;
+typedef struct ASTNodeDeclare {
+    char *varName;
+    SymVariable *variable; // pointer to the variable in the symbol table
+    ASTNodePtr value; // value of the variable (can be a value, expresion, function call, ....)
+} *ASTNodeDeclarePtr;
+
+/**
+ * @brief Struct for the AST Node Assign
+ * @param varName - name of the variable
+ * @param variable - pointer to the variable in the symbol table
+ * @param value - value of the variable (can be a value, expresion, function call, ....)
+ * @note this stuct represents a variabel assignment, not the value
+*/
+typedef struct ASTNodeValue {
+    enum DATA_TYPES type; // type of the value
+    char *value; // value of the node
+} *ASTNodeValuePtr;
+
+/**
+ * @brief Struct for the AST Node Assign
+ * @param variable - pointer to the variable in the symbol table, that we are assigning to
+ * @param value - value of the variable (can be a value, expresion, function call, ....)
+ * @note this stuct represents a variabel assignment, not the value
+*/
+typedef struct ASTNodeAssign {
+    SymVariable *variable; // pointer to the variable in the symbol table, that we are assigning to
+    ASTNodePtr value; // value of the variable (can be a value, expresion, function call, ....)
+} *ASTNodeAssignPtr;
+
+/**
+ * @brief Struct for the AST Node Truth Expresion
+ * @param left - left side of the expresion
+ * @param right - right side of the expresion
+ * @param operator - operator of the expresion
+ * @note this stuct represents a truth expresion, not the value
+*/
+typedef struct ASTNodeTruthExpresion {
+    ASTNodePtr left; // left side of the expresion
+    ASTNodePtr right; // right side of the expresion
+    enum TOKEN_TYPE operator; // operator of the expresion
+} *ASTNodeTruthExpresionPtr;
+
+/**
+ * @brief Struct for the AST Node Expresion root (used for navigation)
+ * @param root - root of the expresion
+ * @param prepared - if the expresion is prepared for the code generator
+*/
+typedef struct ASTNodeExpresionRoot {
+    LinkedList *root; // root of the expresion (adding terminals linearly)
+    bool prepared; // if the expresion is prepared for the code generator (mby redundant)
+} *ASTNodeExpresionRootPtr;
+
+/**
+ * @brief Struct for the AST Node Expresion
+ * @param left - left side of the expresion
+ * @param right - right side of the expresion
+ * @param operator - operator of the expresion
+*/
+typedef struct ASTNodeExpresion {
+    ASTNodePtr left; // left side of the expresion
+    ASTNodePtr right; // right side of the expresion
+    enum TOKEN_TYPE operator; // operator of the expresion
+} *ASTNodeExpresionPtr;
+
+/**
+ * @brief Struct for the AST Node If 
+ * @param condition - condition of the if statement
+*/
+typedef struct ASTNodeIf {
+    ASTNodePtr condition; // condition of the if statement
+} *ASTNodeIfPtr;
+
+/**
+ * @brief Struct for the AST Node Function Call
+ * @param functionName - name of the function
+ * @param arguments - list of arguments
+*/
+typedef struct ASTNodeFunctionCall {
+    char *functionName; // name of the function
+    LinkedList *arguments; // list of arguments
+} *ASTNodeFunctionCallPtr;
 
 
 /**
- * Function to create a new node
- * 
- * @param key - key of the node
- * @param data - pointer to the data of the node
- * @note This function is internal
- * @return pointer to the new node
+ * @brief Struct for the AST Node Function
+ * @param functionName - name of the function
+ * @param arguments - list of arguments
 */
-ASTNodePtr _astCreateNewNode(unsigned int key, struct TOKEN data, ASTNodePtr parent);
+typedef struct ASTNodeFunction {
+    char *functionName; // name of the function
+    enum DATA_TYPES returnType; // return type of the function
+    LinkedList *arguments; // list of arguments
+} *ASTNodeFunctionPtr;
+
+/**
+ * @brief Struct for the AST Node While
+ * @param condition - condition of the while loop
+*/
+typedef struct ASTNodeWhile {
+    ASTNodePtr condition; // condition of the while loop
+} *ASTNodeWhilePtr;
+
+// >>>>>>>>>>>>>>>>>>> AST NODES END <<<<<<<<<<<<<<<<<<<<
+
+// >>>>>>>>>>>>>>>>>>> AST FUNCTIONS START <<<<<<<<<<<<<<<<<<<<
+
+/*
+Stuff we need to be able to do
+create a new node
+append a node at the current active node (choose left or right in expression tree - separate function)
+Add a param to a function
+Add a param to a function call
+Add a condition to an if statement
+Add a condition to a while loop
+Create a new function call
+Create a new function
+Create a new while loop
+Create a new if statement
+Create a new expression
+Create a new truth expresion
+*/
 
 
 /**
- * Init function for the AST
+ * Function to create a new AST Tree
  * 
- * @param freeFunctionData - Function pointer for freeing node data
- * @note after inti, the tree will be empty, need to use astAddChild to add the first node
- * @return pointer to the initialized AST
+ * @param type The type of the tree
+ * @return The new AST Tree, NULL if an error occurred
 */
-ASTPtr astInit(void (*freeFunctionData)(void *data));
+ASTNodePtr ASTcreateNode(enum ASTNodeTypes type);
 
 /**
- * Function to add a node to as a child node at the end of the children list
+ * Functio to edit Node Value
  * 
- * @param tree - pointer to the AST
- * @param data - pointer to the data of the node
- * @param switchTo - boolean value, if true, the current node will be switched to the new node
- * @note if the tree is empty, the first node will be added as the root
- * @return true, if the data was successfully inserted, false otherwise
+ * @param node The node to edit
+ * @param value The new value
+ * @return erro code
 */
-bool astAddChildToCurrent(ASTPtr tree, struct TOKEN data, bool switchTo);
+enum ERR_CODES ASTeditNodeValue(ASTNodePtr valueNode, TOKEN_PTR value);
 
 /**
- * Function to add a node next to the current node
+ * Function to add to an expresion
  * 
- * @param tree - pointer to the AST
- * @param data - pointer to the data of the node
- * @param switchTo - boolean value, if true, the current node will be switched to the new node
- * @note if the tree is empty, nothing will be added
- * @return true, if the data was successfully inserted, false otherwise
+ * @param expresionRoot The root of the expresion
+ * @param node The node to add
+ * @param operator The operator of the expresion
+ * @return err code
+ * @note The function will try to fill in the expresion from left to right, in case 
+ * it is supposed add to operand to the left/right side of the epxresion, it will add a new nodee
 */
-bool astAddNextToCurrent(ASTPtr tree, struct TOKEN data, bool switchTo);
+enum ERR_CODES ASTaddNodeToExpresion(ASTNodePtr expresionRoot, TOKEN_PTR oneToken);
 
 /**
- * Function to switch the current node to the parent node
+ * Function to order the expresion for code gen
  * 
- * @param tree - pointer to the AST
- * @return true, if the current node was successfully switched, false otherwise
+ * @param expresionRoot The root of the expresion
+ * @return true if successful, false if an error occurred
 */
-bool astSwitchToParent(ASTPtr tree);
+bool ASTprepareExpresion(ASTNodePtr expresionRoot);
 
 /**
- * Function to switch the current node to the child node
+ * Function to add to a truth expresion
  * 
- * @param tree - pointer to the AST
- * @param index - index of the child node
- * @return true, if the current node was successfully switched, false otherwise
+ * @param truthExpresion The truth expresion
+ * @param left The left side of the expresion
+ * @param right The right side of the expresion
+ * @param operator The operator of the expresion
+ * @return true if successful, false if an error occurred
+ * @note this function can be called multiple times
 */
-bool astSwitchToChild(ASTPtr tree, int index);
+bool ASTaddNodeToTruthExpresion(ASTNodePtr truthExpresion, ASTNodePtr left, ASTNodePtr right, enum TOKEN_TYPE operator);
 
 /**
- * Function to search for a node in the tree
+ * Function to edit the declaration node
  * 
- * @param tree - pointer to the AST
- * @param key - key of the node
- * @note the search is the current node and will go through the children
- * @return pointer to the data, if the key was found, NULL otherwise
+ * @param declareNode The declare node
+ * @param varName The new name of the variable
+ * @param variable The new variable in the symbol table
 */
-ASTNodePtr astSearchForNode(ASTPtr tree, unsigned int key);
+bool ASTeditDeclareNode(ASTNodePtr declareNode, char *varName, ASTNodePtr variable);
 
 /**
- * Function to free the entire tree
+ * Function to edit the assign node
  * 
- * @param tree - pointer to the AST
- * @return true, if the tree was successfully freed, false otherwise
+ * @param assignNode The assign node
+ * @param variable The variable in the symbol table
+ * @param value The value to assign
+ * @return true if successful, false if an error occurred
 */
-bool astFree(ASTPtr tree);
+bool ASTeditAssignNode(ASTNodePtr assignNode, SymVariable *variable, ASTNodePtr value);
 
 /**
- * Helper function to free the tree
+ * Function to edit the if node
  * 
- * @param node - pointer to the node
- * @param freeFunctionData - Function pointer for freeing node data
- * @note This function is internal
- * @return true, if the node was successfully freed, false otherwise
+ * @param ifNode The if node
+ * @param condition The condition of the if statement
 */
-bool _astFree(ASTNodePtr node);
+bool ASTeditIfNode(ASTNodePtr ifNode, ASTNodePtr condition);
 
-#endif // ABSTRACT_SYNTAX_TREE_H
+/**
+ * Function to edit a new AST Node If
+ * 
+ * @param condition The condition of the if statement
+ * @return The new AST Node If, NULL if an error occurred
+*/
+bool ASTeditIfNode(ASTNodePtr ifNode, ASTNodePtr condition);
+
+/**
+ * Function to edit the function call node
+ * 
+ * @param functionCallNode The function call node
+ * @param functionName The name of the function
+ * @param arguments The list of arguments
+ * @return true if successful, false if an error occurred
+ * @note the arguments will be added one by one
+*/
+bool ASTeditFunctionCallNode(ASTNodePtr functionCallNode, char *functionName, ASTNodePtr argument);
+
+/**
+ * Function to edit the function node
+ * 
+ * @param functionNode The function node
+ * @param functionName The name of the function
+ * @param returnType The return type of the function
+ * @param arguments The list of arguments
+ * @return true if successful, false if an error occurred
+ * @note the arguments will be added one by one
+*/
+bool ASTeditFunctionNode(ASTNodePtr functionNode, char *functionName, enum DATA_TYPES returnType, ASTNodePtr argument);
+
+/**
+ * Function to edit the while node
+ * 
+ * @param whileNode The while node
+ * @param condition The condition of the while loop
+*/
+bool ASTeditWhileNode(ASTNodePtr whileNode, ASTNodePtr condition);
+
+
+/**
+ * Function to destroy a node
+ * 
+ * @param node The node to destroy
+*/
+bool ASTfreeNode(ASTNodePtr node);
+
+
+#endif // ASTTRACT_SYNTAX_TREE_H

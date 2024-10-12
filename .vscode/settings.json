@@ -7,6 +7,10 @@
         "common.h": "c",
         "initializer_list": "c",
         "enumerations.h": "c",
-        "stdbool.h": "c"
+        "stdbool.h": "c",
+        "array": "c",
+        "string": "c",
+        "string_view": "c",
+        "vector": "c"
     }
 }

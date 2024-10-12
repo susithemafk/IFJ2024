@@ -22,7 +22,7 @@ unsigned int hashString(const char* str) {
 
 TestInstancePtr initTestInstance(char *testName) {
     TestInstancePtr testInstance = (TestInstancePtr)malloc(sizeof(struct TestInstance));
-    testInstance->testNumber = 0;
+    testInstance->testNumber = 1;
     testInstance->passes = 0;
     testInstance->fails = 0;
     printf("\n\n%s=========== %s ==========%s\n", COLOR_WARN, testName, COLOR_RESET);
@@ -31,8 +31,8 @@ TestInstancePtr initTestInstance(char *testName) {
 
 void finishTestInstance(TestInstancePtr testInstance) {
     printf("\n%s=========== SUMMARY ==========%s\n", COLOR_WARN, COLOR_RESET);
-    printf("%sPASSED%s: %u/%u\n", COLOR_PASS, COLOR_RESET, testInstance->passes, testInstance->testNumber);
-    printf("%sFAILED%s: %u/%u\n", COLOR_FAIL, COLOR_RESET, testInstance->fails, testInstance->testNumber);
+    printf("%sPASSED%s: %u/%u\n", COLOR_PASS, COLOR_RESET, testInstance->passes, testInstance->testNumber-1);
+    printf("%sFAILED%s: %u/%u\n", COLOR_FAIL, COLOR_RESET, testInstance->fails, testInstance->testNumber-1);
     if (testInstance->fails == 0) {
         printf("%s** ALL TESTS PASSED **%s\n", COLOR_PASS, COLOR_RESET);
         printf("Note: This is the part where we do a happy dance!\n");

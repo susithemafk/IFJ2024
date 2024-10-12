@@ -164,7 +164,6 @@ enum SYMTABLE_NODE_TYPES {
 
 typedef struct SymVariable {
     char *name; // the name of the variable
-    // void *value; // the value of the variable, not needed?
     enum DATA_TYPES type; // the type of the variable
     bool mutable; // if the variable is mutable (constants will have this false)
     bool accesed; // if the variable was accessed
@@ -228,8 +227,9 @@ bool symTableExitScope(SymTable *table, enum ERR_CODES *returnCode);
  * @param name - name of the variable to insert
  * @param type - type of the variable to insert
  * @param mutable - flag, if the variable is mutable
+ * @return pointer to the variable, if the variable was successfully inserted, NULL otherwise
 */
-bool symTableDeclareVariable(SymTable *table, char *name, enum DATA_TYPES type, bool mutable);
+SymVariable *symTableDeclareVariable(SymTable *table, char *name, enum DATA_TYPES type, bool mutable);
 
 /**
  * Search for a vairable based on its name, in same hash variables
