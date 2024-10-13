@@ -14,7 +14,6 @@
 
 // ####################### HB BINARY SEARCH TREE #######################
 
-
 BST *bstInit(void (*freeFunction)(void *data)) {
 
     BST *tree = (BST *)malloc(sizeof(BST));

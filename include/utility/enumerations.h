@@ -128,6 +128,14 @@ enum DATA_TYPES {
     dTypeU8
 };
 
+/**
+ * Function to convert a token type to a data type
+ * 
+ * @param type The token type to convert
+ * @return The converted data type
+*/
+enum DATA_TYPES covertTokneDataType(enum TOKEN_TYPE type);
+
 
 /**
  * Function to hash a string

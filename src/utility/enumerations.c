@@ -11,6 +11,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+// Function to hash a string
 unsigned int hashString(const char* str) {
     unsigned long hash = 5381;
     int c;
@@ -20,6 +21,22 @@ unsigned int hashString(const char* str) {
     return (unsigned int)hash;
 }
 
+// Function to convert token type to data type
+enum DATA_TYPES covertTokneDataType(enum TOKEN_TYPE type) {
+
+    switch (type) {
+        case TOKEN_I32:
+            return dTypeI32;
+        case TOKEN_F64:
+            return dTypeF64;
+        case TOKEN_U8:
+            return dTypeU8;
+        default:
+            return dTypeNone;
+    }
+}
+
+// Function to initialize a test instance
 TestInstancePtr initTestInstance(char *testName) {
     TestInstancePtr testInstance = (TestInstancePtr)malloc(sizeof(struct TestInstance));
     testInstance->testNumber = 1;
@@ -29,6 +46,7 @@ TestInstancePtr initTestInstance(char *testName) {
     return testInstance;
 }
 
+// Function to finish a test instance
 void finishTestInstance(TestInstancePtr testInstance) {
     printf("\n%s=========== SUMMARY ==========%s\n", COLOR_WARN, COLOR_RESET);
     printf("%sPASSED%s: %u/%u\n", COLOR_PASS, COLOR_RESET, testInstance->passes, testInstance->testNumber-1);

@@ -13,7 +13,7 @@
 #include "utility/enumerations.h"
 #include "utility/linked_list.h"
 #include "semantical/symtable.h"
-
+#include "semantical/function_call_validation.h"
 
 // ####################### ASTTRACT SYNTAX TREE #######################
 
@@ -28,6 +28,8 @@ enum ASTNodeTypes {
     AST_NODE_FUNCTION, // node for function -> func(a, b, c) { ... }
     AST_NODE_WHILE, // node for while loop -> while (a == 6) { ... }
     AST_NODE_VALUE, // node for value -> 6, 3.14, 'a', "string"
+    AST_NODE_VARIABLE, // node for variable -> a
+    AST_NODE_OPERAND // node for operand -> +, -, *, /, ...
 };
 
 // >>>>>>>>>>>>>>>>>>> AST NODES START <<<<<<<<<<<<<<<<<<<<
@@ -56,6 +58,8 @@ typedef union ASTNodeData {
     struct ASTNodeFunction *function; // for functions
     struct ASTNodeWhile *whileLoop; // for while loops
     struct ASTNodeValue *value; // for values
+    struct SymVariable *variable; // for variables
+    struct TOKEN *operand; // for operands
 } *ASTNodeDataPtr;
 
 /**
@@ -77,7 +81,6 @@ typedef struct ASTNode  {
  * @note this stuct represents a variabel declaration, not the value
 */
 typedef struct ASTNodeDeclare {
-    char *varName;
     SymVariable *variable; // pointer to the variable in the symbol table
     ASTNodePtr value; // value of the variable (can be a value, expresion, function call, ....)
 } *ASTNodeDeclarePtr;
@@ -124,7 +127,8 @@ typedef struct ASTNodeTruthExpresion {
  * @param prepared - if the expresion is prepared for the code generator
 */
 typedef struct ASTNodeExpresionRoot {
-    LinkedList *root; // root of the expresion (adding terminals linearly)
+    LinkedList *output; // root of the expresion (adding terminals linearly)
+    LinkedList *operators; // root of the expresion (adding operators linearly)
     bool prepared; // if the expresion is prepared for the code generator (mby redundant)
 } *ASTNodeExpresionRootPtr;
 
@@ -207,6 +211,10 @@ Create a new truth expresion
 */
 ASTNodePtr ASTcreateNode(enum ASTNodeTypes type);
 
+// posoble jdouci tokeny;
+// var a = 5
+// 
+
 /**
  * Functio to edit Node Value
  * 
@@ -226,15 +234,15 @@ enum ERR_CODES ASTeditNodeValue(ASTNodePtr valueNode, TOKEN_PTR value);
  * @note The function will try to fill in the expresion from left to right, in case 
  * it is supposed add to operand to the left/right side of the epxresion, it will add a new nodee
 */
-enum ERR_CODES ASTaddNodeToExpresion(ASTNodePtr expresionRoot, TOKEN_PTR oneToken);
+enum ERR_CODES ASTaddNodeToExpresion(ASTNodePtr expresionRoot, ASTNodePtr expresionPart);
 
 /**
  * Function to order the expresion for code gen
  * 
  * @param expresionRoot The root of the expresion
- * @return true if successful, false if an error occurred
+ * @return err code
 */
-bool ASTprepareExpresion(ASTNodePtr expresionRoot);
+enum ERR_CODES ASTprepareExpresion(ASTNodePtr expresionRoot, FunctionCallValidatorPtr validator, enum DATA_TYPES expresionType);
 
 /**
  * Function to add to a truth expresion
@@ -321,6 +329,23 @@ bool ASTeditWhileNode(ASTNodePtr whileNode, ASTNodePtr condition);
  * @param node The node to destroy
 */
 bool ASTfreeNode(ASTNodePtr node);
+
+/**
+ * Function to get a type of a node
+ * 
+ * @param node - node to get the type from
+ * @return type of the node
+*/
+enum DATA_TYPES ASTgetNodyReturnType(ASTNodePtr node);
+
+/**
+ * Function to determin, if the types, of two nodes are the same
+ * 
+ * @param node1 - first node
+ * @param node2 - second node
+ * @return error code
+ */
+enum ERR_CODES ASTcompareTypes(ASTNodePtr node1, ASTNodePtr node2);
 
 
 #endif // ASTTRACT_SYNTAX_TREE_H
