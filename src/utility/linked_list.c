@@ -314,27 +314,40 @@ bool removeNodeAtIndex(struct LinkedList *list, int index) {
     return true;
 }
 
-bool removeList(struct LinkedList *list) {
+bool removeList(struct LinkedList **list) {
+    if (list == NULL || *list == NULL) {
+        return false; // Handle null pointer or empty list
+    }
 
-    if (emptyList(list) == -1) {
+    LinkedList *list1 = *list;
+
+    if (emptyList(list1) == -1) {
         return false;
     }
 
-    struct Node *node = list->head;
+    struct Node *node = list1->head;
     struct Node *nextNode = NULL;
 
+    // Free all nodes in the list
     while (node != NULL) {
         nextNode = node->next;
-        if (list->freeData) {
-            free(node->data);
+        if (list1->freeData && node->data) {
+            free(node->data); // Free the node's data if freeData is set
+            node->data = NULL;
         }
-        free(node);
+        free(node); // Free the node itself
         node = nextNode;
     }
-    free(list);
+
+    // Finally, free the LinkedList structure
+    free(list1);
+
+    // Set the original pointer to NULL to avoid dangling pointers
+    *list = NULL;
 
     return true;
 }
+
 
 bool replaceDataAtIndex(struct LinkedList *list, int index, void *data, void **returnData) {
 

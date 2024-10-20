@@ -122,10 +122,11 @@ typedef struct TOKEN {
 
 
 enum DATA_TYPES {
-    dTypeNone,
-    dTypeI32,
-    dTypeF64,
-    dTypeU8
+    dTypeUndefined, // 0. Undefined data type
+    dTypeNone, // 1. No data type
+    dTypeI32, // 2. Integer 32 bit
+    dTypeF64, // 3. Float 64 bit
+    dTypeU8 // 4. Unsigned 8 bit
 };
 
 /**
@@ -160,6 +161,8 @@ typedef struct TestInstance {
  * @return The new test instance
 */
 TestInstancePtr initTestInstance(char *testName);
+
+
 
 /**
  * Function to finish the test instance

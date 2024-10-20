@@ -125,7 +125,7 @@ int main(void) {
     printf("$$ List size after removals: %u\n", getSize(list));
 
     printf("$$ Clearing the list, initing with malloc free setting\n");
-    removeList(list);  // this will free the list and its nodes
+    removeList(&list);  // this will free the list and its nodes
 
     // Clean up allocated data (if not already freed)
     free(data4); 
@@ -174,7 +174,7 @@ int main(void) {
     printList(list, (void (*)(unsigned int, void *))print_char);
 
     printf("$$ Removing, with malloc free setting\n");
-    removeList(list);  // this will free the list and its nodes
+    removeList(&list);  // this will free the list and its nodes
 
     printf("$$ Freeing list\n");
     finishTestInstance(testInstance);

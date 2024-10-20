@@ -11,323 +11,158 @@
 #include <stdbool.h>
 #include <string.h>
 #include "semantical/symtable.h"
+#include "semantical/sem_enums.h"
+#include "utility/binary_search_tree.h"
 
-// ####################### HB BINARY SEARCH TREE #######################
+// ####################### Function Call Validation #######################
 
-BST *bstInit(void (*freeFunction)(void *data)) {
+// Function to init the function call validator
+BST *initFunctionCallValidator(void) {
 
-    BST *tree = (BST *)malloc(sizeof(BST));
+    // create the BST
+    BST *validator = bstInit((void (*)(void **))removeList);
 
-    if (tree == NULL) {
-        return NULL;
-    }
-
-    tree->size = 0;
-    tree->root = NULL;
-    tree->freeFunction = freeFunction;
-
-    return tree;
+    return validator;
 }
 
-// Internal function to calculate the height of a node.
-int _bstCalculateHeight(TreeNode *node) {
-    if (node == NULL) {
-        return -1; // Return -1 for an empty node (base case for height)
-    }
+// Function to free the validator
+enum ERR_CODES _freeFunctionCallValidator(BST **validator) {
 
-    // Recursively calculate height of left and right subtrees
-    int leftHeight = _bstCalculateHeight(node->left);
-    int rightHeight = _bstCalculateHeight(node->right);
+    // check if the validator is not NULL
+    if (validator == NULL || *validator == NULL) return E_INTERNAL;
 
-    // Return the greater of the two heights plus 1 (for the current node)
-    return (leftHeight > rightHeight ? leftHeight : rightHeight) + 1;
+    // free the BST
+    if (bstFree(validator) != true) return E_INTERNAL;
+
+    return SUCCESS; 
 }
 
-// External function to calculate the height of the tree
-int bstCalculateHeight(BST *tree) {
-    if (tree == NULL) {
-        return -1; // Empty tree, return -1
+// Function to find the same hash funcitons in the validator
+LinkedList *_findSameHashFunction(BST *validator, unsigned int hash) {
+
+    // check if the call is valid
+    if (validator == NULL) return NULL;
+
+    // find the functions with the same hash
+
+    LinkedList *sameHashFuncs = (LinkedList *)bstSearchForNode(validator, hash);
+
+    return sameHashFuncs;
+}   
+
+// Function to find a function by name
+enum ERR_CODES _findFunction(BST *validator, char *name, ASTNodePtr *result) {
+
+    // check if call is valid
+    if (validator == NULL || name == NULL) return E_INTERNAL;
+
+    // get the hash of the name
+    unsigned int hash = hashString(name);
+
+    LinkedList *sameHashFuncs = (LinkedList *)bstSearchForNode(validator, hash);
+
+    if (sameHashFuncs == NULL) return E_INTERNAL;
+
+    // we have the hash, need to find the func
+    for (unsigned int i = 0; i < getSize(sameHashFuncs); i++) {
+        ASTNodePtr function  = (ASTNodePtr)getDataAtIndex(sameHashFuncs, i);
+        if (function == NULL || function->type != AST_NODE_FUNCTION) return E_INTERNAL;
+        if (strcmp(function->data->function->functionName, name) == 0) {
+            *result = function;
+            return SUCCESS;
+        } 
     }
 
-    // Internal call to calculate height from the root
-    return _bstCalculateHeight(tree->root);
+    *result = NULL;
+    return SUCCESS;
 }
 
-// Internal function to perform a left rotation
-TreeNode * _bstRotLeft(TreeNode *root) {
-    TreeNode *newRoot = root->right;
-    root->right = newRoot->left;
-    newRoot->left = root;
+// Function to add a new function definition to the validator
+enum ERR_CODES addFunctionDefinition(BST *validator, ASTNodePtr func) {
+    
+    // check if the call is valid
+    if (validator == NULL || func == NULL) return E_INTERNAL;
 
-    return newRoot;
+    // check for right type of function AST
+    if (func->type != AST_NODE_FUNCTION) return E_INTERNAL;
+
+    // get the function name
+    char *name = func->data->function->functionName;
+    unsigned int hash = hashString(name);
+
+    // find the funcitons with the same hash
+    LinkedList *sameHashFuncs = _findSameHashFunction(validator, hash);
+
+    // we do not have this hash yet, need to inti
+    if (sameHashFuncs == NULL) {
+        sameHashFuncs = initLinkedList(false);
+        if (sameHashFuncs == NULL) return E_INTERNAL;
+        if (!insertNodeAtIndex(sameHashFuncs, (void *)func, 0)) return E_INTERNAL;
+        if (!bstInsertNode(validator, hash, (void *)sameHashFuncs)) return E_INTERNAL;
+        return SUCCESS;
+    }
+
+    // we have the hash, need to find, if we are not redifining the function
+    for (unsigned int i = 0; i < getSize(sameHashFuncs); i++) {
+        ASTNodePtr function = (ASTNodePtr)getDataAtIndex(sameHashFuncs, i);
+        if (function == NULL || function->type != AST_NODE_FUNCTION) return E_INTERNAL;
+        if (strcmp(function->data->function->functionName, name) == 0) return E_SEMANTIC_REDIFINITION;
+    }
+
+    // insert the function into the list
+    if (!insertNodeAtIndex(sameHashFuncs, (void *)func, -1)) return E_INTERNAL;
+
+    return SUCCESS;
 }
 
-// Internal function to perform a right rotation
-TreeNode * _bstRotRight(TreeNode *root) {
-    TreeNode *newRoot = root->left;
-    root->left = newRoot->right;
-    newRoot->right = root;
+// Function to validate a function call
+enum ERR_CODES validateFunctionCall(BST *validator, ASTNodePtr call, enum DATA_TYPES *returnType) {
 
-    return newRoot;
+    // check if the call is valid
+    if (validator == NULL || call == NULL || returnType == NULL) return E_INTERNAL;
+
+    // check for the right type of the call AST
+    if (call->type != AST_NODE_FUNC_CALL) return E_INTERNAL;
+
+    // get the function name
+    char *name = call->data->functionCall->functionName;
+
+    // find the function in the validator
+    ASTNodePtr function;
+    enum ERR_CODES result = _findFunction(validator, name, &function);
+
+    if (result != SUCCESS) return result;
+
+    // check if the function was found
+    if (function == NULL) return E_SEMANTIC_UND_FUNC_OR_VAR;
+
+    // check if the function has the right number of arguments
+    unsigned int callArgs = getSize(call->data->functionCall->arguments);
+    unsigned int funcArgs = getSize(function->data->function->arguments);
+
+    if (callArgs != funcArgs) return E_SEMANTIC_INVALID_FUN_PARAM;
+
+    // check if the arguments are of the right type
+    LinkedList *callArgsList = call->data->functionCall->arguments;
+    LinkedList *funcArgsList = function->data->function->arguments;
+
+    for (unsigned int i = 0; i < getSize(funcArgsList); i++) {
+        ASTNodePtr callArg = (ASTNodePtr)getDataAtIndex(callArgsList, i);
+        ASTNodePtr funcArg = (ASTNodePtr)getDataAtIndex(funcArgsList, i);
+
+        if (callArg == NULL || funcArg == NULL) return E_INTERNAL;
+
+        if (callArg->type != AST_NODE_VARIABLE || funcArg->type != AST_NODE_VARIABLE) return E_INTERNAL;
+        if (callArg->data->variable->type != funcArg->data->variable->type) return E_SEMANTIC_INVALID_FUN_PARAM;
+    }
+
+    // set the return type
+    *returnType = function->data->function->returnType;
+    return SUCCESS;
 }
 
-// Internal function to get the balance factor of a node
-int _bstGetBalanceFactor(TreeNode *node) {
-    if (node == NULL) {
-        return 0; // Balance factor for an empty node is 0
-    }
-
-    // Difference between left and right subtree heights
-    return _bstCalculateHeight(node->left) - _bstCalculateHeight(node->right);
-}
-
-
-// Function to balance the tree (after insertion/deletion)
-bool bstBalanceTree(BST *tree) {
-
-    if (tree == NULL) {
-        return false; // Handle null pointer case
-    }
-
-    int balanceFactor = _bstGetBalanceFactor(tree->root);
-
-    // Left-heavy case (balance factor > 1)
-    if (balanceFactor > 1) {
-        if (_bstGetBalanceFactor(tree->root->left) < 0) {
-            // Left-Right (LR) case
-            tree->root->left = _bstRotLeft(tree->root->left);
-        }
-        // Left-Left (LL) case
-        tree->root = _bstRotRight(tree->root);
-    }
-
-    // Right-heavy case (balance factor < -1)
-    else if (balanceFactor < -1) {
-        if (_bstGetBalanceFactor(tree->root->right) > 0) {
-            // Right-Left (RL) case
-            tree->root->right = _bstRotRight(tree->root->right);
-        }
-        // Right-Right (RR) case
-        tree->root = _bstRotLeft(tree->root);
-    }
-
-    return true; // Tree is balanced
-}
-
-// Function to insert a node, to the tree
-bool bstInsertNode(BST *tree, unsigned int key, void *data) {
-
-    if (tree == NULL) {
-        return false;
-    }
-
-    // Allocate memory for the new node
-    TreeNode *newNode = (TreeNode *)malloc(sizeof(TreeNode));
-
-    if (newNode == NULL) {
-        return false;
-    }
-
-    // Set the key and data in the new node
-    newNode->key = key;
-    newNode->data = data;
-    newNode->left = NULL;
-    newNode->right = NULL;
-
-    // If the tree is empty, set the new node as the root
-    if (tree->root == NULL) {
-        tree->root = newNode;
-        tree->size++;
-        return true;
-    }
-
-    // Traverse the tree to find the correct insertion point
-    TreeNode *current = tree->root;
-    TreeNode *parent = NULL;
-
-    while (current != NULL) {
-        parent = current;
-
-        if (key < current->key) {
-            current = current->left;
-        } else if (key > current->key) {
-            current = current->right;
-        } else {
-            free(newNode);
-            return false; // Key already exists in the tree
-        }
-    }
-
-    // Insert the new node at the correct position
-    if (key < parent->key) {
-        parent->left = newNode;
-    } else {
-        parent->right = newNode;
-    }
-
-    tree->size++;
-
-    return bstBalanceTree(tree);
-}
-
-bool bstPopNode(BST *tree, unsigned int key, void **returnData) {
-    if (tree == NULL || tree->root == NULL) {
-        return false; // Handle null tree
-    }
-
-    TreeNode *current = tree->root;
-    TreeNode *parent = NULL;
-
-    // Find the node to be removed
-    while (current != NULL) {
-        if (key == current->key) {
-            break;
-        }
-
-        parent = current;
-
-        if (key < current->key) {
-            current = current->left;
-        } else {
-            current = current->right;
-        }
-    }
-
-    if (current == NULL) {
-        return false; // Key not found
-    }
-
-    *returnData = current->data; // Set the returnData to the node's data
-
-    // Now unlink the node from the tree
-    TreeNode *replacement = NULL;
-
-    // Case 1: Node has no children
-    if (current->left == NULL && current->right == NULL) {
-        replacement = NULL;
-
-    // Case 2: Node has one child
-    } else if (current->left == NULL || current->right == NULL) {
-        replacement = (current->left != NULL) ? current->left : current->right;
-
-    // Case 3: Node has two children
-    } else {
-        // Find in-order successor (smallest node in the right subtree)
-        TreeNode *successor = current->right;
-        TreeNode *successorParent = current;
-
-        while (successor->left != NULL) {
-            successorParent = successor;
-            successor = successor->left;
-        }
-
-        // Swap values with successor (no need to swap the actual nodes)
-        current->key = successor->key;
-        current->data = successor->data;
-
-        // Remove the successor (it will have at most one child)
-        current = successor;
-        parent = successorParent;
-        replacement = current->right; // Successor has no left child, so it's right child or NULL
-    }
-
-    // Unlink the node
-    if (parent == NULL) {
-        tree->root = replacement; // If no parent, we're removing the root
-    } else if (parent->left == current) {
-        parent->left = replacement;
-    } else {
-        parent->right = replacement;
-    }
-
-    free(current); // Free the removed node
-    tree->size--;
-
-    // Now balance the tree
-    return bstBalanceTree(tree);
-}
-
-// Function to remove a node from the tree
-bool bstRemoveNode(BST *tree, unsigned int key) {
-
-    void *data = NULL;
-    bool result = bstPopNode(tree, key, &data);
-
-    if (result && tree->freeFunction != NULL) {
-        tree->freeFunction(data); // Free the data if a free function is provided
-    }
-
-    return result;
-}
-
-// Function to search for a node in the tree
-void *bstSearchForNode(BST *tree, unsigned int key) {
-
-    if (tree == NULL || tree->root == NULL) {
-        return NULL; // Handle null tree
-    }
-
-    TreeNode *current = tree->root;
-
-    // Traverse the tree to find the node
-    while (current != NULL) {
-        if (key == current->key) {
-            return current->data; // Return the data if the key matches
-        }
-
-        if (key < current->key) {
-            current = current->left;
-        } else {
-            current = current->right;
-        }
-    }
-
-    return NULL; // Key not found
-} 
-
-
-// Internal function for freeing a node
-bool _bstFreeNode(TreeNode *node, void (*freeFunction)(void *data)) {
-    if (node == NULL) {
-        return true; // Base case: nothing to free
-    }
-
-    // Recursively free the left and right subtrees
-    if (!_bstFreeNode(node->left, freeFunction) || !_bstFreeNode(node->right, freeFunction)) {
-        return false; // Return false if any recursive call fails
-    }
-
-    // Free the data if a free function is provided
-    if (freeFunction != NULL && node->data != NULL) {
-        freeFunction(node->data);  // Call the function pointer to free the data
-    }
-
-    // Free the node itself
-    free(node);
-
-    return true; // Success
-}
-
-
-// Function to free the whole tree
-bool bstFree(BST *tree) {
-    if (tree == NULL) {
-        return false; // Handle null tree pointer
-    }
-
-    // Free the root node (and all sub-nodes)
-    bool result = _bstFreeNode(tree->root, tree->freeFunction);
-
-    // Free the tree structure itself
-    free(tree);
-
-    return result; // Return the result of freeing nodes
-}
 
 // ####################### SYMTABLE #######################
-
-
-void (*freeDataFunction)(void *);
 
 // Function to search for a scope in the same hash variables list
 bool _searchForVarSameHash(LinkedList *list, char *name) {
@@ -348,7 +183,6 @@ bool _searchForVarSameHash(LinkedList *list, char *name) {
 }
 
 // Function to init the symbol table
-
 SymTable *symTableInit(void) {
 
     // create the global scope structures
@@ -383,9 +217,11 @@ bool symTableMoveScopeDown(SymTable *table, enum SYMTABLE_NODE_TYPES type) {
         return false;
     }
 
+    // this need extra functtion variables
+
     // create the new scope
     SymTableNode *newScope = (SymTableNode *)malloc(sizeof(SymTableNode));
-    BST *variables = bstInit((void (*)(void *))removeList);
+    BST *variables = bstInit((void (*)(void **))removeList);
 
     // check if the memory was allocated
 
@@ -499,14 +335,14 @@ bool symTableExitScope(SymTable *table, enum ERR_CODES *returnCode) {
     table->currentScope->innerScope = NULL;
 
     // free the current scope
-    bool result = bstFree(currentScope->variables);
+    bool result = bstFree(&currentScope->variables);
     free(currentScope);
 
     return result;
 }
 
 // Function to insert a new
-SymVariable *symTableDeclareVariable(SymTable *table, char *name, enum DATA_TYPES type, bool mutable) {
+SymVariable *symTableDeclareVariable(SymTable *table, char *name, enum DATA_TYPES type, bool mutable, ASTNodePtr declaration) {
     // Check if the table or current scope is invalid (if global scope declaration is disallowed)
     if (table == NULL || table->currentScope->type == SYM_GLOBAL) {
         return NULL;
@@ -535,6 +371,7 @@ SymVariable *symTableDeclareVariable(SymTable *table, char *name, enum DATA_TYPE
     newVariable->type = type;
     newVariable->mutable = mutable;
     newVariable->accesed = false;
+    newVariable->declaration = declaration;
 
     // Get the hash of the variable's name
     unsigned int hash = hashString(name);
@@ -626,7 +463,7 @@ void _symTableFreeNode(SymTableNode *node) {
 
     // free the variables
     if (node->variables != NULL) {
-        bstFree(node->variables);
+        bstFree(&node->variables);
     }
 
     free(node);
@@ -646,6 +483,34 @@ bool symTableFree(SymTable *table) {
     // free the table
     free(table);
     return true;
+}
+
+// Function to copy a variable
+SymVariable *copyVariable(SymVariable *variable) {
+
+    // check if the variable is not NULL
+    if (variable == NULL) {
+        return NULL;
+    }
+
+    // allocate memory for the new variable
+    SymVariable *newVariable = (SymVariable *)malloc(sizeof(SymVariable));
+    if (newVariable == NULL) return NULL;
+
+    // copy the name
+    newVariable->name = strdup(variable->name);
+    if (newVariable->name == NULL) {
+        free(newVariable);
+        return NULL;
+    }
+
+    // copy the type
+    newVariable->type = variable->type;
+    newVariable->mutable = variable->mutable;
+    newVariable->accesed = variable->accesed;
+
+    return newVariable;
+
 }
 
 
