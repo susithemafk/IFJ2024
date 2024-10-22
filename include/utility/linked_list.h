@@ -174,7 +174,7 @@ bool removeNodeAtIndex(struct LinkedList *list, int index);
  * 
  * @return bool true if successful, false if an error occurred
  */
-bool removeList(struct LinkedList *list);
+bool removeList(struct LinkedList **list);
 
 /**
  * Replace data at index

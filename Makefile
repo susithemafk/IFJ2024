@@ -29,10 +29,19 @@ SRC_FILES = $(wildcard $(CODE_GEN_DIR)/*.c) \
 LINKED_LIST_TEST_SRC = $(wildcard $(UTILITY_DIR)/*.c) $(TEST_DIR)/test_linked_list.c
 
 # Binary search tree test source files
-BST_TEST_SRC = $(wildcard $(UTILITY_DIR)/*.c) $(SEMANTICAL_DIR)/symtable.c $(TEST_DIR)/test_symtable.c
+BST_TEST_SRC = $(wildcard $(UTILITY_DIR)/*.c) $(TEST_DIR)/test_binary_search_tree.c
+
+# Symbol table test source files
+SYMTABLE_TEST_SRC = $(wildcard $(UTILITY_DIR)/*.c) $(SEMANTICAL_DIR)/symtable.c $(SEMANTICAL_DIR)/abstract_syntax_tree.c $(TEST_DIR)/test_symtable.c
 
 # Lexical analyzer test source files
 LEX_TEST_SRC = $(wildcard $(LEXICAL_DIR)/*.c) $(wildcard $(UTILITY_DIR)/*.c) $(TEST_DIR)/test_lex.c
+
+# Function calling validation test source files
+FUNC_CALL_TEST_SRC = $(wildcard $(SEMANTICAL_DIR)/*.c) $(wildcard $(UTILITY_DIR)/*.c) $(TEST_DIR)/test_function_validation.c
+
+# AST test source files
+AST_TEST_SRC = $(wildcard $(SEMANTICAL_DIR)/*.c) $(wildcard $(UTILITY_DIR)/*.c) $(TEST_DIR)/test_ast.c
 
 
 # Targets
@@ -56,14 +65,31 @@ test-list: $(LINKED_LIST_TEST_SRC)
 	./test_list
 	rm -f test_list
 
-# Compile and run the test for the binary search tree (BST)
 test-bst: $(BST_TEST_SRC)
 	$(CC) $(CFLAGS) $(INCLUDES) $(BST_TEST_SRC) -o test_bst -std=c99
 	./test_bst
 	rm -f test_bst
+
+# Compile and run the test for the binary search tree (BST)
+test-symtable: $(SYMTABLE_TEST_SRC)
+	$(CC) $(CFLAGS) $(INCLUDES) $(SYMTABLE_TEST_SRC) -o test_symtable -std=c99
+	./test_symtable
+	rm -f test_symtable
+
+# Compile and run the test for the abstract syntax tree (AST)
+test-ast: $(AST_TEST_SRC)
+	$(CC) $(CFLAGS) $(INCLUDES) $(AST_TEST_SRC) -o test_ast -std=c99
+	./test_ast
+	rm -f test_ast
 
 # Compile and run the test for the lexical analyzer (LEX)
 test-lex: $(LEX_TEST_SRC)
 	$(CC) $(CFLAGS) $(INCLUDES) $(LEX_TEST_SRC) -o test_lex -std=c99
 	./test_lex < ./src/input.txt
 	rm -f test_lex
+
+# Compile and run the test for the function calling validation
+test-func-call: $(FUNC_CALL_TEST_SRC)
+	$(CC) $(CFLAGS) $(INCLUDES) $(FUNC_CALL_TEST_SRC) -o test_func_call -std=c99
+	./test_func_call
+	rm -f test_func_call

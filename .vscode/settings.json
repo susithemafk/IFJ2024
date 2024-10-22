@@ -7,6 +7,13 @@
         "common.h": "c",
         "initializer_list": "c",
         "enumerations.h": "c",
-        "stdbool.h": "c"
+        "stdbool.h": "c",
+        "array": "c",
+        "string": "c",
+        "string_view": "c",
+        "vector": "c",
+        "symtable.h": "c",
+        "stdio.h": "c",
+        "__node_handle": "c"
     }
 }
