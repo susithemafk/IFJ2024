@@ -130,6 +130,14 @@ enum DATA_TYPES {
 };
 
 /**
+ * Function to negate a comparason operand
+ * 
+ * @param operand - token type to negate
+ * @return The negated token type
+*/
+enum TOKEN_TYPE negateOperand(enum TOKEN_TYPE operand);
+
+/**
  * Function to convert a token type to a data type
  * 
  * @param type The token type to convert

@@ -204,6 +204,7 @@ SymTable *symTableInit(void) {
     // fill the table
     table->root = globalScope;
     table->currentScope = globalScope;
+    table->varCount = 0;
     table->scopeCount = 1;
 
     return table;
@@ -331,7 +332,6 @@ bool symTableExitScope(SymTable *table, enum ERR_CODES *returnCode) {
 
     // update the current scope
     table->currentScope = table->currentScope->parent;
-    table->scopeCount--;
     table->currentScope->innerScope = NULL;
 
     // free the current scope
@@ -367,11 +367,14 @@ SymVariable *symTableDeclareVariable(SymTable *table, char *name, enum DATA_TYPE
         return NULL;
     }
 
+    table->varCount++; // Increment the variable count
+
     // Initialize other fields
     newVariable->type = type;
     newVariable->mutable = mutable;
     newVariable->accesed = false;
     newVariable->declaration = declaration;
+    newVariable->id = table->varCount;
 
     // Get the hash of the variable's name
     unsigned int hash = hashString(name);

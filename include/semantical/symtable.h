@@ -85,6 +85,7 @@ enum SYMTABLE_NODE_TYPES {
 };
 
 typedef struct SymVariable {
+    unsigned int id; // id of the variable (id is valid, inside of the scope)
     char *name; // the name of the variable
     enum DATA_TYPES type; // the type of the variable
     bool mutable; // if the variable is mutable (constants will have this false)
@@ -115,6 +116,7 @@ typedef struct SymTableNode {
 */
 typedef struct SymTable {
     SymTableNode *root;
+    unsigned int varCount;
     unsigned int scopeCount;
     SymTableNode *currentScope;
 } SymTable;

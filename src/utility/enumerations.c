@@ -11,6 +11,26 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+// Function to negate a comparason operand
+enum TOKEN_TYPE negateOperand(enum TOKEN_TYPE operand) {
+    switch(operand) {
+        case TOKEN_EQUALS: // == => !=
+            return TOKEN_NOTEQUAL;
+        case TOKEN_NOTEQUAL: // != => ==
+            return TOKEN_EQUALS;
+        case TOKEN_GREATERTHAN: // > => <=
+            return TOKEN_LESSOREQUAL;
+        case TOKEN_LESSOREQUAL: // <= => >
+            return TOKEN_GREATERTHAN;
+        case TOKEN_LESSTHAN: // < => >=
+            return TOKEN_GREATEROREQUAL;
+        case TOKEN_GREATEROREQUAL: // >= => <
+            return TOKEN_LESSTHAN;
+        default:
+            return TOKEN_NONE;
+    }
+}
+
 // Function to hash a string
 unsigned int hashString(const char* str) {
     unsigned long hash = 5381;

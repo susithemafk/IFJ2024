@@ -24,18 +24,32 @@
 */
 ASTNodePtr ASTcreateNode(enum ASTNodeTypes type);
 
-// posoble jdouci tokeny;
-// var a = 5
-// 
+/**
+ * Function to init Node operand
+ * 
+ * @param node The node to init
+ * @param operand The operand
+ * @return erro code
+*/
+enum ERR_CODES ASTinitNodeOperand(ASTNodePtr operandNode, struct TOKEN operand);
 
 /**
- * Functio to edit Node Value
+ * Function to init Node Value
  * 
- * @param node The node to edit
+ * @param node The node to init
  * @param value The new value
  * @return erro code
 */
-enum ERR_CODES ASTeditNodeValue(ASTNodePtr valueNode, TOKEN_PTR value);
+enum ERR_CODES ASTinitNodeValue(ASTNodePtr valueNode, TOKEN_PTR value);
+
+/**
+ * Function to init Node Variable
+ * 
+ * @param node the node to init
+ * @param declaration pointer to the declaration node in the symbol table
+ * @return err code
+*/
+enum ERR_CODES ASTinitNodeVariable(ASTNodePtr variableNode, struct SymVariable *declaration);
 
 /**
  * Function to add to an expresion
@@ -50,6 +64,14 @@ enum ERR_CODES ASTeditNodeValue(ASTNodePtr valueNode, TOKEN_PTR value);
 enum ERR_CODES ASTaddNodeToExpresion(ASTNodePtr expresionRoot, ASTNodePtr expresionPart);
 
 /**
+ * Function to finish the expresion
+ * 
+ * @param expresionRoot The root of the expresion
+ * @return err code
+*/
+enum ERR_CODES ASTfinishExpresion(ASTNodePtr expresionRoot);
+
+/**
  * Function to add to a truth expresion
  * 
  * @param truthExpresion The truth expresion
@@ -58,7 +80,7 @@ enum ERR_CODES ASTaddNodeToExpresion(ASTNodePtr expresionRoot, ASTNodePtr expres
  * @param opr The operator of the expresion
  * @return err code
 */
-enum ERR_CODES ASTeditTruthExpresion(ASTNodePtr truthExpresion, ASTNodePtr expresionPart, enum TOKEN_TYPE opr);
+enum ERR_CODES ASTeditTruthExpresion(ASTNodePtr truthExpresion, ASTNodePtr expresionPart);
 
 /**
  * Function to edit the declaration node
@@ -140,7 +162,7 @@ enum ERR_CODES ASTeditWhileNode(ASTNodePtr whileNode, ASTNodePtr condition);
  * 
  * @param node The node to destroy
 */
-bool ASTfreeNode(ASTNodePtr node);
+bool ASTfreeNode(ASTNodePtr *nodePtr);
 
 
 #endif // ASTTRACT_SYNTAX_TREE_H
