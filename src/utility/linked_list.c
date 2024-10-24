@@ -24,6 +24,8 @@ struct LinkedList *initLinkedList(bool freeData) {
     list->head = NULL;
     list->tail = NULL;
     list->size = 0;
+    list->lastAccessedIndex = 0;
+    list->lastAccessedNode = NULL;
     list->freeData = freeData;
 
     return list;
@@ -59,24 +61,6 @@ struct Node *_createNewNode(void *data, struct Node * next, struct Node * prev) 
     return newNode;
 }
 
-enum startPoint _findStartPoint(int sizeOfList, unsigned int wantedIndex) {
-
-    unsigned int half = sizeOfList>>1; 
-
-    if (wantedIndex <= half)
-        return HEAD;
-
-    return TAIL;
-
-}
-
-struct Node *_findNextNode(struct Node *node, enum startPoint start) {
-    if (start == HEAD) {
-        return node->next;
-    }
-    return node->prev;
-}
-
 struct Node *_findNode(struct LinkedList *list, unsigned int index) {
 
     if (emptyList(list) != 0) 
@@ -92,18 +76,56 @@ struct Node *_findNode(struct LinkedList *list, unsigned int index) {
         return NULL;
 
 
-    enum startPoint start = _findStartPoint(list->size, index);
-    unsigned int maxAmountOfSteps = start == HEAD ? index : list->size - index -1;
-    struct Node *node = start == HEAD ? list->head : list->tail;
+    /*
+    In here we have a few options,
+    1. we have some lastAccesedNode, that we can start at
+    2. we dont have a lastAccesedNode, but we can start at the head or the tail
+    conditions for each case:
+    1) we calc the distance form the lastAccesedNode to the wanted Node
+       - than we calculate the distance from the tail to the wanted node
+       - distance from head to wanted node is just the index
+       - we choose the smallest distance
+    */
 
-    // go through the list
-    for (unsigned int i = 0; i < maxAmountOfSteps; i++) {
-        node = _findNextNode(node, start);
+    struct Node *node = NULL;
+    unsigned int distanceFromTail = list->size - index;
+    unsigned int distanceFromHead = index;
+    enum searchDirection direction; 
 
-        if (node == NULL)
-            return NULL;
+    unsigned int finalDistance = 0;
+
+    // first we choose the closest form the head or tail
+    if (distanceFromHead < distanceFromTail){
+        node = list->head;
+        direction = FORWARD;
+        finalDistance = (unsigned int)distanceFromHead;
+    } else {
+        node = list->tail;
+        direction = BACKWARD;
+        finalDistance = distanceFromTail;
     }
 
+    // now, in case the last accessed node is not NULL, we calculate the distance from it
+    if (list->lastAccessedNode != NULL) {
+        int distanceFromLastAccessed = (int)list->lastAccessedIndex - index;
+        if ((unsigned int)(abs(distanceFromLastAccessed) < (int)finalDistance)) {
+            node = list->lastAccessedNode;
+            finalDistance = (unsigned int)abs(distanceFromLastAccessed);
+            direction = distanceFromLastAccessed > 0 ? BACKWARD : FORWARD;
+        }
+    }
+
+    // now we just iterate over the list
+    for (unsigned int i = 0; i < finalDistance; i++) {
+        if (direction == FORWARD) {
+            node = node->next;
+        } else {
+            node = node->prev;
+        }
+    }
+
+    list->lastAccessedIndex = index;
+    list->lastAccessedNode = node;
     return node;
 }
 

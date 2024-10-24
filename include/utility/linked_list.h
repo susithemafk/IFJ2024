@@ -13,9 +13,9 @@
 #include <stdbool.h>
 
 // Enum for starting point
-enum startPoint {
-    HEAD, 
-    TAIL
+enum searchDirection {
+    FORWARD,
+    BACKWARD
 };
 
 // Struct for Node
@@ -30,6 +30,8 @@ typedef struct LinkedList {
     struct Node *head; // start point of the list
     struct Node *tail; // end poitn of the list
     unsigned int size; // size of the list
+    unsigned int lastAccessedIndex; // index of the last accessed node
+    struct Node *lastAccessedNode; // pointer to the last accessed node
     bool freeData; // Function pointer for freeing node data 
 } LinkedList;
 
@@ -70,26 +72,6 @@ int emptyList(struct LinkedList *list);
  * @return The New node
 */
 struct Node *_createNewNode(void *data, struct Node *next, struct Node *prev);
-
-/**
- * Find a good starting poin, for the search, either the head or the tail
- * 
- * @param sizeOfList The size of the list
- * @param wantedIndex The index of the node to find
- * 
- * @return enum startPoint The starting point for the search
-*/
-enum startPoint _findStartPoint(int sizeOfList, unsigned int wantedIndex);
-
-/**
- * Find next Node
- * 
- * @param node The node to start the search from
- * @param start The "direction" to search in
- * 
- * @return struct Node * The next node
-*/
-struct Node *_findNextNode(struct Node *node, enum startPoint start);
 
 /**
  * Find node at index
