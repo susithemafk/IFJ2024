@@ -12,6 +12,30 @@
 #include <string.h>
 #include "utility/linked_list.h"
 
+// Function to check, if list is empty
+int emptyList(struct LinkedList *list) {
+
+    // check for internal error
+    if (list == NULL) return -1;
+
+    // check if the list is empty
+    if (list->size == 0) return 1;
+
+    return 0;
+}
+
+// Function to get the size of the list
+unsigned int getSize(struct LinkedList *list) {
+    
+    // check for internal error
+    if (list == NULL) return -1;
+
+    return list->size;
+}
+
+
+
+// function to init the linked list
 struct LinkedList *initLinkedList(bool freeData) {
     
     // create the instance of the linked list
@@ -31,393 +55,349 @@ struct LinkedList *initLinkedList(bool freeData) {
     return list;
 }
 
-unsigned int _convertIndex(int index, unsigned int size) {
-    return index < 0 ? (unsigned int)(size + index) : (unsigned int)index;
-}
+// Function to create a new node
+struct Node *_createNode(void *data) {
 
-int emptyList(struct LinkedList *list) {
+    // alocate space for the new node
+    struct Node *node = (struct Node *)malloc(sizeof(struct Node));
 
-    if (list == NULL) {
-        return -1;
-    }
+    if (node == NULL) return NULL;
 
-    if (list->size == 0) {
-        return 1;
-    }
+    // intialize the node
+    node->data = data;
+    node->next = NULL;
+    node->prev = NULL;
 
-    return 0;  
-}
-
-struct Node *_createNewNode(void *data, struct Node * next, struct Node * prev) {
-    struct Node *newNode = (struct Node *)malloc(sizeof(struct Node));
-
-    if (newNode == NULL)
-        return NULL;
-
-    newNode->data = data;
-    newNode->next = next;
-    newNode->prev = prev;
-
-    return newNode;
-}
-
-struct Node *_findNode(struct LinkedList *list, unsigned int index) {
-
-    if (emptyList(list) != 0) 
-        return NULL;
-
-    if (index == 0) 
-        return list->head;
-
-    if (index == list->size-1)
-        return list->tail;
-
-    if (index >= list->size)
-        return NULL;
-
-
-    /*
-    In here we have a few options,
-    1. we have some lastAccesedNode, that we can start at
-    2. we dont have a lastAccesedNode, but we can start at the head or the tail
-    conditions for each case:
-    1) we calc the distance form the lastAccesedNode to the wanted Node
-       - than we calculate the distance from the tail to the wanted node
-       - distance from head to wanted node is just the index
-       - we choose the smallest distance
-    */
-
-    struct Node *node = NULL;
-    unsigned int distanceFromTail = list->size - index;
-    unsigned int distanceFromHead = index;
-    enum searchDirection direction; 
-
-    unsigned int finalDistance = 0;
-
-    // first we choose the closest form the head or tail
-    if (distanceFromHead < distanceFromTail){
-        node = list->head;
-        direction = FORWARD;
-        finalDistance = (unsigned int)distanceFromHead;
-    } else {
-        node = list->tail;
-        direction = BACKWARD;
-        finalDistance = distanceFromTail;
-    }
-
-    // now, in case the last accessed node is not NULL, we calculate the distance from it
-    if (list->lastAccessedNode != NULL) {
-        int distanceFromLastAccessed = (int)list->lastAccessedIndex - index;
-        if ((unsigned int)(abs(distanceFromLastAccessed) < (int)finalDistance)) {
-            node = list->lastAccessedNode;
-            finalDistance = (unsigned int)abs(distanceFromLastAccessed);
-            direction = distanceFromLastAccessed > 0 ? BACKWARD : FORWARD;
-        }
-    }
-
-    // now we just iterate over the list
-    for (unsigned int i = 0; i < finalDistance; i++) {
-        if (direction == FORWARD) {
-            node = node->next;
-        } else {
-            node = node->prev;
-        }
-    }
-
-    list->lastAccessedIndex = index;
-    list->lastAccessedNode = node;
     return node;
 }
 
-bool _addNodeToEnd(struct LinkedList *list, void *data) {
-    
-    if (emptyList(list) == -1)
-        return false;
+// Function to insert a node at the start of the list
+void _insertNodeAtStart(struct LinkedList *list, struct Node *node) {
 
-    // alacate memory for the new node
-    struct Node *newNode = _createNewNode(data, NULL, list->tail);
+    // if the list is empty insert the new node
+    if (list->head == NULL) {
+        list->head = node;
+        list->tail = node;
+        list->lastAccessedIndex = 0;
+        list->lastAccessedNode = node;
+        list->size++;
+        return;
+    }
 
-    if (newNode == NULL)
-        return false;
+    // insert the node at the start
+    node->next = list->head;
+    list->head->prev = node;
+    list->head = node;
+    list->lastAccessedIndex = 0;
+    list->lastAccessedNode = node;
+
+    // in case we have size of list one, we need to remove the tail 
+    if (list->size == 1) list->tail = list->head->next;
 
     list->size++;
+}
 
-    // if the list is empty, the new node will be the head, and the tail
-    if (emptyList(list) == 1) {
-        list->head = newNode;
-        list->tail = newNode;
-        return true;
+// Function to insert a node at the end of the list
+void _addNodeToEnd(struct LinkedList *list, struct Node *node) {
+
+    // if the list is empty insert the new node
+    if (list->head == NULL) {
+        list->head = node;
+        list->tail = node;
+        list->lastAccessedIndex = 0;
+        list->lastAccessedNode = node;
+        return;
+    }
+
+    // insert the node at the end
+    list->tail->next = node;
+    node->prev = list->tail;
+    list->tail = node;
+    list->lastAccessedIndex = list->size;
+    list->lastAccessedNode = node;
+
+    // in case we have size of list one, we need to remove the head
+    if (list->size == 1) list->head = list->tail->prev;
+
+    list->size++;
+}
+
+// Function to move the active element to some index
+bool _moveActiveElement(struct LinkedList *list, int index) {
+
+    // check for internal error
+    unsigned int newIndex = (index < 0) ? list->size + index : index;
+
+    // check for out of bounds
+    if (newIndex >= list->size) return false;
+
+    // if the index is the same as the last accessed index, return true
+    if (list->lastAccessedIndex == newIndex) return true;
+
+    // chose the direction of the search and the start node
+    unsigned int steps;
+    enum searchDirection direction;
+    struct Node *startNode;
+    int disHead, disTail, disLast;
+    disHead = (int)newIndex;
+    disTail = (int)list->size-1 - (int)newIndex;
+    disLast = (int)list->lastAccessedIndex - (int)newIndex;
+
+    // choose the smaller of head or tail
+    if (disHead < abs(disTail)) {
+        steps = newIndex;
+        direction = FORWARD;
+        startNode = list->head;
+    } else {
+        steps = list->size-1 - newIndex;
+        direction = BACKWARD;
+        startNode = list->tail;
+    }
+
+    // if active element is closer, than choose it
+    if (list->lastAccessedNode != NULL && (unsigned int)abs(disLast) < steps) {
+        steps = (unsigned int)abs(disLast);
+        direction = (disLast < 0) ? FORWARD : BACKWARD;
+        startNode = list->lastAccessedNode;
+    }
+
+    // now we need to move the active element
+    for (unsigned int i = 0; i < steps; i++) {
+        if (direction == FORWARD) {
+            startNode = startNode->next;
+        } else {
+            startNode = startNode->prev;
+        }
+    }
+
+    // update the last accessed node and index
+    list->lastAccessedNode = startNode;
+    list->lastAccessedIndex = newIndex;
+
+    return true;
+}
+
+// Function to insert a node before/after the active element
+void _insertNodeBeforeAfterActive(struct LinkedList *list, struct Node *node, bool before) {
+
+    // if the active element is the head
+    if (list->lastAccessedIndex == 0 && !before) {
+        _insertNodeAtStart(list, node);
+        return;
     } 
-    // if the list is not empty, the new node will be the new tail
 
-    if (list->tail != NULL) {
-        list->tail->next = newNode;
-    } else {
-        list->head = newNode; // if the list is empty
+    // if the active element is the tail
+    if (list->lastAccessedIndex == list->size - 1 && before){
+        _addNodeToEnd(list, node);
+        return;
+    }  
+
+    // insert the node before or after the active element
+    if (!before) { // the initial index >= 0
+        node->next = list->lastAccessedNode;
+        node->prev = list->lastAccessedNode->prev;
+        list->lastAccessedNode->prev->next = node;
+        list->lastAccessedNode->prev = node;
+    } else { // the initial index < 0
+        node->prev = list->lastAccessedNode;
+        node->next = list->lastAccessedNode->next;
+        list->lastAccessedNode->next->prev = node;
+        list->lastAccessedNode->next = node;
     }
 
-    list->tail = newNode;
-
-    return true;
-}
-
-bool _popTailNode(struct LinkedList *list, void **returnData) {
-
-    if (emptyList(list) == 1)
-        return NULL;
-
-    struct Node * node = list->tail;
-    *returnData = node->data;
-
-    list->tail = node->prev;
-    
-    if (list->tail != NULL) {
-        list->tail->next = NULL;
-    }
-    free(node);
-
-    list->size--;
-
-    if (list->size == 0) {
-        list->head = NULL;
-        list->tail = NULL;
-    }
-
-    if (list->size == 1) {
-        list->head = list->tail;
-    }
-
-    return true;
-}
-
-bool _insertNodeAtHead(struct LinkedList *list, void *data) {
-    
-    if (emptyList(list) == -1)
-        return false;
-
-    struct Node *newNode = _createNewNode(data, list->head, NULL);
-
-    if (newNode == NULL)
-        return false;
-
+    list->lastAccessedNode = node;
     list->size++;
 
-    if (emptyList(list) == 1) {
-        list->head = newNode;
-        list->tail = newNode;
-        return true;
-    }
-
-    if (list->head != NULL) {
-        list->head->prev = newNode;
-    } else {
-        list->tail = newNode;
-    }
-
-
-    list->head = newNode;
-
-    return true;
 }
 
-bool _popHeadNode(struct LinkedList *list, void **returnData) {
-
-    if (emptyList(list) == 1)
-        return NULL;
-
-    struct Node *node = list->head;
-    *returnData = node->data;
-
-    list->head = node->next;
-
-    if (list->head != NULL) {
-        list->head->prev = NULL;
-    }
-    free(node);
-
-    list->size--;
-
-    if (list->size == 0) {
-        list->head = NULL;
-        list->tail = NULL;
-    }
-
-    if (list->size == 1) {
-        list->tail = list->head;
-    }
-
-    return true;
-}
-
+// Function to insert node at index
 bool insertNodeAtIndex(struct LinkedList *list, void *data, int index) {
 
-    if (!index) {
-        return _insertNodeAtHead(list, data);
+    // check for internal error
+    if (list == NULL) return false;
+
+    // create the new node
+    struct Node *node = _createNode(data);
+    if (node == NULL) return false;
+
+    if (list->size == 0) {
+        _insertNodeAtStart(list, node);
+        return true;
     }
+    
+    // move the active elemnt to the index
+    if (!_moveActiveElement(list, index)) return false;
 
-    unsigned int new_index = _convertIndex(index, list->size);
-
-    if (new_index == list->size-1) {
-        return _addNodeToEnd(list, data);
-    }
-
-    if (emptyList(list) != 0) {
-        return false;
-    }
-
-    struct Node *node = _findNode(list, new_index);
-
-    if (node == NULL)
-        return false;
-
-    struct Node *newNode = NULL;
-
-    if (index > 0) {
-        newNode = _createNewNode(data, node, node->prev);
-    } else {
-        newNode = _createNewNode(data, node->next, node);
-    }
-
-    if (newNode == NULL)
-        return false;
-
-    if (index > 0) {
-        node->prev->next = newNode;
-        node->prev = newNode;
-    } else {
-        node->next->prev = newNode;
-        node->next = newNode;
-    }
-
-    list->size++;
+    // insert the node before if index is < 0, else after
+    _insertNodeBeforeAfterActive(list, node, index < 0);
 
     return true;
 }
 
+// Function to pop a node at the start
+bool _popNodeAtStart(struct LinkedList *list, void **returnData) {
+
+    struct Node *node = list->head;
+    if (node == NULL) return false;
+
+    *returnData = node->data;
+
+    if (node->next == NULL) {
+        list->tail = NULL;
+        list->head = NULL;
+        list->lastAccessedNode = NULL;
+        list->lastAccessedIndex = 0;
+        list->size = 0;
+        free(node);
+        return true;
+    }
+
+    // remove the node from the list
+    node->next->prev = NULL;
+    list->head = node->next;
+    list->lastAccessedNode = list->head;
+    list->lastAccessedIndex = 0;
+    list->size--;
+
+    // handle list size 1
+    if (list->size == 1)  list->tail = list->head;
+
+    free(node);
+
+    return true;
+}
+
+// Function to pop a node at the end
+bool _popNodeAtEnd(struct LinkedList *list, void **returnData) {
+
+    struct Node *node = list->tail;
+    if (node == NULL) return false;
+
+    *returnData = node->data;
+
+    if (node->prev == NULL) {
+        list->tail = NULL;
+        list->head = NULL;
+        list->lastAccessedNode = NULL;
+        list->lastAccessedIndex = 0;
+        list->size = 0;
+        free(node);
+        return true;
+    }
+
+    // remove the node from the list
+    node->prev->next = NULL;
+    list->tail = node->prev;
+    list->lastAccessedNode = list->tail;
+    list->lastAccessedIndex = list->size - 1;
+    list->size--;
+
+    // handle list size 1
+    if (list->size == 1)  list->head = list->tail;
+
+    free(node);
+
+    return true;
+}
+
+// Function to pop node at index
 bool popNodeAtIndex(struct LinkedList *list, int index, void **returnData) {
 
-    if (emptyList(list) != 0) 
-        return false;
+    // check for internal error
+    if (list == NULL) return false;
 
-    unsigned int new_index = _convertIndex(index, list->size);
+    // move the active elemnt to the index
+    if (!_moveActiveElement(list, index)) return false;
 
-    if (new_index == 0) 
-        return _popHeadNode(list, returnData);
+    // head pop
+    if (list->lastAccessedIndex == 0) return _popNodeAtStart(list, returnData);
 
-    if (new_index == list->size-1) 
-        return _popTailNode(list, returnData);
+    // tail pop
+    if (list->lastAccessedIndex == list->size - 1) return _popNodeAtEnd(list, returnData);
 
-    struct Node *node = _findNode(list, new_index);
+    // remove the node
+    struct Node *node = list->lastAccessedNode;
+    if (node == NULL) return false;
 
-    if (node == NULL)
-        return false;
-
+    // remove the node from the list
     node->prev->next = node->next;
     node->next->prev = node->prev;
 
-    *returnData = node->data;
-    
-    free(node);
+    // shifting the last accessed node to the next
+    list->lastAccessedNode = node->next;
 
+    // free the node
+    *returnData = node->data;
+
+    free(node);
     list->size--;
 
     return true;
 }
 
+// Function to remove a node at index
 bool removeNodeAtIndex(struct LinkedList *list, int index) {
+
     void *data = NULL;
-    if (!popNodeAtIndex(list, index, &data))
-        return false;
-    
-    if (list->freeData) {
-        free(data);
-    }
+    bool result = popNodeAtIndex(list, index, (void *)&data);
+
+    if (!result) return false;
+
+    if (list->freeData) free(data);
 
     return true;
 }
 
+// Function to get data at index
+void *getDataAtIndex(struct LinkedList *list, int index) {
+
+    // check for internal error
+    if (list == NULL) return NULL;
+
+    // move the active elemnt to the index
+    if (!_moveActiveElement(list, index)) return NULL;
+
+    return list->lastAccessedNode->data;
+}
+
+
+// Function to replace data at index
+bool replaceDataAtIndex(struct LinkedList *list, int index, void *data, void **returnData) {
+
+    // check for internal error
+    if (list == NULL) return false;
+
+    // move the active elemnt to the index
+    if (!_moveActiveElement(list, index)) return false;
+
+    // replace the data
+    *returnData = list->lastAccessedNode->data;
+    list->lastAccessedNode->data = data;
+
+    return true;    
+}
+
+
+// Function to remove the list
 bool removeList(struct LinkedList **list) {
-    if (list == NULL || *list == NULL) {
-        return false; // Handle null pointer or empty list
+
+    // check for internal error
+    if (list == NULL || *list == NULL) return false;
+
+    // remove all nodes
+    while ((*list)->size > 0) {
+        removeNodeAtIndex(*list, 0);
     }
 
-    LinkedList *list1 = *list;
-
-    if (emptyList(list1) == -1) {
-        return false;
-    }
-
-    struct Node *node = list1->head;
-    struct Node *nextNode = NULL;
-
-    // Free all nodes in the list
-    while (node != NULL) {
-        nextNode = node->next;
-        if (list1->freeData && node->data) {
-            free(node->data); // Free the node's data if freeData is set
-            node->data = NULL;
-        }
-        free(node); // Free the node itself
-        node = nextNode;
-    }
-
-    // Finally, free the LinkedList structure
-    free(list1);
-
-    // Set the original pointer to NULL to avoid dangling pointers
+    // free the list
+    free(*list);
     *list = NULL;
 
     return true;
 }
 
 
-bool replaceDataAtIndex(struct LinkedList *list, int index, void *data, void **returnData) {
-
-    if (emptyList(list) != 0 || data == NULL) {
-        return false;
-    }
-
-    unsigned int new_index = _convertIndex(index, list->size);
-
-    struct Node *node = _findNode(list, new_index);
-
-    if (node == NULL) {
-        return false;
-    }
-
-    if (returnData != NULL) {
-        *returnData = node->data;
-    } else if (list->freeData) {
-        free(node->data);
-    }
-
-    node->data = data; // need to test this
-
-    return true;
-}
-
-unsigned int getSize(struct LinkedList *list) {
-    if (list == NULL) {
-        return -1;
-    }
-    return list->size;
-}
-
-void *getDataAtIndex(struct LinkedList *list, int index) {
-    if (list == NULL) {
-        return NULL;
-    }
-
-    unsigned int new_index = _convertIndex(index, list->size);
-    struct Node *node = _findNode(list, new_index);
-
-    if (node == NULL) {
-        return NULL;
-    }
-
-    return node->data;
-}
-
+// function to print list content
 void printList(struct LinkedList *list, void (*printFunc)(unsigned int, void *)) {
 
     int idx = 0;
@@ -433,6 +413,21 @@ void printList(struct LinkedList *list, void (*printFunc)(unsigned int, void *))
     }
 
     printf("}\n");
+}
+
+// Function to print the list linkages
+void printListLinkages(struct LinkedList *list) {
+    
+    Node *node = list->head;
+    printf("head: %p\n", (void *)list->head);   
+    printf("tail: %p\n", (void *)list->tail);
+    int index = 0;
+    printf("\nList linkages: ");
+    while (node != NULL) {
+        printf("\nNode: %d:\n   curPtr: %p\n   nextPtr: %p\n   prevPtr: %p\n", index, (void *)node, (void *)node->next, (void *)node->prev);
+        node = node->next;
+        index++;
+    }
 }
 
 // call like this -> (void (*)(unsigned int, void *))print_int
