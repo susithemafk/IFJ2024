@@ -57,6 +57,7 @@ enum ERR_CODES scanner_get_token(struct TOKEN *tokenPointer)
 	unsigned string_index;
 	unsigned allocated_length = 0;
 	int input = 0;
+	bool assign_value = true;
 
 	// pokud je token uložený, vracim ho
 	if (nextToken.type != TOKEN_NONE)
@@ -75,6 +76,7 @@ enum ERR_CODES scanner_get_token(struct TOKEN *tokenPointer)
 			input = nextCharacter;
 			nextCharacter = EOF;
 		}
+		assign_value = true;
 
 		switch (state)
 		{
@@ -94,6 +96,7 @@ enum ERR_CODES scanner_get_token(struct TOKEN *tokenPointer)
 				state = SCANNER_1EQUAL;
 				break;
 			case '\"':
+				assign_value = false;
 				state = SCANNER_STRING_START;
 				tokenPointer->type = TOKEN_STRING;
 				break;
@@ -171,41 +174,97 @@ enum ERR_CODES scanner_get_token(struct TOKEN *tokenPointer)
 					state = SCANNER_I32;
 				}
 				else
-				{
 					return E_LEXICAL;
-				}
 			}
 			break;
 
 		case SCANNER_STRING_START:
 			if (input == '"')
-			{
 				state = SCANNER_STRING_END;
+			else if (input == '\\')
+			{
+				state = SCANNER_ESCAPE_SEQ;
+				assign_value = false;
 			}
 			else if (input >= ' ')
-			{
 				state = SCANNER_STRING_VALUE;
-			}
 			else
-			{
 				return E_LEXICAL;
-			}
 			break;
 
 		case SCANNER_STRING_VALUE:
 			if (input == '"')
 			{
+				assign_value = false; // poslední uvozovka se neuloží
 				state = SCANNER_STRING_END;
 			}
-			else if (input < ' ')
+			else if (input == '\\')
 			{
-				return E_LEXICAL;
+				assign_value = false;
+				state = SCANNER_ESCAPE_SEQ;
 			}
+			else if (input < ' ')
+				return E_LEXICAL;
 			break;
 
 		case SCANNER_STRING_END:
 			tokenPointer->type = TOKEN_STRING;
 			return scanner_end(input, &nextCharacter, tokenPointer, string_index);
+
+		case SCANNER_ESCAPE_SEQ:
+		{
+			int hex1, hex2;
+
+			switch (input)
+			{
+			case 't':
+				assign_value = false;
+				tokenPointer->value[string_index++] = '\t';
+				state = SCANNER_STRING_VALUE;
+				break;
+			case 'n':
+				assign_value = false;
+				tokenPointer->value[string_index++] = '\n';
+				state = SCANNER_STRING_VALUE;
+				break;
+			case 'r':
+				assign_value = false;
+				tokenPointer->value[string_index++] = '\r';
+				state = SCANNER_STRING_VALUE;
+				break;
+			case '"':
+				assign_value = false;
+				tokenPointer->value[string_index++] = '"';
+				state = SCANNER_STRING_VALUE;
+				break;
+			case '\\':
+				assign_value = false;
+				tokenPointer->value[string_index++] = '\\';
+				state = SCANNER_STRING_VALUE;
+				break;
+			case 'x':
+				hex1 = getc(file);
+				if (isxdigit(hex1))
+				{
+					hex2 = getc(file);
+					if (isxdigit(hex2))
+					{
+						assign_value = false;
+						tokenPointer->value[string_index++] = (char)((hex_to_int(hex1) << 4) | hex_to_int(hex2));
+						state = SCANNER_STRING_VALUE;
+					}
+					else
+						return E_LEXICAL;
+				}
+				else
+					return E_LEXICAL;
+				break;
+
+			default:
+				return E_LEXICAL;
+			}
+			break;
+		}
 
 		case SCANNER_MINUS:
 			if (input == '-')
@@ -505,6 +564,10 @@ enum ERR_CODES scanner_get_token(struct TOKEN *tokenPointer)
 		}
 		// print char input
 		// printf("Input: %c\n", input);
-		tokenPointer->value[string_index++] = (char)input;
+
+		if (assign_value == true)
+		{
+			tokenPointer->value[string_index++] = (char)input;
+		}
 	}
 }
