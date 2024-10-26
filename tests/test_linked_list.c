@@ -11,7 +11,7 @@
 #include "utility/linked_list.h"
 #include "utility/enumerations.h"
 
-int main(void) {
+void test1(void) {
 
     TestInstancePtr testInstance = initTestInstance("Linked List Test with ints, malloc");
 
@@ -38,62 +38,74 @@ int main(void) {
     *data4 = 40;
     *data5 = 50;
 
-    // Test 1: Add nodes to the end of the list
-    printf("$$ Adding node to the end of the list (data1)\n");
-    testCase(
-        testInstance,
-        _addNodeToEnd(list, data1),
-        "Adding node to the end of the list (data1)",
-        "Successfully added node to the end of the list (expected)",
-        "Failed to add node to the end of the list (unexpected)"
-    );
-    printList(list, (void (*)(unsigned int, void *))print_int);
+    // list should be in the end in this order: 20, 40, 50, 10, 30
 
-    printf("$$ Adding node to the end of the list (data2)\n");
+    // Test 1: Insert node at the start
     testCase(
         testInstance,
-        _addNodeToEnd(list, data2),
-        "Adding node to the end of the list (data2)",
-        "Successfully added node to the end of the list (expected)",
-        "Failed to add node to the end of the list (unexpected)"
+        insertNodeAtIndex(list, (void*)data1, 0),
+        "Inserting node at the start (data1)",
+        "Successfully inserted node at the start (expected)",
+        "Failed to insert node at the start (unexpected)"
     );
+    // list -> 10
     printList(list, (void (*)(unsigned int, void *))print_int);
+    printListLinkages(list);
 
-    // Test 2: Insert node at the head of the list
-    printf("$$ Inserting node at head (data3)\n");
+
+    // Test 2: Insert Node at start again
     testCase(
         testInstance,
-        _insertNodeAtHead(list, data3),
-        "Inserting node at head (data3)",
-        "Successfully inserted node at head (expected)",
-        "Failed to insert node at head (unexpected)"
+        insertNodeAtIndex(list, (void*)data2, 0),
+        "Inserting node at the start (data3)",
+        "Successfully inserted node at the start (expected)",
+        "Failed to insert node at the start (unexpected)"
     );
+    // list -> 20, 10
     printList(list, (void (*)(unsigned int, void *))print_int);
+    printListLinkages(list);
 
-    // Test 3: Insert node at a specific index
-    printf("$$ Inserting node at index 1 (data4)\n");
+
+    // Test 3: Insert node at the end
     testCase(
         testInstance,
-        insertNodeAtIndex(list, data4, 1),
+        insertNodeAtIndex(list, (void*)data3, -1),
+        "Inserting node at the end (data2)",
+        "Successfully inserted node at the end (expected)",
+        "Failed to insert node at the end (unexpected)"
+    );
+
+    // list -> 20, 10, 30
+    printList(list, (void (*)(unsigned int, void *))print_int);
+    printListLinkages(list);
+
+    // Test 4: Insert node at a specific index
+    testCase(
+        testInstance,
+        insertNodeAtIndex(list, (void*)data4, 1),
         "Inserting node at index 1 (data4)",
         "Successfully inserted node at index 1 (expected)",
         "Failed to insert node at index 1 (unexpected)"
     );
-    printList(list, (void (*)(unsigned int, void *))print_int);
 
-    // Test 4: Insert node at a negative index (second-to-last)
-    printf("$$ Inserting node at index -2 (data5)\n");
+    // list -> 20, 40, 10, 30
+    printList(list, (void (*)(unsigned int, void *))print_int);
+    printListLinkages(list);
+
+
+    // Test 5: Insert node at a negative index (second-to-last)
     testCase(
         testInstance,
-        insertNodeAtIndex(list, data5, -2),
+        insertNodeAtIndex(list, (void*)data5, -2),
         "Inserting node at index -2 (data5)",
         "Successfully inserted node at index -2 (expected)",
         "Failed to insert node at index -2 (unexpected)"
     );
+    // list -> 20, 40, 10, 50, 30
     printList(list, (void (*)(unsigned int, void *))print_int);
+    printListLinkages(list);
 
-    // Test 5: Attempt to pop node from an invalid index (out of bounds)
-    printf("$$ Attempting to pop node at invalid index 100\n");
+    // Test 6: Attempt to pop node from an invalid index (out of bounds)
     int *removedData = NULL;
     testCase(
         testInstance,
@@ -103,7 +115,7 @@ int main(void) {
         "Popped node at invalid index (unexpected)"
     );
 
-    // Test 6: Pop node at a valid index (1)
+    // Test 7: Pop node at a valid index (1)
     printf("$$ Popping node at index 1\n");
     if (popNodeAtIndex(list, 1, (void *)&removedData)) {
         printf("$$ Popped node at index 1: %d\n", *removedData);
@@ -125,7 +137,7 @@ int main(void) {
     printf("$$ List size after removals: %u\n", getSize(list));
 
     printf("$$ Clearing the list, initing with malloc free setting\n");
-    removeList(list);  // this will free the list and its nodes
+    removeList(&list);  // this will free the list and its nodes
 
     // Clean up allocated data (if not already freed)
     free(data4); 
@@ -134,49 +146,115 @@ int main(void) {
     // data2 was removed when we called the removeNodeAtIndex
     // which removed the node and freed the data
     finishTestInstance(testInstance);
+}
 
-    testInstance = initTestInstance("Linked List Test with chars, no malloc");
+void test_2(void) {
 
-    // Test 9: Try to pop from an empty list
-    list = initLinkedList(false);  // reinitialize for test
+    /*
+    I will be testing these functions:
+    popNodeAtIndex()
+    insertNodeAtIndex()
+    getDataAtIndex()
+    */
 
-    printf("$$ Attempting to pop from empty list\n");
-    testCase(
-        testInstance,
-        !popNodeAtIndex(list, 0, (void *)&removedData),
-        "Popping from empty list",
-        "Could not pop node from empty list (expected)",
-        "Popped node from empty list (unexpected)"
-    );
+    TestInstancePtr testInstance = initTestInstance("Linked List Test with remembered index");
 
-    char d1 = 'c', d2 = 'd', d3 = 'a';
+    // Test: Setup linked list with 20 chars    
+    LinkedList *list = initLinkedList(false);  // list won't free the data
 
-    printf("$$ Adding node to empty list, no malloc\n");
-    //insertNodeAtIndex(list, &d1, 0);
-    insertNodeAtIndex(list, &d1, -1);
-    printList(list, (void (*)(unsigned int, void *))print_char);
+    char data[20] = {
+        'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j',
+        'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't'
+    };
 
-    insertNodeAtIndex(list, &d2, -1);
-    //insertNodeAtIndex(list, &d2, 0);
-    printList(list, (void (*)(unsigned int, void *))print_char);
-
-    insertNodeAtIndex(list, &d3, -1);
-    //insertNodeAtIndex(list, &d3, 0);
-    printList(list, (void (*)(unsigned int, void *))print_char);
-
-    // Test 10: Replace data at index
-    printf("$$ Replacing data at index 1 with 'f'\n");
-    char *oldData = NULL;
-    char newData = 'f';
-    if (replaceDataAtIndex(list, 1, &newData, (void *)&oldData)) {
-        printf("$$ Data that was at index 1: %c\n", *oldData);
+    printf("$$ Inserting 20 characters into the list\n");
+    for (int i = 0; i < 20; i++) {
+        insertNodeAtIndex(list, (void *)&data[i], 0);  // Insert at the end
     }
     printList(list, (void (*)(unsigned int, void *))print_char);
 
+    // Test: Accessing from the middle
+    printf("$$ Accessing index 10 (forward access)\n");
+    char *removeData = (char *)getDataAtIndex(list, 10);  // Cast void* to char*
+    testCase(
+        testInstance,
+        removeData != NULL && *removeData == 'j',
+        "Accessing index 10",
+        "Successfully accessed index 10 and got 'j'",
+        "Failed to access index 10 or incorrect data"
+    );
+    printf("$$ Data at index 10: %c\n", *removeData);
+
+    // Test: Access backwards to index 7
+    printf("$$ Accessing index 7 (backward access from 10)\n");
+    removeData = (char *)getDataAtIndex(list, 7);  // Cast void* to char*
+    testCase(
+        testInstance,
+        removeData != NULL && *removeData == 'm',
+        "Accessing index 7",
+        "Successfully accessed index 7 and got 'm'",
+        "Failed to access index 7 or incorrect data"
+    );
+    printf("$$ Data at index 7: %c\n", *removeData);
+
+    // Test: Access forwards to index 13
+    printf("$$ Accessing index 13 (forward access from 7)\n");
+    removeData = (char *)getDataAtIndex(list, 13);  // Cast void* to char*
+    testCase(
+        testInstance,
+        removeData != NULL && *removeData == 'g',
+        "Accessing index 13",
+        "Successfully accessed index 13 and got 'g'",
+        "Failed to access index 13 or incorrect data"
+    );
+    printf("$$ Data at index 13: %c\n", *removeData);
+
+    // Test: Access backwards to index 3
+    printf("$$ Accessing index 3 (backward access from 13)\n");
+    removeData = (char *)getDataAtIndex(list, 3);  // Cast void* to char*
+    testCase(
+        testInstance,
+        removeData != NULL && *removeData == 'q',
+        "Accessing index 3",
+        "Successfully accessed index 3 and got 'q'",
+        "Failed to access index 3 or incorrect data"
+    );
+    printf("$$ Data at index 3: %c\n", *removeData);
+
+    // Test: Access forwards to index 18
+    printf("$$ Accessing index 18 (forward access from 3)\n");
+    removeData = (char *)getDataAtIndex(list, 18);  // Cast void* to char*
+    testCase(
+        testInstance,
+        removeData != NULL && *removeData == 'b',
+        "Accessing index 18",
+        "Successfully accessed index 18 and got 'b'",
+        "Failed to access index 18 or incorrect data"
+    );
+    printf("$$ Data at index 18: %c\n", *removeData);
+
+    // Test: Pop a node from the middle (index 10)
+    printf("$$ Popping node at index 10\n");
+    testCase(
+        testInstance,
+        popNodeAtIndex(list, 10, (void *)&removeData) && *removeData == 'j',
+        "Popping node at index 10",
+        "Successfully popped node at index 10 and got 'j'",
+        "Failed to pop node at index 10 or incorrect data"
+    );
+    printf("$$ Data popped at index 10: %c\n", *removeData);
+
+    // Test: Final cleanup
     printf("$$ Removing, with malloc free setting\n");
-    removeList(list);  // this will free the list and its nodes
+    removeList(&list);  // this will free the list and its nodes
 
     printf("$$ Freeing list\n");
     finishTestInstance(testInstance);
+}
+
+
+int main(void) {
+    test1();
+    test_2();
     return 0;
 }

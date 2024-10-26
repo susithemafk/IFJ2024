@@ -12,145 +12,67 @@
 #include <stdbool.h>
 #include "utility/linked_list.h"
 #include "utility/enumerations.h"
+#include "utility/binary_search_tree.h"
+#include "semantical/sem_enums.h"
 
-// ####################### HB BINARY SEARCH TREE #######################
-
-/**
- * @brief Struct for the symbol table
- * @param size - amount of nodes in the tree
- * @param root - root of the tree
- * @param freeData - flag, if true, the data of each node will be freed
-*/
-typedef struct BST {
-    unsigned int size;
-    struct TreeNode *root;
-    void (*freeFunction)(void *data);  // Function pointer for freeing node data
-} BST;
+// ####################### Function Call Validation #######################
 
 /**
- * @brief Struct for the tree node
- * @param key - key of the node, used for searching in the tree
- * @param data - pointer to the data, in each node
- * @param left - pointer to the left child
- * @param right - pointer to the right child
-*/
-typedef struct TreeNode{
-    unsigned int key;
-    void *data;
-    struct TreeNode *left;
-    struct TreeNode *right;
-} TreeNode;
-
-/**
- * Initializes the symbol table
+ * Function to initialize the function call validator
  * 
- * @param freeData - flag, if true, the data of each node will be freed
- * @return pointer to the initialized symbol table
+ * @return pointer to the initialized function call validator
 */
-BST *bstInit(void (*freeFunction)(void *data));
+BST *initFunctionCallValidator(void);
 
 /**
- * Inserts data into the tree
+ * Function to free the Function Call Validator
  * 
- * @param tree - pointer to the symbol table (BST)
- * @param key - key of the node
- * @param data - pointer to the data of the node
- * @return true, if the data was successfully inserted, false otherwise
-*/
-bool bstInsertNode(BST *tree, unsigned int key, void *data);
-
-/**
- * Searches for data in the tree
- * 
- * @param tree - pointer to the symbol table (BST)
- * @param key - key of the node
- * @return pointer to the data, if the key was found, NULL otherwise
-*/
-void *bstSearchForNode(BST *tree, unsigned int key);
-
-/**
- * Pops the data from the tree and removes the node
- * 
- * @param tree - pointer to the symbol table (BST)
- * @param key - key of the node
- * @param returnData - pointer to which the data will be stored
- * @return true, if the data was successfully popped, false otherwise
-*/
-bool bstPopNode(BST *tree, unsigned int key, void **returnData);
-
-/**
- * Removes data from the tree without returning the data
- * 
- * @param tree - pointer to the symbol table (BST)
- * @param key - key of the node
- * @return true, if the data was successfully removed, false otherwise
-*/
-bool bstRemoveNode(BST *tree, unsigned int key);
-
-/**
- * Frees the symbol table and all of its nodes
- * 
- * @param tree - pointer to the symbol table (BST)
- * @return true, if the bst was successfully freed, false otherwise
-*/
-bool bstFree(BST *tree);
-
-/**
- * Frees the node and all of its children
- * 
- * @param node - pointer to the tree node
+ * @param validator - pointer to the validator
+ * @return enum ERR_CODES
  * @note this function is internal
- * @return true, if the node was successfully freed, false otherwise
 */
-bool _bstFreeNode(TreeNode *node, void (*freeFunction)(void *data));
+enum ERR_CODES _freeFunctionCallValidator(BST **validator);
 
 /**
- * Calculates the height of the tree
+ * Function to add a new function definition to the validator
  * 
- * @param tree - pointer to the BST
- * @return height of the node, or 0 if the node is NULL
+ * @param validator - pointer to the validator
+ * @param func - pointer to the AST of the definition
+ * @return enum ERR_CODES
 */
-int bstCalculateHeight(BST *tree);
+enum ERR_CODES addFunctionDefinition(BST *validator, ASTNodePtr func);
 
 /**
- * Calculates the higtht of a node
+ * Function to find the same hash function in the validator
  * 
- * @param node - pointer to the tree node
+ * @param validator - pointer to the validator
+ * @param name - name of the function
+ * @return LinkedList of the functions with the same hash
  * @note this function is internal
- * @return height of the node, or 0 if the node is NULL
 */
-int _bstCalculateHeight(TreeNode *node);
+LinkedList *_findSameHashFunction(BST *validator, unsigned int hash);
 
 /**
- * @brief Calculates the balance factor of a node.
+ * Function to find a function by name
  * 
- * @param node - pointer to the tree node
- * @return balance factor, positive if left-heavy, negative if right-heavy
- */
-int _bstGetBalanceFactor(TreeNode *node);
-
-/**
- * @brief Balances the tree rooted at the given node.
- * 
- * This function checks the balance factor of the node and performs
- * necessary rotations to maintain balance (LL, LR, RL, RR cases).
- * 
- * @param tree - pointer to the BST
- * @return true if the tree was balanced, false otherwise
- */
-bool bstBalanceTree(BST *tree);
-
-/**
- * Rotates the tree to the left
- * 
- * @param root - pointer to the root of the subtree
+ * @param validator - pointer to the validator
+ * @param name - name of the function
+ * @return err-code
  * @note this function is internal
- * @return pointer to the new root of the subtree
 */
-TreeNode *_bstRotLeft(TreeNode *root);
+enum ERR_CODES _findFunction(BST *validator, char *name, ASTNodePtr *result);
+
+/**
+ * Function to validate a function call
+ * 
+ * @param validator - pointer to the validator
+ * @param call - pointer to the AST of the function call
+ * @param returnType - pointer to the return type of the function
+ * @return enum ERR_CODES
+*/
+enum ERR_CODES validateFunctionCall(BST *validator, ASTNodePtr call, enum DATA_TYPES *returnType);
 
 // ####################### SYMTABLE #######################
-
 
 // this might hvae to change in the future
 enum SYMTABLE_NODE_TYPES {
@@ -163,11 +85,12 @@ enum SYMTABLE_NODE_TYPES {
 };
 
 typedef struct SymVariable {
+    unsigned int id; // id of the variable (id is valid, inside of the scope)
     char *name; // the name of the variable
-    // void *value; // the value of the variable, not needed?
     enum DATA_TYPES type; // the type of the variable
     bool mutable; // if the variable is mutable (constants will have this false)
     bool accesed; // if the variable was accessed
+    struct ASTNode *declaration; // pointer to the declaration node
 } SymVariable;
 
 /**
@@ -193,9 +116,18 @@ typedef struct SymTableNode {
 */
 typedef struct SymTable {
     SymTableNode *root;
+    unsigned int varCount;
     unsigned int scopeCount;
     SymTableNode *currentScope;
 } SymTable;
+
+/**
+ * Function to create a copy of a variable
+ * 
+ * @param variable - pointer to the variable
+ * @return pointer to the new variable
+*/
+SymVariable *copyVariable(SymVariable *variable);
 
 /**
  * Initializes the symbol table
@@ -228,8 +160,9 @@ bool symTableExitScope(SymTable *table, enum ERR_CODES *returnCode);
  * @param name - name of the variable to insert
  * @param type - type of the variable to insert
  * @param mutable - flag, if the variable is mutable
+ * @return pointer to the variable, if the variable was successfully inserted, NULL otherwise
 */
-bool symTableDeclareVariable(SymTable *table, char *name, enum DATA_TYPES type, bool mutable);
+SymVariable *symTableDeclareVariable(SymTable *table, char *name, enum DATA_TYPES type, bool mutable, ASTNodePtr declaration);
 
 /**
  * Search for a vairable based on its name, in same hash variables

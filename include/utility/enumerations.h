@@ -23,33 +23,29 @@
  * The error codes are used to identify the type of error that occured
  * They are used as return values
  */
-enum ERR_CODES
-{
-    SUCCESS = 0,                       /*
-                              no error
-                          */
-    E_NONE = 0,                        /*
-                               no error
-                           */
-    E_LEXICAL = 1,                     /*
-                            lexical error
-                        */
-    E_SYNTAX = 2,                      /*
-                             syntax error
-                         */
-    E_SEMANTIC_UND_FUNC_OR_VAR = 3,    /*
-           undefined function or variable
-       */
-    E_SEMANTIC_INVALID_FUN_PARAM = 4,  /*
-         wrong count/type of function parameters, bad type or forbitten
-         throw away of function return value
-     */
-    E_SEMANTIC_REDIFINITION = 5,       /*
-              redefinition of function or variable, assignment to imutable variable
-          */
-    E_SEMANTIC_BAD_FUNC_RETURN = 6,    /*
-           missing or to many return values, when returning from a function
-       */
+enum ERR_CODES {
+    SUCCESS = 0, /*
+        no error
+    */
+    E_LEXICAL = 1, /*
+        lexical error
+    */
+    E_SYNTAX = 2, /*
+        syntax error
+    */
+    E_SEMANTIC_UND_FUNC_OR_VAR = 3, /*
+        undefined function or variable
+    */
+    E_SEMANTIC_INVALID_FUN_PARAM = 4, /*
+        wrong count/type of function parameters, bad type or forbitten
+        throw away of function return value
+    */
+    E_SEMANTIC_REDIFINITION = 5, /*
+        redefinition of function or variable, assignment to imutable variable
+    */
+    E_SEMANTIC_BAD_FUNC_RETURN = 6, /*
+        missing or to many return values, when returning from a function
+    */
     E_SEMANTIC_INCOMPATABLE_TYPES = 7, /*
         semantic mistake in compatability of types in arithmetic, string or relational
         expressions, incompatable type (eg. assigning string to int)
@@ -73,50 +69,50 @@ enum ERR_CODES
 
 enum TOKEN_TYPE
 {
-    TOKEN_NONE,       // No token
-    TOKEN_IDENTIFIER, // Název proměnné, funkce, ...
-    TOKEN_EOF,        // End of file
+	TOKEN_NONE,		  // 0. No token
+	TOKEN_IDENTIFIER, // 1. Název proměnné, funkce, ...
+	TOKEN_EOF,		  // 2. End of file
 
-    TOKEN_PLUS,     // +
-    TOKEN_MINUS,    // -
-    TOKEN_DIVIDE,   // /
-    TOKEN_MULTIPLY, // *
-    TOKEN_EQUALS,   // ==
+	TOKEN_PLUS,		// 3. +
+	TOKEN_MINUS,	// 4. -
+	TOKEN_DIVIDE,	// 5. /
+	TOKEN_MULTIPLY, // 6. *
+	TOKEN_EQUALS,	// 7. ==
 
-    TOKEN_LESSTHAN,       // <
-    TOKEN_LESSOREQUAL,    // <=
-    TOKEN_GREATERTHAN,    // >
-    TOKEN_GREATEROREQUAL, // >=
-    TOKEN_NOTEQUAL,       // !=
+	TOKEN_LESSTHAN,		  // 8. <
+	TOKEN_LESSOREQUAL,	  // 9. <=
+	TOKEN_GREATERTHAN,	  // 10. >
+	TOKEN_GREATEROREQUAL, // 11. >=
+	TOKEN_NOTEQUAL,		  // 12. !=
 
-    TOKEN_STRING, // "string"
+	TOKEN_STRING, // 13. "string"
 
-    TOKEN_CONCATENATE, // .
-    TOKEN_ASSIGN,      // =
-    TOKEN_COLON,       // :
-    TOKEN_COMMA,       // ,
-    TOKEN_LPAR,        // (
-    TOKEN_RPAR,        // )
-    TOKEN_LBRACE,      // {
-    TOKEN_RBRACE,      // }
-    TOKEN_SEMICOLON,   // ;
+	TOKEN_CONCATENATE, // 14. .
+	TOKEN_ASSIGN,	   // 15. =
+	TOKEN_COLON,	   // 16. :
+	TOKEN_COMMA,	   // 17. ,
+	TOKEN_LPAR,		   // 18. (
+	TOKEN_RPAR,		   // 19. )
+	TOKEN_LBRACE,	   // 20. {
+	TOKEN_RBRACE,	   // 21. }
+	TOKEN_SEMICOLON,   // 22. ;
 
-    /**
-     * Keywords: const, else, fn, if, i32, f64, null, pub, return, u8, var, void, while
-     */
-    TOKEN_CONST,    // const
-    TOKEN_ELSE,     // else
-    TOKEN_FN,       // fn
-    TOKEN_IF,       // if
-    TOKEN_I32,      // i32
-    TOKEN_F64,      // f64
-    TOKEN_NULL,     // null
-    TOKEN_PUB,      // pub
-    TOKEN_RETURN,   // return
-    TOKEN_U8_ARRAY, // u8
-    TOKEN_VAR,      // var
-    TOKEN_VOID,     // void
-    TOKEN_WHILE,    // while
+	/**
+	 * Keywords: const, else, fn, if, i32, f64, null, pub, return, u8, var, void, while
+	 */
+	TOKEN_CONST,  // 23. const
+	TOKEN_ELSE,	  // 24. else
+	TOKEN_FN,	  // 25. fn
+	TOKEN_IF,	  // 26. if
+	TOKEN_I32,	  // 27. i32
+	TOKEN_F64,	  // 28. f64
+	TOKEN_NULL,	  // 29. null
+	TOKEN_PUB,	  // 30. pub
+	TOKEN_RETURN, // 31. return
+	TOKEN_U8,	  // 32. u8
+	TOKEN_VAR,	  // 33. var
+	TOKEN_VOID,	  // 34. void
+	TOKEN_WHILE,  // 35. while
 };
 
 typedef struct TOKEN
@@ -125,12 +121,31 @@ typedef struct TOKEN
     enum TOKEN_TYPE type; // Token type
 } *TOKEN_PTR;
 
-enum DATA_TYPES
-{
-    dTypeI32,
-    dTypeF64,
-    dTypeU8
+
+enum DATA_TYPES {
+    dTypeUndefined, // 0. Undefined data type
+    dTypeNone, // 1. No data type
+    dTypeI32, // 2. Integer 32 bit
+    dTypeF64, // 3. Float 64 bit
+    dTypeU8 // 4. Unsigned 8 bit
 };
+
+/**
+ * Function to negate a comparason operand
+ * 
+ * @param operand - token type to negate
+ * @return The negated token type
+*/
+enum TOKEN_TYPE negateOperand(enum TOKEN_TYPE operand);
+
+/**
+ * Function to convert a token type to a data type
+ * 
+ * @param type The token type to convert
+ * @return The converted data type
+*/
+enum DATA_TYPES covertTokneDataType(enum TOKEN_TYPE type);
+
 
 /**
  * Function to hash a string
@@ -155,6 +170,8 @@ typedef struct TestInstance
  * @return The new test instance
  */
 TestInstancePtr initTestInstance(char *testName);
+
+
 
 /**
  * Function to finish the test instance
