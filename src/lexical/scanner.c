@@ -9,6 +9,7 @@
 #include <stdlib.h> // cound use the <malloc.h> instead, however it is not recommended.
 #include "lexical/scanner.h"
 #include "utility/enumerations.h"
+#include "utility/my_utils.h"
 
 #define ALLOC_SIZE 64
 
@@ -56,6 +57,7 @@ enum ERR_CODES scanner_get_token(struct TOKEN *tokenPointer)
 	unsigned string_index;
 	unsigned allocated_length = 0;
 	int input = 0;
+	bool assign_value = true;
 
 	// pokud je token uložený, vracim ho
 	if (nextToken.type != TOKEN_NONE)
@@ -74,6 +76,7 @@ enum ERR_CODES scanner_get_token(struct TOKEN *tokenPointer)
 			input = nextCharacter;
 			nextCharacter = EOF;
 		}
+		assign_value = true;
 
 		switch (state)
 		{
@@ -93,6 +96,7 @@ enum ERR_CODES scanner_get_token(struct TOKEN *tokenPointer)
 				state = SCANNER_1EQUAL;
 				break;
 			case '\"':
+				assign_value = false;
 				state = SCANNER_STRING_START;
 				tokenPointer->type = TOKEN_STRING;
 				break;
@@ -151,6 +155,9 @@ enum ERR_CODES scanner_get_token(struct TOKEN *tokenPointer)
 				state = SCANNER_RBRACE;
 				tokenPointer->type = TOKEN_RBRACE;
 				break;
+			case '[':
+				state = SCANNER_LSQUARE;
+				break;
 
 			default:
 				if (isspace(input))
@@ -161,47 +168,103 @@ enum ERR_CODES scanner_get_token(struct TOKEN *tokenPointer)
 					// identifikátor
 					state = SCANNER_IDENTIFIER;
 				}
-				else if (input >= '0' && input <= '9')
+				else if (isDigit(input))
 				{
 					// číslo
 					state = SCANNER_I32;
 				}
 				else
-				{
 					return E_LEXICAL;
-				}
 			}
 			break;
 
 		case SCANNER_STRING_START:
 			if (input == '"')
+				state = SCANNER_STRING_END;
+			else if (input == '\\')
 			{
-				state = SCANNER_STRING_FINAL;
+				state = SCANNER_ESCAPE_SEQ;
+				assign_value = false;
 			}
 			else if (input >= ' ')
-			{
 				state = SCANNER_STRING_VALUE;
-			}
 			else
-			{
 				return E_LEXICAL;
-			}
 			break;
 
 		case SCANNER_STRING_VALUE:
 			if (input == '"')
 			{
-				state = SCANNER_STRING_FINAL;
+				assign_value = false; // poslední uvozovka se neuloží
+				state = SCANNER_STRING_END;
+			}
+			else if (input == '\\')
+			{
+				assign_value = false;
+				state = SCANNER_ESCAPE_SEQ;
 			}
 			else if (input < ' ')
+				return E_LEXICAL;
+			break;
+
+		case SCANNER_STRING_END:
+			tokenPointer->type = TOKEN_STRING;
+			return scanner_end(input, &nextCharacter, tokenPointer, string_index);
+
+		case SCANNER_ESCAPE_SEQ:
+		{
+			int hex1, hex2;
+
+			switch (input)
 			{
+			case 't':
+				assign_value = false;
+				tokenPointer->value[string_index++] = '\t';
+				state = SCANNER_STRING_VALUE;
+				break;
+			case 'n':
+				assign_value = false;
+				tokenPointer->value[string_index++] = '\n';
+				state = SCANNER_STRING_VALUE;
+				break;
+			case 'r':
+				assign_value = false;
+				tokenPointer->value[string_index++] = '\r';
+				state = SCANNER_STRING_VALUE;
+				break;
+			case '"':
+				assign_value = false;
+				tokenPointer->value[string_index++] = '"';
+				state = SCANNER_STRING_VALUE;
+				break;
+			case '\\':
+				assign_value = false;
+				tokenPointer->value[string_index++] = '\\';
+				state = SCANNER_STRING_VALUE;
+				break;
+			case 'x':
+				hex1 = getc(file);
+				if (isxdigit(hex1))
+				{
+					hex2 = getc(file);
+					if (isxdigit(hex2))
+					{
+						assign_value = false;
+						tokenPointer->value[string_index++] = (char)((hex_to_int(hex1) << 4) | hex_to_int(hex2));
+						state = SCANNER_STRING_VALUE;
+					}
+					else
+						return E_LEXICAL;
+				}
+				else
+					return E_LEXICAL;
+				break;
+
+			default:
 				return E_LEXICAL;
 			}
 			break;
-
-		case SCANNER_STRING_FINAL:
-			tokenPointer->type = TOKEN_STRING;
-			return scanner_end(input, &nextCharacter, tokenPointer, string_index);
+		}
 
 		case SCANNER_MINUS:
 			if (input == '-')
@@ -290,54 +353,65 @@ enum ERR_CODES scanner_get_token(struct TOKEN *tokenPointer)
 			}
 			break;
 
-		case SCANNER_I32: // TODO: dořešit čísla s exponenty
-			if (input >= '0' && input <= '9')
+		case SCANNER_I32:
+			if (!isDigit(input))
 			{
-			}
-			// f64 je rozdělen znakem tečka
-			else if (input == '.')
-			{
-				state = SCANNER_I64;
-			}
-			else if (input == 'e' || input == 'E')
-			{
-				state = SCANNER_EXP_BASE;
-			}
-			else
-			{
-				tokenPointer->type = TOKEN_I32;
-				return scanner_end(input, &nextCharacter, tokenPointer, string_index);
+				if (input == '.')
+				{
+					// f64 je rozdělen znakem tečka
+					state = SCANNER_I64_POINT;
+				}
+				else if (input == 'e' || input == 'E')
+				{
+					state = SCANNER_EXP_BASE;
+				}
+				else
+				{
+					tokenPointer->type = TOKEN_I32;
+					return scanner_end(input, &nextCharacter, tokenPointer, string_index);
+				}
 			}
 			break;
 
-		case SCANNER_I64:
-			if (input >= '0' && input <= '9')
-			{
-				state = SCANNER_EXP_I64;
-			}
+		case SCANNER_I64_POINT:
+			if (isDigit(input))
+				state = SCANNER_I64;
 			else
-			{
 				return E_LEXICAL;
+			break;
+
+		case SCANNER_I64:
+			if (!isDigit(input))
+			{
+				if (input == 'e' || input == 'E')
+				{
+					state = SCANNER_EXP_BASE;
+				}
+				else
+				{
+					tokenPointer->type = TOKEN_F64;
+					return scanner_end(input, &nextCharacter, tokenPointer, string_index);
+				}
 			}
 			break;
 
 		case SCANNER_EXP_I64:
-			if (input >= '0' && input <= '9')
+			if (isDigit(input))
 			{
-			}
-			else if (input == 'e' || input == 'E')
-			{
-				state = SCANNER_EXP_BASE;
-			}
-			else
-			{
-				tokenPointer->type = TOKEN_F64;
-				return scanner_end(input, &nextCharacter, tokenPointer, string_index);
+				if (input == 'e' || input == 'E')
+				{
+					state = SCANNER_EXP_BASE;
+				}
+				else
+				{
+					tokenPointer->type = TOKEN_F64;
+					return scanner_end(input, &nextCharacter, tokenPointer, string_index);
+				}
 			}
 			break;
 
 		case SCANNER_EXP_BASE:
-			if (input >= '0' && input <= '9')
+			if (isDigit(input))
 			{
 				state = SCANNER_EXP;
 			}
@@ -352,7 +426,7 @@ enum ERR_CODES scanner_get_token(struct TOKEN *tokenPointer)
 			break;
 
 		case SCANNER_EXP_SIGN:
-			if (input >= '0' && input <= '9')
+			if (isDigit(input))
 			{
 				state = SCANNER_EXP;
 			}
@@ -363,19 +437,46 @@ enum ERR_CODES scanner_get_token(struct TOKEN *tokenPointer)
 			break;
 
 		case SCANNER_EXP:
-			if (!(input >= '0' && input <= '9'))
+			if (!(isDigit(input)))
 			{
 				tokenPointer->type = TOKEN_F64;
 				return scanner_end(input, &nextCharacter, tokenPointer, string_index);
 			}
 			break;
 
+		case SCANNER_LSQUARE:
+			if (input == ']')
+				state = SCANNER_RSQUARE;
+			else
+				return E_LEXICAL;
+			break;
+
+		case SCANNER_RSQUARE:
+			if (input == 'u')
+				state = SCANNER_U;
+			else
+				return E_LEXICAL;
+			break;
+
+		case SCANNER_U:
+			if (input == '8')
+			{
+				state = SCANNER_8;
+				tokenPointer->type = TOKEN_U8_ARRAY;
+			}
+			else
+				return E_LEXICAL;
+			break;
+
+		case SCANNER_8:
+			return scanner_end(input, &nextCharacter, tokenPointer, string_index);
+
 		case SCANNER_IDENTIFIER:
 			if (!((input >= 'A' && input <= 'Z') || (input >= 'a' && input <= 'z') || input == '_' ||
-				  (input >= '0' && input <= '9')))
+				  (isDigit(input))))
 			{
 				/**
-				 * Keywords: const, else, fn, if, i32, f64, null, pub, return, u8, var, void, while
+				 * Keywords: const, else, fn, if, i32, f64, null, pub, return, []u8, var, void, while
 				 */
 				tokenPointer->value[string_index] = '\0';
 				nextCharacter = input;
@@ -414,10 +515,6 @@ enum ERR_CODES scanner_get_token(struct TOKEN *tokenPointer)
 				else if (!strcmp(tokenPointer->value, "return"))
 				{
 					tokenPointer->type = TOKEN_RETURN;
-				}
-				else if (!strcmp(tokenPointer->value, "u8")) // TODO: []u8 remove u8
-				{
-					tokenPointer->type = TOKEN_U8;
 				}
 				else if (!strcmp(tokenPointer->value, "var"))
 				{
@@ -465,6 +562,12 @@ enum ERR_CODES scanner_get_token(struct TOKEN *tokenPointer)
 
 			tokenPointer->value = temp;
 		}
-		tokenPointer->value[string_index++] = (char)input;
+		// print char input
+		// printf("Input: %c\n", input);
+
+		if (assign_value == true)
+		{
+			tokenPointer->value[string_index++] = (char)input;
+		}
 	}
 }
