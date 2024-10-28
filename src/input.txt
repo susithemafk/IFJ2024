@@ -1,8 +1,2 @@
-var x: i32 = 42;
-
-var b = "Ahoj\n\"Sve'te \\\x22";
-
-"Novy radek zacina \\  \\\n"
-"Zde je tabulator:\\tTabulator konci zde."
-"Zde je zpetne lomitko: \\"
-"Pozor na neplatny znak: \\xZZ"
+var x: i32 = 5;
+const b = 6;
