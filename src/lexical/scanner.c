@@ -127,6 +127,7 @@ enum ERR_CODES scanner_get_token(struct TOKEN *tokenPointer)
 			case ';':
 				state = SCANNER_SEMICOLON;
 				tokenPointer->type = TOKEN_SEMICOLON;
+				break;
 			case '<':
 				state = SCANNER_LESSTHAN;
 				tokenPointer->type = TOKEN_LESSTHAN;
@@ -462,7 +463,7 @@ enum ERR_CODES scanner_get_token(struct TOKEN *tokenPointer)
 			if (input == '8')
 			{
 				state = SCANNER_8;
-				tokenPointer->type = TOKEN_U8_ARRAY;
+				tokenPointer->type = TOKEN_U8;
 			}
 			else
 				return E_LEXICAL;
