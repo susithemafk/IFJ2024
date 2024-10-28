@@ -166,6 +166,108 @@ bool parser_parse_statement()
 	case TOKEN_CONST:
 		return parse_variable_definition();
 		break;
+	case TOKEN_NONE:
+		return true;
+		break;
+	case TOKEN_IDENTIFIER:
+		return true;
+		break;
+	case TOKEN_EOF:
+		return true;
+		break;
+	case TOKEN_PLUS:
+		return true;
+		break;
+	case TOKEN_MINUS:
+		return true;
+		break;
+	case TOKEN_DIVIDE:
+		return true;
+		break;
+	case TOKEN_MULTIPLY:
+		return true;
+		break;
+	case TOKEN_EQUALS:
+		return true;
+		break;
+	case TOKEN_LESSTHAN:
+		return true;
+		break;
+	case TOKEN_LESSOREQUAL:
+		return true;
+		break;
+	case TOKEN_GREATERTHAN:
+		return true;
+		break;
+	case TOKEN_GREATEROREQUAL:
+		return true;
+		break;
+	case TOKEN_NOTEQUAL:
+		return true;
+		break;
+	case TOKEN_STRING:
+		return true;
+		break;
+	case TOKEN_CONCATENATE:
+		return true;
+		break;
+	case TOKEN_ASSIGN:
+		return true;
+		break;
+	case TOKEN_COLON:
+		return true;
+		break;
+	case TOKEN_COMMA:
+		return true;
+		break;
+	case TOKEN_LPAR:
+		return true;
+		break;
+	case TOKEN_RPAR:
+		return true;
+		break;
+	case TOKEN_LBRACE:
+		return true;
+		break;
+	case TOKEN_RBRACE:
+		return true;
+		break;
+	case TOKEN_SEMICOLON:
+		return true;
+		break;
+	case TOKEN_ELSE:
+		return true;
+		break;
+	case TOKEN_FN:
+		return true;
+		break;
+	case TOKEN_IF:
+		return true;
+		break;
+	case TOKEN_I32:
+		return true;
+		break;
+	case TOKEN_F64:
+		return true;
+		break;
+	case TOKEN_NULL:
+		return true;
+		break;
+	case TOKEN_PUB:
+		return true;
+		break;
+	case TOKEN_RETURN:
+		return true;
+		break;
+	case TOKEN_U8:
+		return true;
+		break;
+	case TOKEN_VOID:
+		return true;
+		break;
+	case TOKEN_WHILE:
+		return true;
+		break;
 	}
 
 	return true;
