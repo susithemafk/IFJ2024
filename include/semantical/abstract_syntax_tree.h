@@ -121,14 +121,6 @@ enum ERR_CODES ASTeditIfNode(ASTNodePtr ifNode, ASTNodePtr conditionPart);
 enum ERR_CODES ASTeditFunctionCallNode(ASTNodePtr functionCallNode, char *functionName, ASTNodePtr argument);
 
 /**
- * Function to switch to outer function call, in a function call
- * 
- * @param functionCallNode The function call node
- * @return err codes
-*/
-enum ERR_CODES ASTswitchToOuterFunctionCall(ASTNodePtr functionCallNode);
-
-/**
  * Function to edit the function node
  * 
  * @param functionNode The function node
@@ -139,14 +131,6 @@ enum ERR_CODES ASTswitchToOuterFunctionCall(ASTNodePtr functionCallNode);
  * @note the arguments will be added one by one
 */
 enum ERR_CODES ASTeditFunctionNode(ASTNodePtr functionNode, char *functionName, enum DATA_TYPES returnType, ASTNodePtr argument);
-
-/**
- * Function to save the function call node
- * 
- * @param functionCallNode The function call node
- * @return enum ERR_CODES
-*/
-enum ERR_CODES ASTFinishFuncNode(ASTNodePtr functionCallNode);
 
 /**
  * Function to edit the while node

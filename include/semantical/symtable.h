@@ -18,29 +18,111 @@
 // ####################### Function Call Validation #######################
 
 /**
- * Function to initialize the function call validator
- * 
- * @return pointer to the initialized function call validator
-*/
-BST *initFunctionCallValidator(void);
+ * @brief Struct for the function call validator
+ * @param funcDefinitions - the function defintions
+ * @param functionCalls - the function calls
+ * @note this struct is used to validate the function calls
+ */
+typedef struct fnCallValidator {
+    BST *funcDefinitions; // the function defintions
+    BST *functionCalls; // the function calls
+} *fnCallValidatorPtr;
+
+typedef struct fnCallwType {
+    ASTNodePtr call; // pointer to the AST of the function call
+    enum DATA_TYPES returnType; // the expected return type
+} *fnCallwTypePtr;
 
 /**
- * Function to free the Function Call Validator
+ * Function to initilize the funciton call validator
+ * @return The validator
+ */
+fnCallValidatorPtr initFunctionCallValidator(void);
+
+/**
+ * Function to remove the function call validator
+ * 
+ * @param fnCalls - pointer to the BST of the function calls
+ * @param doFuncCalls - flag, if true, the function calls will be freed
+ * @return true, if the validator was successfully removed, false otherwise
+*/
+bool _removeFnCallValidator(BST *fnCalls, bool doFuncCalls);
+
+/**
+ * Function to free the function call validator
  * 
  * @param validator - pointer to the validator
- * @return enum ERR_CODES
- * @note this function is internal
+ * @return true, if the validator was successfully freed, false otherwise
 */
-enum ERR_CODES _freeFunctionCallValidator(BST **validator);
+bool freeFunctionCallValidator(fnCallValidatorPtr *validator);
 
 /**
  * Function to add a new function definition to the validator
  * 
- * @param validator - pointer to the validator
+ * @param fnValidator - pointer to the validator
  * @param func - pointer to the AST of the definition
  * @return enum ERR_CODES
 */
-enum ERR_CODES addFunctionDefinition(BST *validator, ASTNodePtr func);
+enum ERR_CODES addFunctionDefinition(fnCallValidatorPtr fnValidator, ASTNodePtr func);
+
+
+/**
+ * Function to update the function calls, when a new function definition is added
+ * 
+ * @param functionCalls - pointer to the function calls
+ * @param newfuncDef - pointer to the new function definition
+ * @return enum ERR_CODES
+*/
+enum ERR_CODES _updateFuncCallsOnNewfuncDefinition(BST *functionCalls, ASTNodePtr newfuncDef);
+
+/**
+ * Function to validate a funciton call based on the definition
+ * 
+ * @param definition - pointer to the function definition
+ * @param call - pointer to the function call
+ * @return enum ERR_CODES
+*/
+enum ERR_CODES _semanticCheckFuncCall(ASTNodePtr definition, fnCallwTypePtr call);
+
+/**
+ * Function to validate a function definition
+ * 
+ * @param functionDefinitions - pointer to the function definitions
+ * @param funcCall - pointer to the function call
+ * @param expectDefined - flag, if the function has to be defined
+ * @return enum ERR_CODES
+*/
+enum ERR_CODES _handleNewFuncCall(fnCallValidatorPtr functionDefinitions, fnCallwTypePtr funcCall, bool expectDefined);
+
+
+/**
+ * Function to compare two function calls
+ * 
+ * @param func1 - pointer to the first function call
+ * @param func2 - pointer to the second function call
+ * @return enum ERR_CODES
+*/
+enum ERR_CODES _compareTwoFuncCalls(fnCallwTypePtr func1, fnCallwTypePtr func2);
+
+/**
+ * Function to check, for comflicting function calls
+ * 
+ * @param functionCalls - pointer to the function calls
+ * @param newFuncCall - pointer to the new function call
+ * @return enum ERR_CODES
+*/
+enum ERR_CODES _checkOtherSameFuncCalls(BST *functionCalls, fnCallwTypePtr newFuncCall);
+
+
+/**
+ * Function to add a new function call to the validator
+ * 
+ * @param fnValidator - pointer to the validator
+ * @param call - pointer to the AST of the fn call
+ * @param expectedReturnType - the expected return type
+ * @return enum ERR_CODES
+*/
+enum ERR_CODES addFunctionCall(fnCallValidatorPtr fnValidator, ASTNodePtr call, enum DATA_TYPES expectedReturnType);
 
 /**
  * Function to find the same hash function in the validator
@@ -62,15 +144,15 @@ LinkedList *_findSameHashFunction(BST *validator, unsigned int hash);
 */
 enum ERR_CODES _findFunction(BST *validator, char *name, ASTNodePtr *result);
 
+
 /**
- * Function to validate a function call
+ * Function to validate every function call, that was added to the validator
  * 
- * @param validator - pointer to the validator
- * @param call - pointer to the AST of the function call
- * @param returnType - pointer to the return type of the function
+ * @param fnValidator - pointer to the validator
  * @return enum ERR_CODES
 */
-enum ERR_CODES validateFunctionCall(BST *validator, ASTNodePtr call, enum DATA_TYPES *returnType);
+enum ERR_CODES validateAllFunctrionCalls(fnCallValidatorPtr fnValidator);
+
 
 // ####################### SYMTABLE #######################
 
@@ -89,6 +171,7 @@ typedef struct SymVariable {
     char *name; // the name of the variable
     enum DATA_TYPES type; // the type of the variable
     bool mutable; // if the variable is mutable (constants will have this false)
+    bool nullable; // Indicates if the variable can hold a null value
     bool accesed; // if the variable was accessed
     struct ASTNode *declaration; // pointer to the declaration node
 } SymVariable;
@@ -162,7 +245,7 @@ bool symTableExitScope(SymTable *table, enum ERR_CODES *returnCode);
  * @param mutable - flag, if the variable is mutable
  * @return pointer to the variable, if the variable was successfully inserted, NULL otherwise
 */
-SymVariable *symTableDeclareVariable(SymTable *table, char *name, enum DATA_TYPES type, bool mutable, ASTNodePtr declaration);
+SymVariable *symTableDeclareVariable(SymTable *table, char *name, enum DATA_TYPES type, bool mutable, bool nullable, ASTNodePtr declaration);
 
 /**
  * Search for a vairable based on its name, in same hash variables

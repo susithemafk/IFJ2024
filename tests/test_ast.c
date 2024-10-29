@@ -986,162 +986,7 @@ void test_case_2(void) {
         "Function call node argument type is incorrect"
     );
 
-    // test 72 adding a 3d argument to the function call node, that is itself a funcion call
-    ASTNodePtr funcCallArg3 = ASTcreateNode(AST_NODE_FUNC_CALL);
-    err = ASTeditFunctionCallNode(functionCallNode, NULL, funcCallArg3); // this should switch the function call node to the new one
-
-    testCase(
-        testInstance,
-        err == SUCCESS,
-        "ASTeditFunctionCallNode - adding 3d argument",
-        "Function call node 3d argument added successfully",
-        "Failed to add 3d argument to function call node"
-    );
-
-    // test 73 checking the function call argument amount
-    arguments = functionCallNode->data->functionCall->arguments;
-
-    testCase(
-        testInstance,
-        getSize(arguments) == 3,
-        "Function call node argument amount check",
-        "Function call node argument amount is correct",
-        "Function call node argument amount is incorrect"
-    );
-
-    // test 74 editing the inner function call name
-    err = ASTeditFunctionCallNode(functionCallNode, "func2", NULL);
-
-    testCase(
-        testInstance,
-        err == SUCCESS,
-        "ASTeditFunctionCallNode - editing inner function call",
-        "Function call node inner function call edited successfully",
-        "Failed to edit inner function call in function call node"
-    );
-
-    // test 75 checking the inner function call name
-    ASTNodePtr innerFunctionCall = (ASTNodePtr)getDataAtIndex(arguments, 2);
-
-    testCase(
-        testInstance,
-        strcmp(innerFunctionCall->data->functionCall->functionName, "func2") == 0,
-        "Function call node inner function call name check",
-        "Function call node inner function call name is correct",
-        "Function call node inner function call name is incorrect"
-    );
-
-    // test 76 adding the first argumet to the inner function call
-    ASTNodePtr innerFuncCallArg1 = ASTcreateNode(AST_NODE_VALUE);
-    err = ASTinitNodeValue(innerFuncCallArg1, &value3);
-
-    err = ASTeditFunctionCallNode(functionCallNode, NULL, innerFuncCallArg1);
-
-    testCase(
-        testInstance,
-        err == SUCCESS,
-        "ASTeditFunctionCallNode - adding 1st argument to inner function call",
-        "Function call node inner function call 1st argument added successfully",
-        "Failed to add 1st argument to inner function call in function call node"
-    );
-
-    // test 77 checking the inner function call argument amount
-    LinkedList *innerArguments = innerFunctionCall->data->functionCall->arguments;
-
-    testCase(
-        testInstance,
-        getSize(innerArguments) == 1,
-        "Function call node inner function call argument amount check",
-        "Function call node inner function call argument amount is correct",
-        "Function call node inner function call argument amount is incorrect"
-    );
-
-    // test 78 checking the inner function call argument type
-    ASTNodePtr innerArgument = (ASTNodePtr)getDataAtIndex(innerArguments, 0);
-
-    testCase(
-        testInstance,
-        innerArgument->data->value->type == dTypeU8,
-        "Function call node inner function call argument type check",
-        "Function call node inner function call argument type is correct",
-        "Function call node inner function call argument type is incorrect"
-    );
-
-    // test 79 checking the inner function call argument value
-    testCase(
-        testInstance,
-        strcmp(innerArgument->data->value->value, "hello") == 0,
-        "Function call node inner function call argument value check",
-        "Function call node inner function call argument value is correct",
-        "Function call node inner function call argument value is incorrect"
-    );
-
-    // test 80 exiting the inner function call
-    err = ASTswitchToOuterFunctionCall(functionCallNode);
-
-    testCase(
-        testInstance,
-        err == SUCCESS,
-        "ASTswitchToOuterFunctionCall",
-        "Function call node switched to outer function call successfully",
-        "Failed to switch to outer function call in function call node"
-    );
-
-    // test 81 adding a 4th argument to the outer function call node
-    ASTNodePtr funcCallArg4 = ASTcreateNode(AST_NODE_VARIABLE);
-    err = ASTinitNodeVariable(funcCallArg4, &var3);
-
-    err = ASTeditFunctionCallNode(functionCallNode, NULL, funcCallArg4);
-
-    testCase(
-        testInstance,
-        err == SUCCESS,
-        "ASTeditFunctionCallNode - adding 4th argument",
-        "Function call node 4th argument added successfully",
-        "Failed to add 4th argument to function call node"
-    );
-
-    // test 82 checking the function call argument amount
-    arguments = functionCallNode->data->functionCall->arguments;
-
-    testCase(
-        testInstance,
-        getSize(arguments) == 4,
-        "Function call node argument amount check",
-        "Function call node argument amount is correct",
-        "Function call node argument amount is incorrect"
-    );
-
-    // test 83 checking the function call argument name
-    argument = (ASTNodePtr)getDataAtIndex(arguments, 3);
-
-    testCase(
-        testInstance,
-        strcmp(argument->data->variable->name, "c") == 0,
-        "Function call node argument name check",
-        "Function call node argument name is correct",
-        "Function call node argument name is incorrect"
-    );
-
-    // test 84 checking the function call argument type
-    testCase(
-        testInstance,
-        argument->data->variable->type == dTypeF64,
-        "Function call node argument type check",
-        "Function call node argument type is correct",
-        "Function call node argument type is incorrect"
-    );
-
-    // test 85 free the function call node
-    testCase(
-        testInstance,
-        ASTfreeNode(&functionCallNode),
-        "ASTfreeNode",
-        "Function call node freed successfully",
-        "Failed to free function call node"
-    );
-
-    // test 86 AST for expresion node a+b*6
+    // test 72 AST for expresion node a+b*6
     ASTNodePtr expresionNode = ASTcreateNode(AST_NODE_EXPRESION);
 
     ASTNodePtr operandNode1 = ASTcreateNode(AST_NODE_VARIABLE);
@@ -1156,7 +1001,7 @@ void test_case_2(void) {
         "Failed to add operand node 1 to expresion node"
     );
 
-    // test 87 creating the + operand
+    // test 73 creating the + operand
     ASTNodePtr operand1 = ASTcreateNode(AST_NODE_OPERAND);
     err = ASTinitNodeOperand(operand1, opr1);
     testCase(
@@ -1167,7 +1012,7 @@ void test_case_2(void) {
         "Failed to initialize operand node 1"
     );
 
-    // test 88 adding the + operand to the expresion node
+    // test 74 adding the + operand to the expresion node
     err = ASTaddNodeToExpresion(expresionNode, operand1);
     testCase(
         testInstance,
@@ -1177,7 +1022,7 @@ void test_case_2(void) {
         "Failed to add operand node 1 to expresion node"
     );
 
-    // test 89 adding the b variable to the expresion node
+    // test 75 adding the b variable to the expresion node
     ASTNodePtr operandNode2 = ASTcreateNode(AST_NODE_VARIABLE);
     err = ASTinitNodeVariable(operandNode2, &var2);
 
@@ -1190,7 +1035,7 @@ void test_case_2(void) {
         "Failed to add operand node 2 to expresion node"
     );
 
-    // test 90 creating the * operand
+    // test 76 creating the * operand
     ASTNodePtr operand2 = ASTcreateNode(AST_NODE_OPERAND);
     err = ASTinitNodeOperand(operand2, opr2);
 
@@ -1202,7 +1047,7 @@ void test_case_2(void) {
         "Failed to initialize operand node 2"
     );
 
-    // test 91 adding the * operand to the expresion node
+    // test 77 adding the * operand to the expresion node
     err = ASTaddNodeToExpresion(expresionNode, operand2);
 
     testCase(
@@ -1213,7 +1058,7 @@ void test_case_2(void) {
         "Failed to add operand node 2 to expresion node"
     );
 
-    // test 92 adding the 6 value to the expresion node
+    // test 78 adding the 6 value to the expresion node
     ASTNodePtr operandNode3 = ASTcreateNode(AST_NODE_VALUE);
     err = ASTinitNodeValue(operandNode3, &value1);
 
@@ -1227,7 +1072,7 @@ void test_case_2(void) {
         "Failed to add operand node 3 to expresion node"
     );
 
-    // test 93 finish the expresion node
+    // test 79 finish the expresion node
     err = ASTfinishExpresion(expresionNode);
     testCase(
         testInstance,
@@ -1240,7 +1085,7 @@ void test_case_2(void) {
     // checking the finished expresion node, should be a+b*6, but in postfix so ab6*+
     LinkedList *expresionOut = expresionNode->data->expresion->output;
 
-    // test 94 check the size of the output
+    // test 80 check the size of the output
     testCase(
         testInstance,
         getSize(expresionOut) == 5,
@@ -1249,7 +1094,7 @@ void test_case_2(void) {
         "Expresion node output size is incorrect"
     );
 
-    // test 95 check the first element
+    // test 81 check the first element
     ASTNodePtr outputNode = (ASTNodePtr)getDataAtIndex(expresionOut, 0);
     printList(expresionOut, (void (*)(unsigned int, void *))print_token);
 
@@ -1261,7 +1106,7 @@ void test_case_2(void) {
         "Expresion node output first element is incorrect"
     );
 
-    // test 96 check the value of the first element
+    // test 82 check the value of the first element
     testCase(
         testInstance,
         strcmp(outputNode->data->variable->name, "a") == 0,
@@ -1270,7 +1115,7 @@ void test_case_2(void) {
         "Expresion node output first element value is incorrect"
     );
 
-    // test 97 check the second element
+    // test 83 check the second element
     outputNode = (ASTNodePtr)getDataAtIndex(expresionOut, 1);
 
     testCase(
@@ -1281,7 +1126,7 @@ void test_case_2(void) {
         "Expresion node output second element is incorrect"
     );
 
-    // test 98 check the value of the second element
+    // test 84 check the value of the second element
 
     testCase(
         testInstance,
@@ -1291,7 +1136,7 @@ void test_case_2(void) {
         "Expresion node output second element value is incorrect"
     );
 
-    // test 99 check the third element
+    // test 85 check the third element
 
     outputNode = (ASTNodePtr)getDataAtIndex(expresionOut, 2);
 
@@ -1303,7 +1148,7 @@ void test_case_2(void) {
         "Expresion node output third element is incorrect"
     );
 
-    // test 100 check the value of the third element
+    // test 86 check the value of the third element
 
     testCase(
         testInstance,
@@ -1313,7 +1158,7 @@ void test_case_2(void) {
         "Expresion node output third element value is incorrect"
     );
 
-    // test 101 check the fourth element
+    // test 87 check the fourth element
 
     outputNode = (ASTNodePtr)getDataAtIndex(expresionOut, 3);
 
@@ -1325,7 +1170,7 @@ void test_case_2(void) {
         "Expresion node output fourth element is incorrect"
     );
 
-    // test 102 check the value of the fourth element
+    // test 88 check the value of the fourth element
 
     testCase(
         testInstance,
@@ -1335,7 +1180,7 @@ void test_case_2(void) {
         "Expresion node output fourth element value is incorrect"
     );
 
-    // test 103 check the fifth element
+    // test 89 check the fifth element
 
     outputNode = (ASTNodePtr)getDataAtIndex(expresionOut, 4);
 
@@ -1347,7 +1192,7 @@ void test_case_2(void) {
         "Expresion node output fifth element is incorrect"
     );
 
-    // test 104 check the value of the fifth element
+    // test 90 check the value of the fifth element
 
     testCase(
         testInstance,
@@ -1357,7 +1202,7 @@ void test_case_2(void) {
         "Expresion node output fifth element value is incorrect"
     );
 
-    // test 105 free the expresion node
+    // test 91 free the expresion node
     testCase(
         testInstance,
         ASTfreeNode(&expresionNode),
@@ -1366,7 +1211,7 @@ void test_case_2(void) {
         "Failed to free expresion node"
     );
 
-    // test 106 AST for truth expresion node a>b
+    // test 92 AST for truth expresion node a>b
     ASTNodePtr truthExpresionNode = ASTcreateNode(AST_NODE_TRUTH_EXPRESION);
 
     operandNode1 = ASTcreateNode(AST_NODE_VARIABLE);
@@ -1381,7 +1226,7 @@ void test_case_2(void) {
         "Failed to add operand node 1 to truth expresion node"
     );
 
-    // test 107 test the operand in the truth expresion
+    // test 93 test the operand in the truth expresion
     testCase(
         testInstance,
         truthExpresionNode->data->truthExpresion->operator == TOKEN_NONE,
@@ -1390,7 +1235,7 @@ void test_case_2(void) {
         "Truth expresion node operator 1 is incorrect"
     );
 
-    // test 108 test the left part of the truth expresion in the truth expresion (type)
+    // test 94 test the left part of the truth expresion in the truth expresion (type)
     testCase(
         testInstance,
         truthExpresionNode->data->truthExpresion->left->type == AST_NODE_EXPRESION,
@@ -1399,7 +1244,7 @@ void test_case_2(void) {
         "Truth expresion node left part type 1 is incorrect"
     );
 
-    // test 109 test the left inner node type
+    // test 95 test the left inner node type
 
     outputNode = (ASTNodePtr)getDataAtIndex(truthExpresionNode->data->truthExpresion->left->data->expresion->output, 0);
 
@@ -1411,7 +1256,7 @@ void test_case_2(void) {
         "Truth expresion node left part value 1 is incorrect"
     );
 
-    // test 110 test left inner node value
+    // test 96 test left inner node value
     testCase(
         testInstance,
         strcmp(outputNode->data->variable->name, "a") == 0,
@@ -1423,7 +1268,7 @@ void test_case_2(void) {
     ASTNodePtr opr = ASTcreateNode(AST_NODE_OPERAND);
     err = ASTinitNodeOperand(opr, opr1);
 
-    // test 111 adding the + operand to the truth expresion (should fail)
+    // test 97 adding the + operand to the truth expresion (should fail)
     err = ASTeditTruthExpresion(truthExpresionNode, opr);
     testCase(
         testInstance,
@@ -1435,7 +1280,7 @@ void test_case_2(void) {
 
     ASTfreeNode(&opr);
 
-    // test 112 adding the > operand to the truth expresion
+    // test 98 adding the > operand to the truth expresion
     opr = ASTcreateNode(AST_NODE_OPERAND);
     err = ASTinitNodeOperand(opr, opr3);
 
@@ -1448,7 +1293,7 @@ void test_case_2(void) {
         "Failed to add operand node 2 to truth expresion node"
     );
 
-    // test 113 test the operand in the truth expresion
+    // test 99 test the operand in the truth expresion
     testCase(
         testInstance,
         truthExpresionNode->data->truthExpresion->operator == TOKEN_LESSOREQUAL,
@@ -1457,7 +1302,7 @@ void test_case_2(void) {
         "Truth expresion node operator 2 is incorrect"
     );
 
-    // test 114 adding the b variable to the truth expresion
+    // test 100 adding the b variable to the truth expresion
     operandNode2 = ASTcreateNode(AST_NODE_VARIABLE);
     err = ASTinitNodeVariable(operandNode2, &var2);
 
@@ -1470,7 +1315,7 @@ void test_case_2(void) {
         "Failed to add operand node 2 to truth expresion node"
     );
 
-    // test 115 test the right part of the truth expresion in the truth expresion (type)
+    // test 101 test the right part of the truth expresion in the truth expresion (type)
     testCase(
         testInstance,
         truthExpresionNode->data->truthExpresion->right->type == AST_NODE_EXPRESION,
@@ -1479,7 +1324,7 @@ void test_case_2(void) {
         "Truth expresion node right part type 2 is incorrect"
     );
 
-    // test 116 test the right inner node type
+    // test 102 test the right inner node type
     outputNode = (ASTNodePtr)getDataAtIndex(truthExpresionNode->data->truthExpresion->right->data->expresion->output, 0);
 
     testCase(
@@ -1490,7 +1335,7 @@ void test_case_2(void) {
         "Truth expresion node right part value 2 is incorrect"
     );
 
-    // test 117 test right inner node value
+    // test 103 test right inner node value
     testCase(
         testInstance,
         strcmp(outputNode->data->variable->name, "b") == 0,
@@ -1499,7 +1344,7 @@ void test_case_2(void) {
         "Truth expresion node right part value 2 is incorrect"
     );
 
-    // test 118 if the switch did not change the left side
+    // test 104 if the switch did not change the left side
     outputNode = (ASTNodePtr)getDataAtIndex(truthExpresionNode->data->truthExpresion->left->data->expresion->output, 0);
 
     testCase(
@@ -1510,7 +1355,7 @@ void test_case_2(void) {
         "Truth expresion node left part value 2 is incorrect"
     );
 
-    // test 119 test left inner node value
+    // test 105 test left inner node value
     testCase(
         testInstance,
         strcmp(outputNode->data->variable->name, "a") == 0,
@@ -1519,7 +1364,7 @@ void test_case_2(void) {
         "Truth expresion node left part value 2 is incorrect"
     );
 
-    // test 120 free the truth expresion node
+    // test 106 free the truth expresion node
     testCase(
         testInstance,
         ASTfreeNode(&truthExpresionNode),
@@ -1528,7 +1373,7 @@ void test_case_2(void) {
         "Failed to free truth expresion node"
     );
 
-    // test 121 AST for if node for if (a > b)
+    // test 107 AST for if node for if (a > b)
     ASTNodePtr ifNode = ASTcreateNode(AST_NODE_IF_ELSE);
 
     variableNode = ASTcreateNode(AST_NODE_VARIABLE);
@@ -1544,7 +1389,7 @@ void test_case_2(void) {
         "Failed to initialize if node"
     );
 
-    // test 122 test the if node condition
+    // test 108 test the if node condition
 
     testCase(
         testInstance,
@@ -1554,7 +1399,7 @@ void test_case_2(void) {
         "If node condition type is incorrect"
     );
 
-    // test 123 test the if node condition value
+    // test 109 test the if node condition value
     outputNode = (ASTNodePtr)getDataAtIndex(ifNode->data->ifElse->condition->data->truthExpresion->left->data->expresion->output, 0);
 
     testCase(
@@ -1565,7 +1410,7 @@ void test_case_2(void) {
         "If node condition value is incorrect"
     );
 
-    // test 124 test the if node condition value
+    // test 110 test the if node condition value
     testCase(
         testInstance,
         strcmp(outputNode->data->variable->name, "a") == 0,
@@ -1574,7 +1419,7 @@ void test_case_2(void) {
         "If node condition value is incorrect"
     );
 
-    // test 125 test the if node condition value type (a)
+    // test 111 test the if node condition value type (a)
     testCase(
         testInstance,
         outputNode->data->variable->type == dTypeI32,
@@ -1583,7 +1428,7 @@ void test_case_2(void) {
         "If node condition value type is incorrect"
     );
 
-    // test 126 test adding the > operand to the if node condition
+    // test 112 test adding the > operand to the if node condition
     opr = ASTcreateNode(AST_NODE_OPERAND);
     err = ASTinitNodeOperand(opr, opr3);
 
@@ -1597,7 +1442,7 @@ void test_case_2(void) {
         "Failed to add operand to if node condition"
     );
 
-    // test 127 test the if node condition value (it should be auto negated)
+    // test 113 test the if node condition value (it should be auto negated)
     testCase(
         testInstance,
         ifNode->data->ifElse->condition->data->truthExpresion->operator == TOKEN_LESSOREQUAL,
@@ -1606,7 +1451,7 @@ void test_case_2(void) {
         "If node condition value is incorrect"
     );
 
-    // test 128 test adding variable b to the if node condition
+    // test 114 test adding variable b to the if node condition
     variableNode = ASTcreateNode(AST_NODE_VARIABLE);
     err = ASTinitNodeVariable(variableNode, &var2);
 
@@ -1620,7 +1465,7 @@ void test_case_2(void) {
         "Failed to add variable to if node condition"
     );
 
-    // test 129 test the if node condition value
+    // test 115 test the if node condition value
 
     outputNode = (ASTNodePtr)getDataAtIndex(ifNode->data->ifElse->condition->data->truthExpresion->right->data->expresion->output, 0);
 
@@ -1632,7 +1477,7 @@ void test_case_2(void) {
         "If node condition value is incorrect"
     );
 
-    // test 130 test the if node condition value
+    // test 116 test the if node condition value
     testCase(
         testInstance,
         strcmp(outputNode->data->variable->name, "b") == 0,
@@ -1641,7 +1486,7 @@ void test_case_2(void) {
         "If node condition value is incorrect"
     );
 
-    // test 131 test if the nod econdition value type (b)
+    // test 117 test if the nod econdition value type (b)
     testCase(
         testInstance,
         outputNode->data->variable->type == dTypeI32,
@@ -1650,7 +1495,7 @@ void test_case_2(void) {
         "If node condition value type is incorrect"
     );
 
-    // test 132 free the if node
+    // test 118 free the if node
     testCase(
         testInstance,
         ASTfreeNode(&ifNode),
@@ -1659,7 +1504,7 @@ void test_case_2(void) {
         "Failed to free if node"
     );
 
-    // test 133 AST for while node for while (a > b)
+    // test 119 AST for while node for while (a > b)
     ASTNodePtr whileNode = ASTcreateNode(AST_NODE_WHILE);
 
     variableNode = ASTcreateNode(AST_NODE_VARIABLE);
@@ -1675,7 +1520,7 @@ void test_case_2(void) {
         "Failed to initialize while node"
     );
 
-    // test 134 test the while node condition type
+    // test 120 test the while node condition type
     testCase(
         testInstance,
         whileNode->data->whileLoop->condition->type == AST_NODE_TRUTH_EXPRESION,
@@ -1684,7 +1529,7 @@ void test_case_2(void) {
         "While node condition type is incorrect"
     );
 
-    // test 135 test the while node condition value
+    // test 121 test the while node condition value
     outputNode = (ASTNodePtr)getDataAtIndex(whileNode->data->whileLoop->condition->data->truthExpresion->left->data->expresion->output, 0);
 
     testCase(
@@ -1695,7 +1540,7 @@ void test_case_2(void) {
         "While node condition value is incorrect"
     );
 
-    // test 136 test the while node condition value
+    // test 122 test the while node condition value
     testCase(
         testInstance,
         strcmp(outputNode->data->variable->name, "a") == 0,
@@ -1704,7 +1549,7 @@ void test_case_2(void) {
         "While node condition value is incorrect"
     );
 
-    // test 137 test the while node condition value type (a)
+    // test 123 test the while node condition value type (a)
     testCase(
         testInstance,
         outputNode->data->variable->type == dTypeI32,
@@ -1713,7 +1558,7 @@ void test_case_2(void) {
         "While node condition value type is incorrect"
     );
 
-    // test 138 test adding the > operand to the while node condition
+    // test 124 test adding the > operand to the while node condition
     opr = ASTcreateNode(AST_NODE_OPERAND);
     err = ASTinitNodeOperand(opr, opr3);
 
@@ -1727,7 +1572,7 @@ void test_case_2(void) {
         "Failed to add operand to while node condition"
     );
 
-    // test 139 test the while node condition value (it should be auto negated)
+    // test 125 test the while node condition value (it should be auto negated)
     testCase(
         testInstance,
         whileNode->data->whileLoop->condition->data->truthExpresion->operator == TOKEN_LESSOREQUAL,
@@ -1736,7 +1581,7 @@ void test_case_2(void) {
         "While node condition value is incorrect"
     );
 
-    // test 140 test adding variable b to the while node condition
+    // test 126 test adding variable b to the while node condition
     variableNode = ASTcreateNode(AST_NODE_VARIABLE);
     err = ASTinitNodeVariable(variableNode, &var2);
 
@@ -1750,7 +1595,7 @@ void test_case_2(void) {
         "Failed to add variable to while node condition"
     );
 
-    // test 141 test the while node condition value
+    // test 127 test the while node condition value
     outputNode = (ASTNodePtr)getDataAtIndex(whileNode->data->whileLoop->condition->data->truthExpresion->right->data->expresion->output, 0);
 
     testCase(
@@ -1761,7 +1606,7 @@ void test_case_2(void) {
         "While node condition value is incorrect"
     );
 
-    // test 142 test the while node condition value
+    // test 128 test the while node condition value
     testCase(
         testInstance,
         strcmp(outputNode->data->variable->name, "b") == 0,
@@ -1770,7 +1615,7 @@ void test_case_2(void) {
         "While node condition value is incorrect"
     );
 
-    // test 143 test if the nod econdition value type (b)
+    // test 129 test if the nod econdition value type (b)
     testCase(
         testInstance,
         outputNode->data->variable->type == dTypeI32,
@@ -1779,7 +1624,7 @@ void test_case_2(void) {
         "While node condition value type is incorrect"
     );
 
-    // test 144 free the while node
+    // test 120 free the while node
     testCase(
         testInstance,
         ASTfreeNode(&whileNode),

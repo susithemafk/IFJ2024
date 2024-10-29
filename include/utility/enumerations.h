@@ -61,6 +61,10 @@ enum ERR_CODES {
     E_SEMANTIC_OTHER = 10,             /*
                     just other semantic errors, not covered by the previous categories
                 */
+    E_NONE = 11,                        /*
+                    No Error, used internally
+                */
+
     E_INTERNAL = 99                    /*
                            internal error of the compiler, that is a mistake, not caused by the source code
                            eg. memory allocation error, accesing out of bounds, etc.
@@ -113,6 +117,7 @@ enum TOKEN_TYPE
 	TOKEN_VAR,	  // 33. var
 	TOKEN_VOID,	  // 34. void
 	TOKEN_WHILE,  // 35. while
+    TOKEN_DELETE_VALUE, // 36 delte value ('_')
 };
 
 typedef struct TOKEN

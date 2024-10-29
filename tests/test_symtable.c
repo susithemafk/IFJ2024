@@ -29,7 +29,7 @@ void test_variables(void) {
     // 2. Test that declaring variables in the global scope fails
     testCase(
         testInstance,
-        symTableDeclareVariable(table, "X", dTypeI32, true, NULL) == NULL,
+        symTableDeclareVariable(table, "X", dTypeI32, true, false, NULL) == NULL,
         "Attempting to declare variable 'X' in the global scope (should fail)",
         "Correctly failed to declare 'X' in the global scope (expected)",
         "Unexpectedly succeeded in declaring 'X' in the global scope (unexpected)"
@@ -47,7 +47,7 @@ void test_variables(void) {
     // 4. Declare variable 'X' inside the function scope
     testCase(
         testInstance,
-        symTableDeclareVariable(table, "X", dTypeI32, true, NULL) != NULL,
+        symTableDeclareVariable(table, "X", dTypeI32, true, false, NULL) != NULL,
         "Declaring variable 'X' in the function scope",
         "Successfully declared 'X' in the function scope (expected)",
         "Failed to declare 'X' in the function scope (unexpected)"
@@ -65,7 +65,7 @@ void test_variables(void) {
     // 6. Redeclare variable 'X' in the block scope (should fail)
     testCase(
         testInstance,
-        symTableDeclareVariable(table, "X", dTypeI32, true, NULL) == NULL,
+        symTableDeclareVariable(table, "X", dTypeI32, true, false, NULL) == NULL,
         "Attempting to redeclare variable 'X' in the block scope (should fail)",
         "Correctly failed to redeclare 'X' in the block scope (expected)",
         "Unexpectedly succeeded in redeclaring 'X' in the block scope (unexpected)"
@@ -74,7 +74,7 @@ void test_variables(void) {
     // 7. Declare a new variable 'Y' in the block scope
     testCase(
         testInstance,
-        symTableDeclareVariable(table, "Y", dTypeF64, true, NULL) != NULL,
+        symTableDeclareVariable(table, "Y", dTypeF64, true, false, NULL) != NULL,
         "Declaring variable 'Y' in the block scope",
         "Successfully declared 'Y' in the block scope (expected)",
         "Failed to declare 'Y' in the block scope (unexpected)"

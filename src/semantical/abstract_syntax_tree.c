@@ -156,6 +156,19 @@ ASTNodePtr ASTcreateNode(enum ASTNodeTypes type) {
             node->data->operand = NULL;
             break;
 
+        case AST_NODE_RETURN:
+            node->data->returnNode->returnType = dTypeUndefined;
+            node->data->returnNode->expression = NULL;
+            break;
+        
+        case AST_NODE_ELSE_START:
+            node->data->elseStart = true;
+            break;
+
+        case AST_BLOCK_END:
+            node->data->blockEnd = true;
+            break;
+
         default:
             free(node->data);
             free(node);  // Free the node and data if the type is not recognized
@@ -252,7 +265,9 @@ bool ASTfreeNode(ASTNodePtr *nodePtr) {
             free(node->data->whileLoop);
             break;
         case AST_NODE_VALUE:
-            free(node->data->value->value); // free the string value
+            if (node->data->value->value != NULL) {
+                free(node->data->value->value); // free the string value
+            }
             free(node->data->value);
             break;
         case AST_NODE_OPERAND:
@@ -260,6 +275,14 @@ bool ASTfreeNode(ASTNodePtr *nodePtr) {
                 free(node->data->operand->value);
                 free(node->data->operand);
             }
+            break;
+        case AST_NODE_RETURN:
+            if (node->data->returnNode->expression != NULL) {
+                result = ASTfreeNode(&node->data->returnNode->expression);
+            }
+            free(node->data->returnNode);
+            break;
+        case AST_NODE_ELSE_START:
             break;
         default:
             break;
@@ -345,7 +368,6 @@ enum ERR_CODES ASTaddNodeToExpresion(ASTNodePtr expresionRoot, ASTNodePtr expres
 
     // in case the expresionPart is a function call, value, or variable, we add it to the output
     if (
-        expresionPart->type == AST_NODE_FUNC_CALL ||
         expresionPart->type == AST_NODE_VALUE ||
         expresionPart->type == AST_NODE_VARIABLE
         ) {
@@ -381,7 +403,7 @@ enum ERR_CODES ASTaddNodeToExpresion(ASTNodePtr expresionRoot, ASTNodePtr expres
         return SUCCESS;
     }
 
-    // check if we're adding an operator, if not return error
+    // check if we're adding an operator, if not return error (should not happnen, but just to be suer)
     if (expresionPart->type != AST_NODE_OPERAND) return E_SYNTAX;
 
     // add the operator while respecting precedence
@@ -470,33 +492,14 @@ enum ERR_CODES ASTeditFunctionNode(ASTNodePtr functionNode, char *functionName, 
     return SUCCESS;
 }
 
-// Function to finalize the function node
-enum ERR_CODES ASTFinishFuncNode(ASTNodePtr functionCallNode) {
-
-    if (functionCallNode == NULL) return E_INTERNAL;
-
-    if (functionCallNode->type != AST_NODE_FUNCTION) return E_INTERNAL;
-
-    if (functionCallNode->finished) return E_INTERNAL;
-
-    functionCallNode->finished = true;
-
-    return SUCCESS;
-}
-
 // Function to edit the function call node
 enum ERR_CODES ASTeditFunctionCallNode(ASTNodePtr functionCallNode, char *functionName, ASTNodePtr argument) {
     //check call validity
     if (functionCallNode == NULL && functionName == NULL && argument == NULL) return E_INTERNAL;
     if (functionCallNode->type != AST_NODE_FUNC_CALL) return E_INTERNAL;
 
-    if (functionCallNode->data->functionCall->current == NULL) {
-        functionCallNode->data->functionCall->current = functionCallNode;
-    }
-
     if (functionName != NULL) {
-        ASTNodeFunctionCallPtr curFunc = functionCallNode->data->functionCall->current->data->functionCall;
-        // redifining of the function name is not allowed
+        ASTNodeFunctionCallPtr curFunc = functionCallNode->data->functionCall;
         if (curFunc->functionName != NULL) return E_INTERNAL;
 
         // copy the function name
@@ -508,41 +511,16 @@ enum ERR_CODES ASTeditFunctionCallNode(ASTNodePtr functionCallNode, char *functi
 
     // if we are given a function call as an argument, we need to switch to it
     if (argument != NULL) {
-        // handle function calls
-        if (argument->type == AST_NODE_FUNC_CALL) {
-            argument->data->functionCall->parent = functionCallNode->data->functionCall->current;
-            functionCallNode->data->functionCall->current = argument;
-            if (!insertNodeAtIndex(functionCallNode->data->functionCall->arguments, (void *)argument, -1)) return E_INTERNAL;
-            return SUCCESS;
-        }
-
         // only allow variables, values
         if (
             argument->type != AST_NODE_VARIABLE &&
             argument->type != AST_NODE_VALUE &&
             argument->type != AST_NODE_EXPRESION
-            ) return E_SYNTAX;
+            ) return E_SEMANTIC_INVALID_FUN_PARAM;
 
         // save the argument
-        if (!insertNodeAtIndex(functionCallNode->data->functionCall->current->data->functionCall->arguments, (void *)argument, -1)) return E_INTERNAL;
+        if (!insertNodeAtIndex(functionCallNode->data->functionCall->arguments, (void *)argument, -1)) return E_INTERNAL;
     }
-
-    return SUCCESS;
-}
-// Function to switch to outer function call, in a function call
-enum ERR_CODES ASTswitchToOuterFunctionCall(ASTNodePtr functionCallNode) {
-
-    // check for internal errors
-    if (functionCallNode == NULL) return E_INTERNAL;
-
-    // check if the node is of the correct type
-    if (functionCallNode->type != AST_NODE_FUNC_CALL) return E_INTERNAL;
-
-    // check if the current function call has a parent
-    if (functionCallNode->data->functionCall->current->data->functionCall->parent == NULL) return E_INTERNAL;
-
-    // switch to the parent function call
-    functionCallNode->data->functionCall->current = functionCallNode->data->functionCall->current->data->functionCall->parent;
 
     return SUCCESS;
 }

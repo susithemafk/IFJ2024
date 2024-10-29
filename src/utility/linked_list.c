@@ -125,7 +125,7 @@ void _addNodeToEnd(struct LinkedList *list, struct Node *node) {
 // Function to move the active element to some index
 bool _moveActiveElement(struct LinkedList *list, int index) {
 
-    // check for internal error
+    // convert the index to the positive index
     unsigned int newIndex = (index < 0) ? list->size + index : index;
 
     // check for out of bounds
