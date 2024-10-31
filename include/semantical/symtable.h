@@ -196,21 +196,15 @@ typedef struct SymTableNode {
  * @brief Struct for the symbol table
  * @param root - pointer to the root of the tree
  * @param innerScopesCount - amount of inner scopes in the tree
+ * @param data - linked list, where all the data is stored
 */
 typedef struct SymTable {
     SymTableNode *root;
     unsigned int varCount;
     unsigned int scopeCount;
     SymTableNode *currentScope;
+    LinkedList *data;
 } SymTable;
-
-/**
- * Function to create a copy of a variable
- * 
- * @param variable - pointer to the variable
- * @return pointer to the new variable
-*/
-SymVariable *copyVariable(SymVariable *variable);
 
 /**
  * Initializes the symbol table
@@ -281,7 +275,7 @@ bool symTableCanMutate(SymVariable *variable);
  * @param table - pointer to the symbol table
  * @return true, if the symbol table was successfully freed, false otherwise
 */
-bool symTableFree(SymTable *table);
+bool symTableFree(SymTable **table);
 
 /**
  * Function to free the symTableNode

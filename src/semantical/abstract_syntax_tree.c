@@ -194,10 +194,6 @@ bool ASTfreeNode(ASTNodePtr *nodePtr) {
             if (node->data->declare->value != NULL) {
                 result = ASTfreeNode(&node->data->declare->value);
             }
-            if (node->data->declare->variable != NULL) {
-                if (node->data->declare->variable->name != NULL) free(node->data->declare->variable->name);
-                free(node->data->declare->variable);
-            }
             free(node->data->declare);
             break;
         case AST_NODE_ASSIGN:
@@ -345,16 +341,16 @@ enum ERR_CODES ASTinitNodeValue(ASTNodePtr valueNode, TOKEN_PTR value) {
 }
 
 // Function to init the variable node
-enum ERR_CODES ASTinitNodeVariable(ASTNodePtr variableNode, struct SymVariable *declaration) {
+enum ERR_CODES ASTinitNodeVariable(ASTNodePtr variableNode, struct SymVariable *variable) {
 
     // internal error handeling
-    if (variableNode == NULL || declaration == NULL) return E_INTERNAL;
+    if (variableNode == NULL || variable == NULL) return E_INTERNAL;
 
     // check if the node is of the correct type
     if (variableNode->type != AST_NODE_VARIABLE) return E_INTERNAL;
 
     // save the variable ptr
-    variableNode->data->variable = declaration;
+    variableNode->data->variable = variable;
   
     return SUCCESS;
 }
@@ -458,10 +454,12 @@ enum ERR_CODES ASTfinishExpresion(ASTNodePtr expresionRoot) {
 // Function to prepare the expresion node
 
 // Function to edit a function node
-enum ERR_CODES ASTeditFunctionNode(ASTNodePtr functionNode, char *functionName, enum DATA_TYPES returnType, ASTNodePtr argument) {
+enum ERR_CODES ASTeditFunctionNode(ASTNodePtr functionNode, char *functionName, enum DATA_TYPES returnType, int nullable, ASTNodePtr argument) {
+
+    printf("hello\n");
 
     // check for internal errors
-    if (functionNode == NULL && functionName == NULL && returnType == dTypeUndefined && argument == NULL) return E_INTERNAL;
+    if (functionNode == NULL || (functionName == NULL && returnType == dTypeUndefined && argument == NULL && nullable == -1)) return E_INTERNAL;
 
     // check if the node is of the correct type
     if (functionNode->type != AST_NODE_FUNCTION) return E_INTERNAL;
@@ -478,6 +476,7 @@ enum ERR_CODES ASTeditFunctionNode(ASTNodePtr functionNode, char *functionName, 
         if (!insertNodeAtIndex(node->arguments, (void*)argument, -1)) return E_INTERNAL;
     }
 
+    // save func name
     if (functionName != NULL) {
         node->functionName = malloc(sizeof(char) * (strlen(functionName) + 1));
         if (node->functionName == NULL) return E_INTERNAL;
@@ -485,8 +484,14 @@ enum ERR_CODES ASTeditFunctionNode(ASTNodePtr functionNode, char *functionName, 
         strcpy(node->functionName, functionName);
     }
 
+    // save the return type
     if (returnType != dTypeUndefined) {
         node->returnType = returnType;
+    }
+
+    // save the nullable
+    if (nullable != -1) {
+        node->nullable = (nullable == 1) ? true : false;
     }
 
     return SUCCESS;
@@ -495,7 +500,7 @@ enum ERR_CODES ASTeditFunctionNode(ASTNodePtr functionNode, char *functionName, 
 // Function to edit the function call node
 enum ERR_CODES ASTeditFunctionCallNode(ASTNodePtr functionCallNode, char *functionName, ASTNodePtr argument) {
     //check call validity
-    if (functionCallNode == NULL && functionName == NULL && argument == NULL) return E_INTERNAL;
+    if (functionCallNode == NULL || (functionName == NULL && argument == NULL)) return E_INTERNAL;
     if (functionCallNode->type != AST_NODE_FUNC_CALL) return E_INTERNAL;
 
     if (functionName != NULL) {
@@ -537,7 +542,7 @@ enum ERR_CODES ASTeditDeclareNode(ASTNodePtr declareNode, struct SymVariable *va
 
     if (variable != NULL) {
         // copy the variable
-        declareNode->data->declare->variable = copyVariable(variable);
+        declareNode->data->declare->variable = variable;
         if (declareNode->data->declare->variable == NULL) return E_INTERNAL;
     }
 
@@ -558,20 +563,18 @@ enum ERR_CODES ASTeditDeclareNode(ASTNodePtr declareNode, struct SymVariable *va
 }
 
 // Function to edit the assing node
-enum ERR_CODES ASTeditAssignNode(ASTNodePtr assignNode, ASTNodePtr declarNode, ASTNodePtr value) {
+enum ERR_CODES ASTeditAssignNode(ASTNodePtr assignNode, struct SymVariable *variable, ASTNodePtr value) {
 
     // check for internal errors
     if (assignNode == NULL) return E_INTERNAL;
-    if (declarNode == NULL && value == NULL) return E_INTERNAL;
+    if (variable == NULL && value == NULL) return E_INTERNAL;
 
     // check if the node is of the correct type
     if (assignNode->type != AST_NODE_ASSIGN) return E_INTERNAL;
 
     // save the variable
-    if (declarNode != NULL) {
-        if (declarNode->type != AST_NODE_DECLARE) return E_INTERNAL;
-        SymVariable *variable = declarNode->data->declare->variable;
-        if (variable == NULL) return E_INTERNAL;
+    if (variable != NULL) {
+        // check for mutable error 
         if (variable->mutable == false) return E_SEMANTIC_REDIFINITION; // check for redefinition
         assignNode->data->assign->variable = variable;
     }
@@ -595,7 +598,7 @@ enum ERR_CODES ASTeditAssignNode(ASTNodePtr assignNode, ASTNodePtr declarNode, A
 enum ERR_CODES ASTeditTruthExpresion(ASTNodePtr truthExpresion, ASTNodePtr expresionPart) {
 
     // check for internal errors
-    if (truthExpresion == NULL && expresionPart == NULL) return E_INTERNAL;
+    if (truthExpresion == NULL || expresionPart == NULL) return E_INTERNAL;
 
     // check if the node is of correct type
     if (truthExpresion->type != AST_NODE_TRUTH_EXPRESION) return E_INTERNAL;

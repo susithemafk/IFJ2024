@@ -161,7 +161,6 @@ enum ERR_CODES _semanticCheckFuncCall(ASTNodePtr definition, fnCallwTypePtr call
     if (definition->data->function->returnType != retType) return E_SEMANTIC_BAD_FUNC_RETURN;
 
     // check for nullability of return type here as well, need to modify the enum 
-
     unsigned int defSize = getSize(definition->data->function->arguments);
 
     // check the argument cound
@@ -487,11 +486,20 @@ SymTable *symTableInit(void) {
     globalScope->variables = NULL; // link to variables, in global scope disabled
     globalScope->innerScope = NULL; // link to other scopes
 
+    // alocate the data thing
+    LinkedList *data = initLinkedList(false);
+    if (data == NULL) {
+        free(globalScope);
+        free(table);
+        return NULL;
+    }
+
     // fill the table
     table->root = globalScope;
     table->currentScope = globalScope;
     table->varCount = 0;
     table->scopeCount = 1;
+    table->data = data;
 
     return table;
 }
@@ -595,7 +603,7 @@ bool symTableExitScope(SymTable *table, enum ERR_CODES *returnCode) {
     if (
         table->currentScope->innerScope == NULL && 
         table->currentScope->type == SYM_GLOBAL) {
-        symTableFree(table);
+        symTableFree(&table);
         if (returnCode != NULL) {
             *returnCode = SUCCESS;
         }
@@ -646,12 +654,13 @@ SymVariable *symTableDeclareVariable(SymTable *table, char *name, enum DATA_TYPE
         return NULL;
     }
 
-    // Duplicate the name and check if strdup succeeded
-    newVariable->name = name;
+    // Allocate memory for the name and copy it
+    newVariable->name = (char *)malloc(strlen(name) + 1);
     if (newVariable->name == NULL) {
-        free(newVariable); // Cleanup if strdup fails
+        free(newVariable); // Cleanup if malloc fails
         return NULL;
     }
+    strcpy(newVariable->name, name);
 
     table->varCount++; // Increment the variable count
 
@@ -670,10 +679,21 @@ SymVariable *symTableDeclareVariable(SymTable *table, char *name, enum DATA_TYPE
     BST *variables = table->currentScope->variables;
     void *sameHashVariables = bstSearchForNode(variables, hash);
 
+    // save the data into the linked list dedicated for data
+    if (!insertNodeAtIndex(table->data, (void *)newVariable, -1)) {
+        free(newVariable->name);
+        free(newVariable); // Cleanup if insertion fails
+        return NULL;
+    }
+
     if (sameHashVariables == NULL) {
         // Create a new linked list for variables with the same hash
-        sameHashVariables = initLinkedList(true);
-        insertNodeAtIndex((LinkedList *)sameHashVariables, (void *)newVariable, -1);
+        sameHashVariables = initLinkedList(false);
+        if (!insertNodeAtIndex((LinkedList *)sameHashVariables, (void *)newVariable, -1)) {
+            free(newVariable->name);
+            free(newVariable); // Cleanup if insertion fails
+            return NULL;
+        }
         bstInsertNode(variables, hash, (void *)sameHashVariables);
         return newVariable;    
     } 
@@ -761,46 +781,31 @@ void _symTableFreeNode(SymTableNode *node) {
 }
 
 // Function to free the symbol table
-bool symTableFree(SymTable *table) {
+bool symTableFree(SymTable **table) {
+
+    SymTable *tTable = *table;
 
     if (table == NULL)
         return false;
 
     // free the inner scopes
-    if (table->root != NULL) 
-        _symTableFreeNode(table->root);
+    if (tTable->root != NULL) 
+        _symTableFreeNode(tTable->root);
+
+    // free the variables
+    for (unsigned int i = 0; i < getSize(tTable->data); i++) {
+        SymVariable *variable = (SymVariable *)getDataAtIndex(tTable->data, i);
+        if (variable == NULL) {
+            return false;
+        }
+        free(variable->name);
+        free(variable);
+    }
+
+    removeList(&tTable->data);
     
     // free the table
-    free(table);
+    free(tTable);
+    *table = NULL;
     return true;
 }
-
-// Function to copy a variable
-SymVariable *copyVariable(SymVariable *variable) {
-
-    // check if the variable is not NULL
-    if (variable == NULL) {
-        return NULL;
-    }
-
-    // allocate memory for the new variable
-    SymVariable *newVariable = (SymVariable *)malloc(sizeof(SymVariable));
-    if (newVariable == NULL) return NULL;
-
-    // copy the name
-    newVariable->name = strdup(variable->name);
-    if (newVariable->name == NULL) {
-        free(newVariable);
-        return NULL;
-    }
-
-    // copy the type
-    newVariable->type = variable->type;
-    newVariable->mutable = variable->mutable;
-    newVariable->accesed = variable->accesed;
-
-    return newVariable;
-
-}
-
-

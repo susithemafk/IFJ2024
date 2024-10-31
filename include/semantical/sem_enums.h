@@ -191,6 +191,7 @@ typedef struct ASTNodeFunctionCall {
 typedef struct ASTNodeFunction {
     char *functionName; // name of the function
     enum DATA_TYPES returnType; // return type of the function
+    bool nullable; // if the function can return null
     LinkedList *arguments; // list of arguments
 } *ASTNodeFunctionPtr;
 

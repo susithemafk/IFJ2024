@@ -145,11 +145,11 @@ ASTNodePtr _getOperationResultType(
     }
 
     // Ensure left and right nodes are valid types
-    if (left->type != AST_NODE_VALUE && left->type != AST_NODE_VARIABLE && left->type != AST_NODE_FUNC_CALL) {
+    if (left->type != AST_NODE_VALUE && left->type != AST_NODE_VARIABLE) {
         *result = E_INTERNAL;
         return NULL;
     }
-    if (right->type != AST_NODE_VALUE && right->type != AST_NODE_VARIABLE && right->type != AST_NODE_FUNC_CALL) {
+    if (right->type != AST_NODE_VALUE && right->type != AST_NODE_VARIABLE) {
         *result = E_INTERNAL;
         return NULL;
     }
@@ -157,17 +157,14 @@ ASTNodePtr _getOperationResultType(
     // Retrieve data types of left and right nodes
     enum DATA_TYPES leftType, rightType;
 
-    // For function calls, validate and retrieve their return type
-    if (left->type == AST_NODE_FUNC_CALL) {
-        *result = validateFunctionCall(functionDefinitions, left, &leftType);
-        if (*result != SUCCESS) return NULL;
+    if (left->type == AST_NODE_VALUE) {
+        leftType = left->data->value->type;
     } else {
         leftType = left->data->variable->type;
     }
 
-    if (right->type == AST_NODE_FUNC_CALL) {
-        *result = validateFunctionCall(functionDefinitions, right, &rightType);
-        if (*result != SUCCESS) return NULL;
+    if (right->type == AST_NODE_VALUE) {
+        rightType = right->data->value->type;
     } else {
         rightType = right->data->variable->type;
     }
@@ -285,11 +282,10 @@ enum ERR_CODES _checkExpresionType(ASTNodePtr expresion, BST *funcDefinitions, e
                 _freeStack(stack);
                 return E_INTERNAL;
             }
-
         }
 
         // if the node is a value, variable or function call, push it to the stack
-        if (node->type == AST_NODE_VALUE || node->type == AST_NODE_VARIABLE || node->type == AST_NODE_FUNC_CALL) {
+        if (node->type == AST_NODE_VALUE || node->type == AST_NODE_VARIABLE) {
             if (!insertNodeAtIndex(stack, (void *)node, 0)) {
                 _freeStack(stack);
                 return E_INTERNAL;
@@ -319,13 +315,6 @@ enum ERR_CODES _checkExpresionType(ASTNodePtr expresion, BST *funcDefinitions, e
         *result = resultNode->data->value->type;
     } else if (resultNode->type == AST_NODE_VARIABLE) {
         *result = resultNode->data->variable->type;
-    } else if (resultNode->type == AST_NODE_FUNC_CALL) {
-        enum ERR_CODES errCode = validateFunctionCall(funcDefinitions, resultNode, result);
-        if (errCode != SUCCESS) {
-            _freeStack(stack);
-            ASTfreeNode(&expresion);
-            return errCode;
-        }
     } else {
         _freeStack(stack);
         ASTfreeNode(&expresion);
@@ -354,10 +343,7 @@ enum ERR_CODES __validateValueType(ASTNodePtr value, struct SymVariable *variabl
             if (value->data->variable->type != variable->type) return E_SEMANTIC_INCOMPATABLE_TYPES;
             return SUCCESS;
 
-        case AST_NODE_FUNC_CALL: 
-            errCode = validateFunctionCall(funcDefinitions, value, &result);
-            if (errCode != SUCCESS) return errCode;
-            if (result != variable->type) return E_SEMANTIC_INCOMPATABLE_TYPES;
+        case AST_NODE_FUNC_CALL: // handled by the symtable
             return SUCCESS;
 
         case AST_NODE_EXPRESION: 

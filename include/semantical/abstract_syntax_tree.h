@@ -49,7 +49,7 @@ enum ERR_CODES ASTinitNodeValue(ASTNodePtr valueNode, TOKEN_PTR value);
  * @param declaration pointer to the declaration node in the symbol table
  * @return err code
 */
-enum ERR_CODES ASTinitNodeVariable(ASTNodePtr variableNode, struct SymVariable *declaration);
+enum ERR_CODES ASTinitNodeVariable(ASTNodePtr variableNode, struct SymVariable *variable);
 
 /**
  * Function to add to an expresion
@@ -99,7 +99,7 @@ enum ERR_CODES ASTeditDeclareNode(ASTNodePtr declareNode, struct SymVariable *va
  * @param value The value to assign
  * @return true if successful, false if an error occurred
 */
-enum ERR_CODES ASTeditAssignNode(ASTNodePtr assignNode, ASTNodePtr declarNode, ASTNodePtr value);
+enum ERR_CODES ASTeditAssignNode(ASTNodePtr assignNode, struct SymVariable *variable, ASTNodePtr value);
 
 /**
  * Function to edit the if node
@@ -130,7 +130,7 @@ enum ERR_CODES ASTeditFunctionCallNode(ASTNodePtr functionCallNode, char *functi
  * @return err codes
  * @note the arguments will be added one by one
 */
-enum ERR_CODES ASTeditFunctionNode(ASTNodePtr functionNode, char *functionName, enum DATA_TYPES returnType, ASTNodePtr argument);
+enum ERR_CODES ASTeditFunctionNode(ASTNodePtr functionNode, char *functionName, enum DATA_TYPES returnType, int nullable, ASTNodePtr argument);
 
 /**
  * Function to edit the while node
