@@ -157,7 +157,12 @@ ASTNodePtr ASTcreateNode(enum ASTNodeTypes type) {
             break;
 
         case AST_NODE_RETURN:
-            node->data->returnNode->returnType = dTypeUndefined;
+            node->data->returnNode = (ASTNodeReturnPtr)malloc(sizeof(struct ASTNodeReturn));
+            if (node->data->returnNode == NULL) {
+                free(node->data);
+                free(node);
+                return NULL;
+            }
             node->data->returnNode->expression = NULL;
             break;
         
@@ -456,8 +461,6 @@ enum ERR_CODES ASTfinishExpresion(ASTNodePtr expresionRoot) {
 // Function to edit a function node
 enum ERR_CODES ASTeditFunctionNode(ASTNodePtr functionNode, char *functionName, enum DATA_TYPES returnType, int nullable, ASTNodePtr argument) {
 
-    printf("hello\n");
-
     // check for internal errors
     if (functionNode == NULL || (functionName == NULL && returnType == dTypeUndefined && argument == NULL && nullable == -1)) return E_INTERNAL;
 
@@ -709,6 +712,31 @@ enum ERR_CODES ASTeditWhileNode(ASTNodePtr whileNode, ASTNodePtr condition) {
 
     // add to the expresion
     return ASTeditTruthExpresion(truthExpresion, condition);
+}
+
+// Function to edit the return node
+enum ERR_CODES ASTeditReturnNode(ASTNodePtr returnNode, ASTNodePtr expresionPart) {
+
+    // check for internal errors
+    if (returnNode == NULL || expresionPart == NULL) return E_INTERNAL;
+
+    // check if the node is of the correct type
+    if (returnNode->type != AST_NODE_RETURN) return E_INTERNAL;
+
+    if (returnNode->data->returnNode->expression == NULL) {
+        // create a new expresion
+        ASTNodePtr newExpresion = ASTcreateNode(AST_NODE_EXPRESION);
+        if (newExpresion == NULL) return E_INTERNAL;
+
+        // add the expresion to the return node
+        returnNode->data->returnNode->expression = newExpresion;
+    }
+
+    // add the expresion part to the return node
+    enum ERR_CODES err = ASTaddNodeToExpresion(returnNode->data->returnNode->expression, expresionPart);
+    if (err != SUCCESS) return err;
+
+    return SUCCESS;
 }
 
 

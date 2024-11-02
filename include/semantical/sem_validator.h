@@ -149,6 +149,15 @@ ASTNodePtr _getOperationResultType(ASTNodePtr left, ASTNodePtr right, ASTNodePtr
 
 
 /**
+ * Function to validate a return statement
+ * 
+ * @param returnNode - pointer to the return node
+ * @param funDefenition - pointer to the function definition
+ * @return enum ERR_CODES
+*/
+enum ERR_CODES _validateReturn(ASTNodePtr returnNode, ASTNodePtr funDefenition);
+
+/**
  * Function to free the stack, and its contects
  * 
  * @param stack - pointer to the stack

@@ -140,6 +140,14 @@ enum ERR_CODES ASTeditFunctionNode(ASTNodePtr functionNode, char *functionName, 
 */
 enum ERR_CODES ASTeditWhileNode(ASTNodePtr whileNode, ASTNodePtr condition);
 
+/**
+ * Function to edit the return node
+ * 
+ * @param returnNode The return node
+ * @param expresionPart The return expresion
+ * @return err codes
+*/
+enum ERR_CODES ASTeditReturnNode(ASTNodePtr returnNode, ASTNodePtr expresionPart);
 
 /**
  * Function to destroy a node
@@ -147,6 +155,7 @@ enum ERR_CODES ASTeditWhileNode(ASTNodePtr whileNode, ASTNodePtr condition);
  * @param node The node to destroy
 */
 bool ASTfreeNode(ASTNodePtr *nodePtr);
+
 
 
 #endif // ASTTRACT_SYNTAX_TREE_H

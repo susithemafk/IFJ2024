@@ -13,6 +13,7 @@ LEXICAL_DIR = $(SRC_DIR)/lexical
 SEMANTICAL_DIR = $(SRC_DIR)/semantical
 SYNTAXICAL_DIR = $(SRC_DIR)/syntaxical
 UTILITY_DIR = $(SRC_DIR)/utility
+AST_ASSETS_DIR = $(SRC_DIR)/ast_assets
 
 # Test directory
 TEST_DIR = tests
@@ -23,7 +24,8 @@ SRC_FILES = $(wildcard $(CODE_GEN_DIR)/*.c) \
             $(wildcard $(SEMANTICAL_DIR)/*.c) \
             $(wildcard $(SYNTAXICAL_DIR)/*.c) \
             $(wildcard $(UTILITY_DIR)/*.c) \
-            $(wildcard $(SRC_DIR)/*.c)
+            $(wildcard $(SRC_DIR)/*.c) \
+			$(wildcard $(AST_ASSETS_DIR)/*.c)
 
 # Linked list test source files
 LINKED_LIST_TEST_SRC = $(wildcard $(UTILITY_DIR)/*.c) $(TEST_DIR)/test_linked_list.c
@@ -32,13 +34,13 @@ LINKED_LIST_TEST_SRC = $(wildcard $(UTILITY_DIR)/*.c) $(TEST_DIR)/test_linked_li
 BST_TEST_SRC = $(wildcard $(UTILITY_DIR)/*.c) $(TEST_DIR)/test_binary_search_tree.c
 
 # Symbol table test source files
-SYMTABLE_TEST_SRC = $(wildcard $(UTILITY_DIR)/*.c) $(SEMANTICAL_DIR)/symtable.c $(SEMANTICAL_DIR)/abstract_syntax_tree.c $(TEST_DIR)/test_symtable.c
+SYMTABLE_TEST_SRC = $(wildcard $(UTILITY_DIR)/*.c) $(AST_ASSETS_DIR)/inbuild_funcs.c $(SEMANTICAL_DIR)/symtable.c $(SEMANTICAL_DIR)/abstract_syntax_tree.c $(TEST_DIR)/test_symtable.c
 
 # Lexical analyzer test source files
 LEX_TEST_SRC = $(wildcard $(LEXICAL_DIR)/*.c) $(wildcard $(UTILITY_DIR)/*.c) $(TEST_DIR)/test_lex.c
 
 # AST test source files
-AST_TEST_SRC = $(wildcard $(SEMANTICAL_DIR)/*.c) $(wildcard $(UTILITY_DIR)/*.c) $(TEST_DIR)/test_ast.c
+AST_TEST_SRC = $(wildcard $(SEMANTICAL_DIR)/*.c) $(wildcard $(UTILITY_DIR)/*.c) $(AST_ASSETS_DIR)/inbuild_funcs.c $(TEST_DIR)/test_ast.c
 
 # Targets
 all: main

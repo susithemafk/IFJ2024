@@ -468,7 +468,12 @@ enum ERR_CODES _validateWhile(ASTNodePtr ast, BST *funcDefinitions) {
     return _validateTruthExpresion(ast->data->whileLoop->condition, funcDefinitions);
 }
 
+// Function to validate the return node
+enum ERR_CODES _validateReturn(ASTNodePtr returnNode, ASTNodePtr funDefenition) {
 
+    if (returnNode == NULL || funDefenition == NULL) return E_INTERNAL;
 
+    // finish later
 
+}
 

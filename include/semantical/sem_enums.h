@@ -86,11 +86,9 @@ typedef struct ASTNode  {
 
 /**
  * @brief Struct for the AST Node return
- * @param returnType - the return type of the function
  * @param expression - the return expression
 */
 typedef struct ASTNodeReturn {
-    enum DATA_TYPES returnType; // the return type of the function
     struct ASTNode *expression; // the return expression
 } *ASTNodeReturnPtr;
 

@@ -116,7 +116,8 @@ void test_ast_init(void) {
         AST_NODE_WHILE,
         AST_NODE_VALUE,
         AST_NODE_VARIABLE,
-        AST_NODE_OPERAND
+        AST_NODE_OPERAND,
+        AST_NODE_RETURN,
     };
 
     const char* nodeTypeNames[] = {
@@ -130,7 +131,8 @@ void test_ast_init(void) {
         "AST_NODE_WHILE",         // while (a == 6) { ... }
         "AST_NODE_VALUE",         // 6, 3.14, 'a', "string"
         "AST_NODE_VARIABLE",      // a
-        "AST_NODE_OPERAND"        // +, -, *, /
+        "AST_NODE_OPERAND",        // +, -, *, /
+        "AST_NODE_RETURN"         // return a
     };
 
     // Iterate through all node types
@@ -1676,6 +1678,149 @@ void test_case_15(TestInstancePtr testInstance) {
     );
 }
 
+// test case for AST return node [return a+b]
+void test_case_16(TestInstancePtr TestInstance) {
+
+    // create the return node
+    ASTNodePtr returnNode = ASTcreateNode(AST_NODE_RETURN);
+
+    // create the variable node
+    variableNode = ASTcreateNode(AST_NODE_VARIABLE);
+    err = ASTinitNodeVariable(variableNode, &var1);
+
+    // add the variable node to the return node
+    err = ASTeditReturnNode(returnNode, variableNode);
+
+    // test 130 check if the return node was initialized successfully
+    testCase(
+        TestInstance,
+        err == SUCCESS,
+        "ASTeditReturnNode",
+        "Return node initialized successfully",
+        "Failed to initialize return node"
+    );
+
+    // test 131 addint the operand to the return node
+    ASTNodePtr operand = ASTcreateNode(AST_NODE_OPERAND);
+    err = ASTinitNodeOperand(operand, opr1);
+
+    err = ASTeditReturnNode(returnNode, operand);
+    testCase(
+        TestInstance,
+        err == SUCCESS,
+        "ASTeditReturnNode",
+        "Operand added to return node successfully",
+        "Failed to add operand to return node"
+    );
+
+    // test 132 add the variable b to the return node
+    variableNode = ASTcreateNode(AST_NODE_VARIABLE);
+    err = ASTinitNodeVariable(variableNode, &var2);
+
+    err = ASTeditReturnNode(returnNode, variableNode);
+    testCase(
+        TestInstance,
+        err == SUCCESS,
+        "ASTeditReturnNode",
+        "Variable added to return node successfully",
+        "Failed to add variable to return node"
+    );
+
+    // teset 133 check if the expresion was compiled correctly
+    err = ASTfinishExpresion(returnNode->data->returnNode->expression);
+
+    testCase(
+        TestInstance,
+        err == SUCCESS,
+        "ASTfinishExpresion",
+        "Expresion finished successfully",
+        "Failed to finish expresion"
+    );
+
+    // check each of the expresion nodes
+    LinkedList *expresionOut = returnNode->data->returnNode->expression->data->expresion->output;
+
+    // test 134 check the size of the output
+    testCase(
+        TestInstance,
+        getSize(expresionOut) == 3,
+        "Expresion output size check",
+        "Expresion output size is correct",
+        "Expresion output size is incorrect"
+    );
+
+    // test 135 check the first element
+    ASTNodePtr outputNode = (ASTNodePtr)getDataAtIndex(expresionOut, 0);
+
+    testCase(
+        TestInstance,
+        outputNode->type == AST_NODE_VARIABLE,
+        "Expresion output first element check",
+        "Expresion output first element is correct",
+        "Expresion output first element is incorrect"
+    );
+
+    // test 136 check the value of the first element
+    testCase(
+        TestInstance,
+        strcmp(outputNode->data->variable->name, "a") == 0,
+        "Expresion output first element value check",
+        "Expresion output first element value is correct",
+        "Expresion output first element value is incorrect"
+    );
+
+    // test 137 check the second element
+    outputNode = (ASTNodePtr)getDataAtIndex(expresionOut, 1);
+
+    testCase(
+        TestInstance,
+        outputNode->type == AST_NODE_VARIABLE,
+        "Expresion output second element check",
+        "Expresion output second element is correct",
+        "Expresion output second element is incorrect"
+    );
+
+    // test 138 check the value of the second element
+    testCase(
+        TestInstance,
+        strcmp(outputNode->data->variable->name, "b") == 0,
+        "Expresion output second element value check",
+        "Expresion output second element value is correct",
+        "Expresion output second element value is incorrect"
+    );
+
+    // test 139 check the third element
+    outputNode = (ASTNodePtr)getDataAtIndex(expresionOut, 2);
+
+    testCase(
+        TestInstance,
+        outputNode->type == AST_NODE_OPERAND,
+        "Expresion output third element check",
+        "Expresion output third element is correct",
+        "Expresion output third element is incorrect"
+    );
+
+    // test 140 check the value of the third element
+    testCase(
+        TestInstance,
+        outputNode->data->operand->type == opr1.type,
+        "Expresion output third element value check",
+        "Expresion output third element value is correct",
+        "Expresion output third element value is incorrect"
+    );
+
+    // test 141 free the return node
+    testCase(
+        TestInstance,
+        ASTfreeNode(&returnNode),
+        "ASTfreeNode",
+        "Return node freed",
+        "Failed to free return node"
+    );
+
+}
+
+// main function for testing
 int main(void) {
     test_ast_init(); // testing the init function for each AST node type
     TestInstancePtr testInstance = initTestInstance("Testing AST");
@@ -1694,6 +1839,7 @@ int main(void) {
     test_case_13(testInstance); // AST for truth expresion node [a>b]
     test_case_14(testInstance); // AST for if node [if (a > b) { ... }]
     test_case_15(testInstance); // AST for while node [while (a > b) { ... }]
+    test_case_16(testInstance); // test case for AST return node [return a+b]
     finishTestInstance(testInstance);
     return 0;
 }  // end of tests

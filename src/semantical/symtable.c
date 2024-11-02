@@ -14,437 +14,120 @@
 #include "semantical/sem_enums.h"
 #include "utility/binary_search_tree.h"
 #include "semantical/abstract_syntax_tree.h"
+#include "ast_assets/inbuild_funcs.h"
 
 // ####################### Function Call Validation #######################
 
 // Function to init the funtion call validator
-fnCallValidatorPtr initFunctionCallValidator(void) {
+fnDefinitionsPtr initFunctionDefinitions(void) {
 
-    // create the validator struct
-    fnCallValidatorPtr validator  = (fnCallValidatorPtr)malloc(sizeof(struct fnCallValidator));
+    // create the validator
+    fnDefinitionsPtr validator = (fnDefinitionsPtr)malloc(sizeof(struct fnDefinitions));
     if (validator == NULL) return NULL;
 
-    // create the BSTs for the validator
-    validator->funcDefinitions = bstInit((void (*)(void **))removeList);
-    validator->functionCalls = bstInit((void (*)(void **))removeList);
-
-    if (validator->funcDefinitions == NULL || validator->functionCalls == NULL) {
-        bstFree(&validator->funcDefinitions);
-        bstFree(&validator->functionCalls);
+    // init the BST
+    validator->funcDefinitions = bstInit((void (*)(void **))_freeFuncDefSameHahs);
+    if (validator->funcDefinitions == NULL) {
         free(validator);
         return NULL;
     }
 
+    // add the inbuild functions
+    fillInBuildInFuncions(validator);
+
     return validator;
 }
 
+// Function to add a function definition to the validator
+enum ERR_CODES addFunctionDefinition(fnDefinitionsPtr validator, ASTNodePtr func) {
 
-// Function to find the same hash funcitons in the validator
-LinkedList *_findSameHashFunction(BST *validator, unsigned int hash) {
-
-    // check if the call is valid
-    if (validator == NULL) return NULL;
-
-    // find the functions with the same hash
-
-    LinkedList *sameHashFuncs = (LinkedList *)bstSearchForNode(validator, hash);
-
-    return sameHashFuncs;
-}   
-
-// Function to find a function by name
-enum ERR_CODES _findFunction(BST *validator, char *name, ASTNodePtr *result) {
-
-    // check if call is valid
-    if (validator == NULL || name == NULL) return E_INTERNAL;
-
-    // get the hash of the name
-    unsigned int hash = hashString(name);
-
-    LinkedList *sameHashFuncs = (LinkedList *)bstSearchForNode(validator, hash);
-
-    if (sameHashFuncs == NULL) return E_INTERNAL;
-
-    // we have the hash, need to find the func
-    for (unsigned int i = 0; i < getSize(sameHashFuncs); i++) {
-        ASTNodePtr function  = (ASTNodePtr)getDataAtIndex(sameHashFuncs, i);
-        if (function == NULL || function->type != AST_NODE_FUNCTION) return E_INTERNAL;
-        if (strcmp(function->data->function->functionName, name) == 0) {
-            *result = function;
-            return SUCCESS;
-        } 
-    }
-
-    *result = NULL;
-    return SUCCESS;
-}
-
-// Function to validate any function calls, that can be validated based on the new function definition
-enum ERR_CODES _updateFuncCallsOnNewfuncDefinition(BST *functionCalls, ASTNodePtr newfuncDef) {
-
-    char *name = newfuncDef->data->function->functionName;
-    unsigned int hash = hashString(name);
-
-    LinkedList *sameHashFuncCalls = _findSameHashFunction(functionCalls, hash);
-
-    // function not called yet
-    if (sameHashFuncCalls == NULL) return SUCCESS;
-
-    for (unsigned int i = 0; i < getSize(sameHashFuncCalls); i++) {
-        fnCallwTypePtr funCall = (fnCallwTypePtr)getDataAtIndex(sameHashFuncCalls, i);
-        if (funCall == NULL) return E_INTERNAL;
-        if (funCall->call == NULL) return E_INTERNAL;
-
-        if (strcmp(funCall->call->data->functionCall->functionName, name) == 0) {
-            enum ERR_CODES result = _semanticCheckFuncCall(newfuncDef, funCall);
-            if (result != SUCCESS) return result;
-
-            // remove the function call from the list, and return SUCCESS
-            if (!removeNodeAtIndex(sameHashFuncCalls, i)) return E_INTERNAL;
-            return SUCCESS;
-        }
-    }
-    return SUCCESS;
-}
-
-// Function to add a new function definition to the validator
-enum ERR_CODES addFunctionDefinition(fnCallValidatorPtr fnValidator, ASTNodePtr func) {
-    
-    BST *validator = fnValidator->funcDefinitions;
-
-    // check if the call is valid
+    // internal error handeling
     if (validator == NULL || func == NULL) return E_INTERNAL;
-
-    // check for right type of function AST
     if (func->type != AST_NODE_FUNCTION) return E_INTERNAL;
 
-    // get the function name
-    char *name = func->data->function->functionName;
-    unsigned int hash = hashString(name);
+    unsigned int hash = hashString(func->data->function->functionName);
 
-    // find the funcitons with the same hash
-    LinkedList *sameHashFuncs = _findSameHashFunction(validator, hash);
+    // check for redefinition
+    LinkedList *sameHashFunctions = bstSearchForNode(validator->funcDefinitions, hash);
 
-    // we do not have this hash yet, need to init
-    if (sameHashFuncs == NULL) {
-        sameHashFuncs = initLinkedList(false);
-        if (sameHashFuncs == NULL) return E_INTERNAL;
-        if (!insertNodeAtIndex(sameHashFuncs, (void *)func, 0)) return E_INTERNAL;
-        if (!bstInsertNode(validator, hash, (void *)sameHashFuncs)) return E_INTERNAL;
-        // we are checking, if we have some unvalidated function calls
-        return _updateFuncCallsOnNewfuncDefinition(fnValidator->functionCalls, func); 
-    }
-
-    // we have the hash, need to find, if we are not redifining the function
-    for (unsigned int i = 0; i < getSize(sameHashFuncs); i++) {
-        ASTNodePtr function = (ASTNodePtr)getDataAtIndex(sameHashFuncs, i);
-        if (function == NULL || function->type != AST_NODE_FUNCTION) return E_INTERNAL;
-        if (strcmp(function->data->function->functionName, name) == 0) return E_SEMANTIC_REDIFINITION;
-    }
-
-    // insert the function into the list
-    if (!insertNodeAtIndex(sameHashFuncs, (void *)func, -1)) return E_INTERNAL;
-
-    // we are checking, if we have some unvalidated function calls
-    return _updateFuncCallsOnNewfuncDefinition(fnValidator->functionCalls, func); 
-}
-
-// Functio to validate one func call based on a definition
-enum ERR_CODES _semanticCheckFuncCall(ASTNodePtr definition, fnCallwTypePtr call) {
-
-    enum DATA_TYPES retType = call->returnType;
-    ASTNodePtr funCall = call->call;
-
-    if (definition == NULL || funCall == NULL) return E_INTERNAL;
-
-    // check the return type of the functions
-    if (definition->data->function->returnType != retType) return E_SEMANTIC_BAD_FUNC_RETURN;
-
-    // check for nullability of return type here as well, need to modify the enum 
-    unsigned int defSize = getSize(definition->data->function->arguments);
-
-    // check the argument cound
-    if (defSize != getSize(funCall->data->functionCall->arguments)) return E_SEMANTIC_INVALID_FUN_PARAM;
-
-    // check the argument types
-    for (unsigned int i = 0; i < defSize; i++) {
-        ASTNodePtr defArg = (ASTNodePtr)getDataAtIndex(definition->data->function->arguments, i);
-        ASTNodePtr callArg = (ASTNodePtr)getDataAtIndex(funCall->data->functionCall->arguments, i);
-
-        enum DATA_TYPES defArgType = defArg->data->variable->type;
-
-        // function call can have value or variable as an argument
-        switch(callArg->type) {
-            case AST_NODE_VALUE:
-                if (callArg->data->value->type != defArgType) return E_SEMANTIC_INVALID_FUN_PARAM;
-                break;
-            case AST_NODE_VARIABLE:
-                if (callArg->data->variable->type != defArgType) return E_SEMANTIC_INVALID_FUN_PARAM;
-                break;
-            default:
-                return E_INTERNAL;
+    // save the new function
+    if (sameHashFunctions == NULL) {
+        sameHashFunctions = initLinkedList(false);
+        if (sameHashFunctions == NULL) return E_INTERNAL;
+        if (!insertNodeAtIndex(sameHashFunctions, (void *)func, -1)) return E_INTERNAL;
+        if (!bstInsertNode(validator->funcDefinitions, hash, (void *)sameHashFunctions)) {
+            removeList(&sameHashFunctions);
+            return E_INTERNAL;
         }
-
-    }
-
-    return SUCCESS;
-}
-
-// Function to validate a function call
-enum ERR_CODES _handleNewFuncCall(fnCallValidatorPtr functionDefinitions, fnCallwTypePtr funcCall, bool expectDefined) {
-
-    ASTNodePtr fnCall = funcCall->call;
-    unsigned int hash = hashString(fnCall->data->functionCall->functionName);
-
-    // get the same hash definned functions
-    LinkedList *samehashDefined = _findSameHashFunction(functionDefinitions->funcDefinitions, hash);
-
-    // in case we are expecting the function to be defined, and the saem hash is empty, we have an error
-    if (samehashDefined == NULL && expectDefined) return E_SEMANTIC_UND_FUNC_OR_VAR;
-
-    // if the function definitions is missing, save it for later validation
-    if (samehashDefined == NULL) {
-        samehashDefined = _findSameHashFunction(functionDefinitions->functionCalls, hash);
-        // we have never seen the function hash before, init and save for later validation
-        if (samehashDefined == NULL) {
-            samehashDefined = initLinkedList(false);
-            if (samehashDefined == NULL) return E_INTERNAL;
-            if (!insertNodeAtIndex(samehashDefined, (void *)funcCall, 0)) return E_INTERNAL;
-            if (!bstInsertNode(functionDefinitions->functionCalls, hash, (void *)samehashDefined)) return E_INTERNAL;
-            return SUCCESS;
-        }
-        // we have seen the function hash before, save the function call for later validation
-        if (!insertNodeAtIndex(samehashDefined, (void *)funcCall, -1)) return E_INTERNAL;
         return SUCCESS;
     }
 
-    // we have the function definitions with the same hash
-    // try to find the function definition and validate the function call
-    for (unsigned int i = 0; i < getSize(samehashDefined); i++) {
-        ASTNodePtr definedFunc = (ASTNodePtr)getDataAtIndex(samehashDefined, i);
-        if (definedFunc == NULL || definedFunc->type != AST_NODE_FUNCTION) return E_INTERNAL;
-
-        // found the definition, validate the function call
-        if (strcmp(definedFunc->data->function->functionName, fnCall->data->functionCall->functionName) == 0) {
-            return _semanticCheckFuncCall(definedFunc, funcCall);
+    // check for redefinition
+    for (unsigned int i = 0; i < getSize(sameHashFunctions); i++) {
+        ASTNodePtr function = (ASTNodePtr)getDataAtIndex(sameHashFunctions, i);
+        if (function == NULL) return E_INTERNAL;
+        if (strcmp(function->data->function->functionName, func->data->function->functionName) == 0) {
+            return E_SEMANTIC_REDIFINITION;
         }
     }
 
-    // here we have not seen the fun definition yet, and we should have -> error
-    if (expectDefined) return E_SEMANTIC_UND_FUNC_OR_VAR;
-
-    // save the function for later validation
-    samehashDefined = _findSameHashFunction(functionDefinitions->functionCalls, hash);
-    if (samehashDefined == NULL) {
-        samehashDefined = initLinkedList(false);
-        if (samehashDefined == NULL) return E_INTERNAL;
-        if (!insertNodeAtIndex(samehashDefined, (void *)funcCall, 0)) return E_INTERNAL;
-        if (!bstInsertNode(functionDefinitions->functionCalls, hash, (void *)samehashDefined)) return E_INTERNAL;
-        return SUCCESS;
-    }
-
-    // save the function for later validation
-    if (!insertNodeAtIndex(samehashDefined, (void *)funcCall, -1)) return E_INTERNAL;
-    return SUCCESS;
-}
-
-// Function to compare two function calls
-enum ERR_CODES _compareTwoFuncCalls(fnCallwTypePtr func1, fnCallwTypePtr func2) {
-
-    // compare return types
-    if (func1->returnType != func2->returnType) return E_SEMANTIC_BAD_FUNC_RETURN;
-    
-    // compare amount of arguments
-    unsigned int func1size = getSize(func1->call->data->functionCall->arguments);
-    if (func1size != getSize(func2->call->data->functionCall->arguments)) return E_SEMANTIC_INVALID_FUN_PARAM;
-
-    // compare the argument types
-    enum DATA_TYPES arg1Type, arg2Type;
-    for (unsigned int i = 0; i < func1size; i++) {
-        ASTNodePtr arg1 = (ASTNodePtr)getDataAtIndex(func1->call->data->functionCall->arguments, i);
-        ASTNodePtr arg2 = (ASTNodePtr)getDataAtIndex(func2->call->data->functionCall->arguments, i);
-
-
-        // get type 1
-        if (arg1->type == AST_NODE_VALUE) {
-            arg1Type = arg1->data->value->type;
-        } else if(arg1->type == AST_NODE_VARIABLE) {
-            arg1Type = arg1->data->variable->type;
-        } else {
-            return E_INTERNAL;
-        }
-
-        // get type 2
-        if (arg2->type == AST_NODE_VALUE) {
-            arg2Type = arg2->data->value->type;
-        } else if(arg2->type == AST_NODE_VARIABLE) {
-            arg2Type = arg2->data->variable->type;
-        } else {
-            return E_INTERNAL;
-        }
-
-        if (arg1Type != arg2Type) return E_SEMANTIC_INVALID_FUN_PARAM;
-    }
+    // save the new function
+    if (!insertNodeAtIndex(sameHashFunctions, (void *)func, -1)) return E_INTERNAL;
 
     return SUCCESS;
 }
 
-// Function to figure out, if we dont have conflicting function calls
-enum ERR_CODES _checkOtherSameFuncCalls(BST *functionCalls, fnCallwTypePtr newFuncCall) {
+// Function to find a function definition based on a function name
+ASTNodePtr findFunctionDefinition(fnDefinitionsPtr validator, char *functionName) {
 
-    unsigned int hash = hashString(newFuncCall->call->data->functionCall->functionName);
+    // internal error handeling
+    if (validator == NULL || functionName == NULL) return NULL;
 
-    LinkedList *sameHashFuncCalls = _findSameHashFunction(functionCalls, hash);
+    unsigned int hash = hashString(functionName);
 
-    // we have not seen the hash before, so need to add it for later validation, and return SUCCESS
-    if (sameHashFuncCalls == NULL) return E_NONE;
+    // search for the function
+    LinkedList *sameHashFunctions = bstSearchForNode(validator->funcDefinitions, hash);
+    if (sameHashFunctions == NULL) return NULL;
 
-    // go throught the function definitions, and check, if the functinon calls match
-    for (unsigned int i = 0; i < getSize(sameHashFuncCalls); i++) {
-        fnCallwTypePtr funCall = (fnCallwTypePtr)getDataAtIndex(sameHashFuncCalls, i);
-        if (funCall == NULL) return E_INTERNAL;
-        if (funCall->call == NULL) return E_INTERNAL;
-
-        if (strcmp(funCall->call->data->functionCall->functionName, newFuncCall->call->data->functionCall->functionName) == 0) {
-            return _compareTwoFuncCalls(funCall, newFuncCall);
+    // search for the function in the list
+    for (unsigned int i = 0; i < getSize(sameHashFunctions); i++) {
+        ASTNodePtr function = (ASTNodePtr)getDataAtIndex(sameHashFunctions, i);
+        if (function == NULL) return NULL;
+        if (strcmp(function->data->function->functionName, functionName) == 0) {
+            return function;
         }
     }
 
-    return E_NONE;
+    return NULL;
 }
 
+// helper functio to free a BST node
+void _freeFuncDefSameHahs(LinkedList **list) {
+    if (list == NULL || *list == NULL) return;
 
-// Function to add a functionc all and save it
-enum ERR_CODES addFunctionCall(fnCallValidatorPtr fnValidator, ASTNodePtr call, enum DATA_TYPES expectedReturnType) {
-    
-    BST *fnCalls = fnValidator->functionCalls;
-
-    if (fnCalls == NULL || call == NULL) return E_INTERNAL;
-
-    // check for the right type of the call AST
-    if (call->type != AST_NODE_FUNC_CALL) return E_INTERNAL;
-
-    fnCallwTypePtr callwType = (fnCallwTypePtr)malloc(sizeof(struct fnCallwType));
-    if (callwType == NULL) return E_INTERNAL;
-
-    callwType->call = call;
-    callwType->returnType = expectedReturnType;
-
-    enum ERR_CODES result = _checkOtherSameFuncCalls(fnCalls, callwType);
-
-    // we found comflicting function calls
-    if (result != SUCCESS && result != E_NONE) {
-        free(callwType);
-        return result;
+    for (unsigned int i = 0; i < getSize(*list); i++) {
+        ASTNodePtr function = (ASTNodePtr)getDataAtIndex(*list, i);
+        if (function == NULL) continue;
+        ASTfreeNode(&function);
     }
 
-    // we have the function call in allready, with the same argument tyeps, and expected return type, no need to save it
-    if (result == SUCCESS) {
-        free(callwType);
-        return SUCCESS;
-    }
-
-    // in here, we do no have such a function call, try to validate it, or save it for later validation
-    result = _handleNewFuncCall(fnValidator, callwType, false);
-
-    if (result != SUCCESS) {
-        ASTfreeNode(&call);
-        free(callwType);
-        return result;
-    }
-
-    return SUCCESS;
+    removeList(list);
 }
 
+// Function to free the function definitions
+bool freeFunctionDefinitions(fnDefinitionsPtr *validator) {
 
-// Function to validate a function call
-enum ERR_CODES validateAllFunctrionCalls(fnCallValidatorPtr fnValidator) {
-
-    if (fnValidator == NULL) return E_INTERNAL;
-
-    BST *fnCalls = fnValidator->functionCalls;
-
-    LinkedList *treeData = bstGetNodes(fnCalls);
-    if (treeData == NULL) return E_INTERNAL;
-
-    // go through each of the hash sets of the function calls
-    for (unsigned int i = 0; i < getSize(treeData); i++) {
-        LinkedList *sameHashFuncCalls = (LinkedList *)getDataAtIndex(treeData, i);
-        if (sameHashFuncCalls == NULL) {
-            removeList(&treeData);
-            return E_INTERNAL;
-        }
-        // validate each of the function calls
-        for (unsigned int j = 0; j < getSize(sameHashFuncCalls); j++) {
-            fnCallwTypePtr funCall = (fnCallwTypePtr)getDataAtIndex(sameHashFuncCalls, j);
-            if (funCall == NULL) {
-                removeList(&treeData);
-                return E_INTERNAL;
-            }
-
-            enum ERR_CODES result = _handleNewFuncCall(fnValidator, funCall, true);
-            if (result != SUCCESS) {
-                removeList(&treeData);
-                return result;
-            }
-        }
-    }
-    removeList(&treeData);
-    return SUCCESS;
-}
-
-// Helper function to free the function call validator
-bool _removeFnCallValidator(BST *fnCalls, bool doFuncCalls) {
-
-    if (fnCalls == NULL) return false;
-
-    LinkedList *treeData = bstGetNodes(fnCalls);
-    if (treeData == NULL) return false;
-
-    for (unsigned int i = 0; i < getSize(treeData); i++) {
-        LinkedList *sameHashFuncCalls = (LinkedList *)getDataAtIndex(treeData, i);
-        if (sameHashFuncCalls == NULL) {
-            removeList(&treeData);
-            return false;
-        }
-
-        for (unsigned int j = 0; j < getSize(sameHashFuncCalls); j++) {
-            if (doFuncCalls) {
-                fnCallwTypePtr funCall = (fnCallwTypePtr)getDataAtIndex(sameHashFuncCalls, j);
-                if (funCall == NULL) {
-                    removeList(&treeData);
-                    return false;
-                }
-                ASTfreeNode(&funCall->call);
-                free(funCall);
-            } else {
-                ASTNodePtr function = (ASTNodePtr)getDataAtIndex(sameHashFuncCalls, j);
-                if (function == NULL) {
-                    removeList(&treeData);
-                    return false;
-                }
-                ASTfreeNode(&function);
-            }
-        }
-    }
-    removeList(&treeData);
-    bstFree(&fnCalls);
-    return true;
-}
-
-// Function to free the function call validator
-bool freeFunctionCallValidator(fnCallValidatorPtr *validator) {
-
+    // internal error handeling
     if (validator == NULL || *validator == NULL) return false;
 
-    fnCallValidatorPtr fnValidator = *validator;
+    // free the BST
+    bool result = bstFree(&(*validator)->funcDefinitions);
 
-    if (!_removeFnCallValidator(fnValidator->funcDefinitions, false)) return false;
-    if (!_removeFnCallValidator(fnValidator->functionCalls, true)) return false;
-
-    free(fnValidator);
+    // free the validator
+    free(*validator);
     *validator = NULL;
-    return true;
+
+    return result;
 }
 
 // ####################### SYMTABLE #######################
@@ -636,7 +319,7 @@ bool symTableExitScope(SymTable *table, enum ERR_CODES *returnCode) {
 }
 
 // Function to insert a new
-SymVariable *symTableDeclareVariable(SymTable *table, char *name, enum DATA_TYPES type, bool mutable, bool nullable, ASTNodePtr declaration) {
+SymVariable *symTableDeclareVariable(SymTable *table, char *name, enum DATA_TYPES type, bool mutable, bool nullable) {
     // Check if the table or current scope is invalid (if global scope declaration is disallowed)
     if (table == NULL || table->currentScope->type == SYM_GLOBAL) {
         return NULL;
@@ -669,7 +352,6 @@ SymVariable *symTableDeclareVariable(SymTable *table, char *name, enum DATA_TYPE
     newVariable->mutable = mutable;
     newVariable->nullable = nullable;
     newVariable->accesed = false;
-    newVariable->declaration = declaration;
     newVariable->id = table->varCount;
 
     // Get the hash of the variable's name
