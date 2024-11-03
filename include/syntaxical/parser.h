@@ -11,6 +11,7 @@
 enum ERR_CODES parser_init();
 enum ERR_CODES parser_parse();
 void getNextToken();
+void getPreviousToken();
 
 /**
  * parser functions
@@ -71,6 +72,9 @@ bool parse_argument_list();
 
 // <block> -> { <statement>* }
 bool parse_block();
+
+// <return_statement> -> return <expression>? ;
+bool parse_return_statement();
 
 // <end_with_semicolon> -> ;
 bool parse_end_with_semicolon();

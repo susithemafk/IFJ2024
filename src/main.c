@@ -36,12 +36,12 @@ int main(void)
 
 	if (status == SUCCESS)
 	{
-		printf("Syntaxe je spravna!\n");
+		printf("\nSyntaxe je spravna!\n");
 		// AST is ready to work with now
 	}
 	else
 	{
-		printf("Chyba v syntaxi!\n");
+		printf("\nChyba v syntaxi!\n");
 	}
 
 	return 0;

@@ -23,6 +23,28 @@ enum ERR_CODES scanner_unget_token(struct TOKEN token)
 	return SUCCESS;
 }
 
+enum ERR_CODES scanner_peek_token(struct TOKEN *tokenPointer)
+{
+	if (nextToken.type != TOKEN_NONE)
+	{
+		*tokenPointer = nextToken;
+		return SUCCESS;
+	}
+
+	struct TOKEN tempToken;
+	enum ERR_CODES result = scanner_get_token(&tempToken);
+
+	if (result != SUCCESS)
+	{
+		return result;
+	}
+
+	nextToken = tempToken;
+	*tokenPointer = tempToken;
+
+	return SUCCESS;
+}
+
 enum ERR_CODES scanner_token_free(TOKEN_PTR tokenPointer)
 {
 	free(tokenPointer->value);
@@ -54,16 +76,21 @@ enum ERR_CODES scanner_end(char input, int *nextCharacter, struct TOKEN *tokenPo
 enum ERR_CODES scanner_get_token(struct TOKEN *tokenPointer)
 {
 	SCANNER_STATUS state = SCANNER_START;
-	unsigned string_index;
-	unsigned allocated_length = 0;
+	unsigned string_index = 0;
+	unsigned allocated_length = ALLOC_SIZE;
 	int input = 0;
 	bool assign_value = true;
 
-	// pokud je token uložený, vracim ho
+	tokenPointer->value = (char *)malloc(allocated_length);
+	if (tokenPointer->value == NULL)
+	{
+		return E_INTERNAL; // memory allocation failed
+	}
+
 	if (nextToken.type != TOKEN_NONE)
 	{
-		nextToken.type = TOKEN_NONE;
 		*tokenPointer = nextToken;
+		nextToken.type = TOKEN_NONE;
 		return SUCCESS;
 	}
 

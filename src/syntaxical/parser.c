@@ -12,6 +12,7 @@
 
 static enum ERR_CODES status;
 static struct TOKEN currentToken;
+static struct TOKEN lookaheadToken;
 
 /**
  * Intro functions
@@ -21,12 +22,20 @@ enum ERR_CODES parser_init()
 	currentToken.type = TOKEN_NONE;
 	currentToken.value = NULL;
 
+	lookaheadToken.type = TOKEN_NONE;
+	lookaheadToken.value = NULL;
+
 	return SUCCESS;
 }
 
 void getNextToken()
 {
 	status = scanner_get_token(&currentToken);
+}
+
+void getLookaheadToken()
+{
+	status = scanner_peek_token(&lookaheadToken);
 }
 
 enum ERR_CODES parser_parse()
@@ -71,8 +80,11 @@ bool parse_variable_definition()
 		return false;
 	if (!parse_optional_data_type())
 		return false;
-	if (!parse_assignment())
+
+	if (currentToken.type != TOKEN_ASSIGN)
 		return false;
+	getNextToken();
+
 	if (!parse_expression())
 		return false;
 	if (!parse_end_with_semicolon())
@@ -137,13 +149,28 @@ bool parse_data_type()
 // <assignment> -> <identifier> = <expression>
 bool parse_assignment()
 {
-	if (currentToken.type == TOKEN_ASSIGN)
+	if (currentToken.type == TOKEN_IDENTIFIER)
 	{
-		printf("Parsed assignment: \t%s\n", currentToken.value);
+		printf("Parsed identifier: \t%s\n", currentToken.value);
 		getNextToken();
-		return true;
+
+		if (currentToken.type == TOKEN_ASSIGN)
+		{
+			printf("Parsed assignment: \t%s\n", currentToken.value);
+			getNextToken();
+
+			if (parse_expression())
+			{
+				printf("CUrrentToken: %s\n", currentToken.value);
+				parse_end_with_semicolon();
+				getNextToken();
+				return true;
+			}
+		}
 	}
-	puts("Expected '=' for assignment");
+
+	printf("Expected assignment operator: '=', got %s\n", currentToken.value);
+
 	return false;
 }
 
@@ -181,9 +208,12 @@ bool parse_function_definition()
 						return false;
 					if (currentToken.type == TOKEN_RPAR)
 					{
+						printf("Parsed right parenthesis: \t%s\n", currentToken.value);
 						getNextToken();
 						if (parse_return_type() && parse_block())
 						{
+							printf("CUrrentToken: %s\n", currentToken.value);
+							puts("Added function definition to AST\n");
 							return true;
 						}
 					}
@@ -191,6 +221,7 @@ bool parse_function_definition()
 			}
 		}
 	}
+
 	puts("Expected function definition");
 	return false;
 }
@@ -244,6 +275,7 @@ bool parse_if_statement()
 {
 	if (currentToken.type == TOKEN_IF)
 	{
+		printf("Parsed if statement: \t%s\n", currentToken.value);
 		getNextToken();
 		if (currentToken.type == TOKEN_LPAR)
 		{
@@ -255,6 +287,8 @@ bool parse_if_statement()
 					getNextToken();
 					if (parse_block())
 					{
+						getNextToken();
+
 						if (currentToken.type == TOKEN_ELSE)
 						{
 							getNextToken();
@@ -339,13 +373,65 @@ bool parse_argument_list()
 // <block> -> { <statement>* }
 bool parse_block()
 {
+	if (currentToken.type != TOKEN_LBRACE)
+	{
+		puts("Expected '{' at the start of block");
+		return false;
+	}
+	printf("Parsed block: \t\t%s\n", currentToken.value);
+	getNextToken();
+
+	while (currentToken.type != TOKEN_RBRACE)
+	{
+		if (!parser_decide())
+		{
+			puts("Error in statement inside block");
+			return false;
+		}
+	}
+
+	printf("Finished block: \t\t%s\n", currentToken.value);
+	// getNextToken();
 	return true;
+}
+
+// <return_statement> -> return <expression>? ;
+bool parse_return_statement()
+{
+	if (currentToken.type == TOKEN_RETURN)
+	{
+		printf("Parsed 'return': \t%s\n", currentToken.value);
+		getNextToken();
+
+		// Zkontroluj, jestli je následující token výraz, nebo jde rovnou o středník
+		if (currentToken.type != TOKEN_SEMICOLON)
+		{
+			if (!parse_expression())
+			{
+				puts("Error: Invalid return expression");
+				return false;
+			}
+		}
+
+		// Ověřte, že příkaz končí středníkem
+		if (currentToken.type == TOKEN_SEMICOLON)
+		{
+			printf("Parsed ';': \t\t%s\n", currentToken.value);
+			getNextToken();
+			return true;
+		}
+		else
+		{
+			puts("Expected ';' after return statement");
+			return false;
+		}
+	}
+	return false;
 }
 
 // <end_with_semicolon> -> ;
 bool parse_end_with_semicolon()
 {
-
 	if (currentToken.type != TOKEN_SEMICOLON)
 	{
 		puts("Expected semicolon");
@@ -357,6 +443,7 @@ bool parse_end_with_semicolon()
 // parser decide where to go
 bool parser_decide()
 {
+	printf("Deciding on token: \t%s\n", currentToken.value);
 	switch (currentToken.type)
 	{
 	case TOKEN_VAR:
@@ -365,7 +452,8 @@ bool parser_decide()
 	case TOKEN_PUB:
 		return parse_function_definition();
 	case TOKEN_IDENTIFIER:
-		if (true) // todo lookaheadtoken = TOKEN_ASSIGN
+		getLookaheadToken();
+		if (lookaheadToken.type == TOKEN_ASSIGN)
 			return parse_assignment();
 		else
 			return parse_function_call();
@@ -373,6 +461,8 @@ bool parser_decide()
 		return parse_if_statement();
 	case TOKEN_WHILE:
 		return parse_while_statement();
+	case TOKEN_RETURN:
+		return parse_return_statement();
 	default:
 		printf("Syntax error: unexpected token %s\n", currentToken.value);
 		return false;

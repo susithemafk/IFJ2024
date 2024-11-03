@@ -73,6 +73,7 @@ typedef enum
 enum ERR_CODES scanner_init(FILE *input);
 enum ERR_CODES scanner_get_token(struct TOKEN *tokenPointer);
 enum ERR_CODES scanner_unget_token(struct TOKEN token);
+enum ERR_CODES scanner_peek_token(struct TOKEN *tokenPointer);
 enum ERR_CODES scanner_token_free(TOKEN_PTR tokenPointer);
 enum ERR_CODES scanner_destroy(void);
 
