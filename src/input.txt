@@ -1,5 +1,5 @@
-var x: i32 = 10;
-const y: f64 = 20.5;
-pub fn add(a: i32, b: i32): i32 { return a; }
-while (true) { x = 5; }
-if (true) { x = 5; } else { x = 6; }
+// var x: i32 = 10;
+// const y: f64 = 20.5;
+// pub fn add(a: i32, b: i32): i32 { return a; }
+// while (true) { x = 5; }
+if (a == 5) { x = 5 - 6; } else { x = 6; }

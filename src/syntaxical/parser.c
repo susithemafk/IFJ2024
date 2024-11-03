@@ -174,18 +174,77 @@ bool parse_assignment()
 	return false;
 }
 
-// <expression> -> <term> | <term> <operator> <term>
+// <expression> -> <term> | <term> <operator> <term> | <term> <comparison_operator> <term>
 bool parse_expression()
 {
-	printf("Parsed expression: \t%s\n", currentToken.value);
-	getNextToken();
+	if (!parse_term())
+		return false;
+
+	while (currentToken.type == TOKEN_PLUS || currentToken.type == TOKEN_MINUS || currentToken.type == TOKEN_MULTIPLY || currentToken.type == TOKEN_DIVIDE || currentToken.type == TOKEN_EQUALS)
+	{
+		if (currentToken.type == TOKEN_EQUALS)
+		{
+			if (!parse_comparison_operator())
+				return false;
+		}
+		else
+		{
+			if (!parse_operator())
+				return false;
+		}
+
+		if (!parse_term())
+			return false;
+	}
+
+	printf("Parsed expression\n");
 	return true;
 }
 
 // <term> -> IDENTIFIER | NUMBER | STRING | <function_call>
 bool parse_term()
 {
-	return true;
+	if (currentToken.type == TOKEN_IDENTIFIER || currentToken.type == TOKEN_I32 || currentToken.type == TOKEN_F64 || currentToken.type == TOKEN_STRING)
+	{
+		printf("Parsed term: \t%s\n", currentToken.value);
+		getNextToken();
+		return true;
+	}
+	else if (currentToken.type == TOKEN_IDENTIFIER)
+	{
+		return parse_function_call();
+	}
+
+	puts("Expected term (identifier, number, string, or function call)");
+	return false;
+}
+
+// <operator> -> + | - | * | /
+bool parse_operator()
+{
+	if (currentToken.type == TOKEN_PLUS || currentToken.type == TOKEN_MINUS || currentToken.type == TOKEN_MULTIPLY || currentToken.type == TOKEN_DIVIDE)
+	{
+		printf("Parsed operator: \t%s\n", currentToken.value);
+		getNextToken();
+		return true;
+	}
+
+	puts("Expected operator (+, -, *, /)");
+	return false;
+}
+
+// <comparison_operator> -> == | != | < | > | <= | >=
+bool parse_comparison_operator()
+{
+	if (currentToken.type == TOKEN_EQUALS || currentToken.type == TOKEN_NOTEQUAL || currentToken.type == TOKEN_LESSTHAN || currentToken.type == TOKEN_GREATERTHAN || currentToken.type == TOKEN_LESSOREQUAL || currentToken.type == TOKEN_GREATEROREQUAL)
+	{
+		printf("Parsed comparison operator: \t%s\n", currentToken.value);
+		getNextToken();
+		return true;
+	}
+
+	puts("Expected comparison operator (==, !=, <, >, <=, >=)");
+	return false;
 }
 
 // <function_definition> -> pub fn <identifier> ( <parameter_list> ) <return_type> <block>
@@ -403,7 +462,6 @@ bool parse_return_statement()
 		printf("Parsed 'return': \t%s\n", currentToken.value);
 		getNextToken();
 
-		// Zkontroluj, jestli je následující token výraz, nebo jde rovnou o středník
 		if (currentToken.type != TOKEN_SEMICOLON)
 		{
 			if (!parse_expression())
@@ -413,7 +471,6 @@ bool parse_return_statement()
 			}
 		}
 
-		// Ověřte, že příkaz končí středníkem
 		if (currentToken.type == TOKEN_SEMICOLON)
 		{
 			printf("Parsed ';': \t\t%s\n", currentToken.value);

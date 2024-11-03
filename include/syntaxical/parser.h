@@ -46,6 +46,12 @@ bool parse_expression();
 // <term> -> IDENTIFIER | NUMBER | STRING | <function_call>
 bool parse_term();
 
+// <operator> -> + | - | * | /
+bool parse_operator();
+
+// <comparison_operator> -> == | != | < | > | <= | >=
+bool parse_comparison_operator();
+
 // <function_definition> -> pub fn <identifier> ( <parameter_list> ) <return_type> <block>
 bool parse_function_definition();
 
