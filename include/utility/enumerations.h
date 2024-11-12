@@ -128,11 +128,12 @@ typedef struct TOKEN
 
 
 enum DATA_TYPES {
-    dTypeUndefined, // 0. Undefined data type
+    dTypeUndefined, // 0. Undefined data type (used internaly to indacate ignoring of the tyep)
     dTypeNone, // 1. No data type
     dTypeI32, // 2. Integer 32 bit
     dTypeF64, // 3. Float 64 bit
-    dTypeU8 // 4. Unsigned 8 bit
+    dTypeU8, // 4. Unsigned 8 bit
+    dTypeVoid // 5. Void
 };
 
 /**

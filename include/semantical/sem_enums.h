@@ -168,7 +168,9 @@ typedef struct ASTNodeExpresion {
  * @param condition - condition of the if statement
 */
 typedef struct ASTNodeIf {
-    ASTNodePtr condition; // condition of the if statement
+    ASTNodePtr condition; // condition for the if statement, should be a truth expresion
+    struct SymVariable *truVar; // variable, that has to be nullabale, in this case it can be used instaid of the condition 
+    struct SymVariable *nulVar; // new variable, only accasable in the if and else block, has to be not be nullable
 } *ASTNodeIfPtr;
 
 /**
@@ -199,6 +201,8 @@ typedef struct ASTNodeFunction {
 */
 typedef struct ASTNodeWhile {
     ASTNodePtr condition; // condition of the while loop
+    struct SymVariable *truVar; // variable, that has to be nullabale, in this case it can be used instaid of the condition
+    struct SymVariable *nulVar; // new variable, only accasable in the while block, has to be not be nullable    
 } *ASTNodeWhilePtr;
 
 // >>>>>>>>>>>>>>>>>>> AST NODES END <<<<<<<<<<<<<<<<<<<<

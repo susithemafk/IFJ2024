@@ -92,7 +92,7 @@ typedef struct SymVariable {
     char *name; // the name of the variable
     enum DATA_TYPES type; // the type of the variable
     bool mutable; // if the variable is mutable (constants will have this false)
-    bool nullable; // Indicates if the variable can hold a null value
+    int nullable; // Indicates if the variable can hold a null value -1 unknown, 0 not nullable, 1 nullable
     bool accesed; // if the variable was accessed
 } SymVariable;
 
@@ -148,7 +148,7 @@ bool symTableMoveScopeDown(SymTable *table, enum SYMTABLE_NODE_TYPES type);
  * @note in case we try to exit the global scope, the table will be freed
  * @return true, if the scope was successfully exited, false otherwise
 */
-bool symTableExitScope(SymTable *table, enum ERR_CODES *returnCode);
+enum ERR_CODES symTableExitScope(SymTable *table);
 
 /**
  * Insert a new variable to the current scope
@@ -159,7 +159,7 @@ bool symTableExitScope(SymTable *table, enum ERR_CODES *returnCode);
  * @param mutable - flag, if the variable is mutable
  * @return pointer to the variable, if the variable was successfully inserted, NULL otherwise
 */
-SymVariable *symTableDeclareVariable(SymTable *table, char *name, enum DATA_TYPES type, bool mutable, bool nullable);
+SymVariable *symTableDeclareVariable(SymTable *table, char *name, enum DATA_TYPES type, bool mutable, int nullable);
 
 /**
  * Search for a vairable based on its name, in same hash variables
@@ -179,7 +179,7 @@ bool _searchForVarSameHash(LinkedList *list, char *name);
  * @param returnData - pointer to which the data will be stored, if not NULL
  * @return true, if the variable was found, false otherwise
 */
-bool symTableFindVariable(SymTable *table, char *name, SymVariable **returnData);
+SymVariable *symTableFindVariable(SymTable *table, char *name);
 
 /**
  * Function to determin, if a variable can be mutated

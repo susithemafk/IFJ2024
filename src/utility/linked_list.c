@@ -41,9 +41,7 @@ struct LinkedList *initLinkedList(bool freeData) {
     // create the instance of the linked list
     struct LinkedList *list = (struct LinkedList *)malloc(sizeof(struct LinkedList)); 
 
-    if (list == NULL) {
-        return NULL;
-    }
+    if (list == NULL) return NULL;
 
     list->head = NULL;
     list->tail = NULL;
@@ -348,7 +346,7 @@ bool removeNodeAtIndex(struct LinkedList *list, int index) {
     return true;
 }
 
-// Function to get data at index
+// Function to get data at indexexit
 void *getDataAtIndex(struct LinkedList *list, int index) {
 
     // check for internal error

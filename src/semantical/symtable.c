@@ -166,8 +166,62 @@ SymTable *symTableInit(void) {
     globalScope->type = SYM_GLOBAL;
     globalScope->key = 0; // key for the global scope
     globalScope->parent = NULL; // no parent
-    globalScope->variables = NULL; // link to variables, in global scope disabled
+    globalScope->variables = bstInit((void (*)(void **))removeList); // link to variables, in global scope disabled
     globalScope->innerScope = NULL; // link to other scopes
+
+    // check for init problems
+    if (globalScope->variables == NULL) {
+        free(globalScope);
+        free(table);
+        return NULL;
+    }
+
+    // init global constants
+    LinkedList *globalConstants = initLinkedList(false);
+    if (globalConstants == NULL) {
+        free(globalScope);
+        free(table);
+        return NULL;
+    }
+
+    // fill in global constants
+    SymVariable *thorwAway = (SymVariable *)malloc(sizeof(SymVariable));
+    if (thorwAway == NULL) {
+        free(globalScope);
+        free(table);
+        free(globalConstants);
+        return NULL;
+    }
+
+    // init the _ variable
+    thorwAway->name = malloc(sizeof(char) * 2);
+    if (thorwAway->name == NULL) {
+        free(thorwAway);
+        free(globalScope);
+        free(table);
+        free(globalConstants);
+        return NULL;
+    }
+    strcpy(thorwAway->name, "_");
+    thorwAway->type = dTypeUndefined;
+    thorwAway->accesed = true;
+    thorwAway->id = 0;
+    thorwAway->mutable = false;
+    thorwAway->nullable = 1;
+    if (!insertNodeAtIndex(globalConstants, (void *)thorwAway, -1)) {
+        free(thorwAway);
+        free(globalScope);
+        free(table);
+        return NULL;
+    }
+   
+    // save the global constants
+    if (!bstInsertNode(globalScope->variables, hashString("_"), (void *)globalConstants)) {
+        free(thorwAway);
+        free(globalScope);
+        free(table);
+        return NULL;
+    }
 
     // alocate the data thing
     LinkedList *data = initLinkedList(false);
@@ -177,10 +231,18 @@ SymTable *symTableInit(void) {
         return NULL;
     }
 
+    // save the constant to the data
+    if (!insertNodeAtIndex(data, (void *)thorwAway, -1)) {
+        free(thorwAway);
+        free(globalScope);
+        free(table);
+        return NULL;
+    }
+
     // fill the table
     table->root = globalScope;
     table->currentScope = globalScope;
-    table->varCount = 0;
+    table->varCount = 1;
     table->scopeCount = 1;
     table->data = data;
 
@@ -275,36 +337,22 @@ bool _symTableAllVariablesAccesed(SymTableNode *node) {
 }
 
 // Function to exit the current scope
-bool symTableExitScope(SymTable *table, enum ERR_CODES *returnCode) {
+enum ERR_CODES symTableExitScope(SymTable *table) {
 
     // check if the table is not NULL
     if (table == NULL) {
-        return false;
-    }
-
-    // in case we are trying to exit the global scope
-    if (
-        table->currentScope->innerScope == NULL && 
-        table->currentScope->type == SYM_GLOBAL) {
-        symTableFree(&table);
-        if (returnCode != NULL) {
-            *returnCode = SUCCESS;
-        }
-        return true;
+        return E_INTERNAL;
     }
 
     // need to remove the current scope
     SymTableNode *currentScope = table->currentScope;
+    enum ERR_CODES returnCode;
 
     // check if all variables were accesed
     if (_symTableAllVariablesAccesed(currentScope)) {
-        if (returnCode != NULL) {
-            *returnCode = SUCCESS;
-        }
+        returnCode = SUCCESS;
     } else {
-        if (returnCode != NULL) {
-            *returnCode = E_SEMANTIC_UNUSED_VAR;
-        }
+        returnCode = E_SEMANTIC_UND_FUNC_OR_VAR;
     }
 
     // update the current scope
@@ -315,21 +363,21 @@ bool symTableExitScope(SymTable *table, enum ERR_CODES *returnCode) {
     bool result = bstFree(&currentScope->variables);
     free(currentScope);
 
-    return result;
+    if (!result) return E_INTERNAL;
+
+    return returnCode;
 }
 
 // Function to insert a new
-SymVariable *symTableDeclareVariable(SymTable *table, char *name, enum DATA_TYPES type, bool mutable, bool nullable) {
+SymVariable *symTableDeclareVariable(SymTable *table, char *name, enum DATA_TYPES type, bool mutable, int nullable) {
     // Check if the table or current scope is invalid (if global scope declaration is disallowed)
     if (table == NULL || table->currentScope->type == SYM_GLOBAL) {
         return NULL;
     }
 
     // Check if the variable already exists in the current scope
-    SymVariable *var = NULL;
-    if (symTableFindVariable(table, name, &var)) {
-        return NULL; // Variable already exists
-    }
+    SymVariable *var = symTableFindVariable(table, name);
+    if (var != NULL)  return NULL; // Variable already exists
 
     // Allocate memory for a new variable
     SymVariable *newVariable = (SymVariable *)malloc(sizeof(SymVariable));
@@ -391,11 +439,11 @@ SymVariable *symTableDeclareVariable(SymTable *table, char *name, enum DATA_TYPE
 }
 
 // Function to find a variable in the current scope (including parent scopes)
-bool symTableFindVariable(SymTable *table, char *name, SymVariable **returnData) {
+SymVariable *symTableFindVariable(SymTable *table, char *name) {
 
     // Check if the table or name is null
     if (table == NULL || name == NULL) 
-        return false;
+        return NULL;
 
     // Hash the name to find the corresponding variables
     unsigned int hash = hashString(name);
@@ -422,19 +470,17 @@ bool symTableFindVariable(SymTable *table, char *name, SymVariable **returnData)
                 continue;
 
             // Mark the variable as accessed if found
-            if (returnData != NULL) 
-                *returnData = variable;
 
             variable->accesed = true; // Only mark if you intend to track access
 
-            return true;
+            return variable;
         }
         
         // Move up to the parent scope if not found
         currentScope = currentScope->parent;
     }
     
-    return false; // Variable not found
+    return NULL; // Variable not found
 }
 
 // Function to check, if a variable can be mutated
@@ -466,6 +512,8 @@ void _symTableFreeNode(SymTableNode *node) {
 bool symTableFree(SymTable **table) {
 
     SymTable *tTable = *table;
+
+    printf("current scope type: %d\n", tTable->currentScope->type);
 
     if (table == NULL)
         return false;

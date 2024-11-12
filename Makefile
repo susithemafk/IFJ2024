@@ -42,6 +42,9 @@ LEX_TEST_SRC = $(wildcard $(LEXICAL_DIR)/*.c) $(wildcard $(UTILITY_DIR)/*.c) $(T
 # AST test source files
 AST_TEST_SRC = $(wildcard $(SEMANTICAL_DIR)/*.c) $(wildcard $(UTILITY_DIR)/*.c) $(AST_ASSETS_DIR)/inbuild_funcs.c $(TEST_DIR)/test_ast.c
 
+# AST integration test source files
+AST_INTEGRATION_TEST_SRC = $(wildcard $(SEMANTICAL_DIR)/*.c) $(wildcard $(UTILITY_DIR)/*.c) $(wildcard $(AST_ASSETS_DIR)/*.c) $(TEST_DIR)/test_ast_integration.c
+
 # Targets
 all: main
 
@@ -85,3 +88,9 @@ test-lex: $(LEX_TEST_SRC)
 	$(CC) $(CFLAGS) $(INCLUDES) $(LEX_TEST_SRC) -o test_lex -std=c99
 	./test_lex < ./tests/lexical/input.txt
 	rm -f test_lex
+
+# Compile and run the integration test for creating the ASTs
+test-ast-integration: $(AST_INTEGRATION_TEST_SRC)
+	$(CC) $(CFLAGS) $(INCLUDES) $(AST_INTEGRATION_TEST_SRC) -o test_ast_integration -std=c99
+	./test_ast_integration
+	rm -f test_ast_integration

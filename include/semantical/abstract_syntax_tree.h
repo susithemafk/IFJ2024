@@ -31,7 +31,7 @@ ASTNodePtr ASTcreateNode(enum ASTNodeTypes type);
  * @param operand The operand
  * @return erro code
 */
-enum ERR_CODES ASTinitNodeOperand(ASTNodePtr operandNode, struct TOKEN operand);
+enum ERR_CODES ASTinitNodeOperand(ASTNodePtr operandNode, TOKEN_PTR operand);
 
 /**
  * Function to init Node Value
@@ -55,13 +55,13 @@ enum ERR_CODES ASTinitNodeVariable(ASTNodePtr variableNode, struct SymVariable *
  * Function to add to an expresion
  * 
  * @param expresionRoot The root of the expresion
- * @param node The node to add
- * @param operator The operator of the expresion
+ * @param variable The variable in the symbol table
+ * @param value The value to assign
+ * @param operand The operand
  * @return err code
- * @note The function will try to fill in the expresion from left to right, in case 
- * it is supposed add to operand to the left/right side of the epxresion, it will add a new nodee
+ * @note this function expects, that only one of the arguments is not NULL, the other two are NULL
 */
-enum ERR_CODES ASTaddNodeToExpresion(ASTNodePtr expresionRoot, ASTNodePtr expresionPart);
+enum ERR_CODES ASTaddNodeToExpresion(ASTNodePtr expresionRoot, struct SymVariable *variable, TOKEN_PTR value, TOKEN_PTR operand);
 
 /**
  * Function to finish the expresion
@@ -75,12 +75,14 @@ enum ERR_CODES ASTfinishExpresion(ASTNodePtr expresionRoot);
  * Function to add to a truth expresion
  * 
  * @param truthExpresion The truth expresion
- * @param left The left side of the expresion
- * @param right The right side of the expresion
- * @param opr The operator of the expresion
+ * @param variable The variable in the symbol table
+ * @param value The value to assign
+ * @param operand The operand
  * @return err code
+ * @note the function expect only one of the 3 args to not be NULL
+ * @note if the operand is ==, !=, >=, <=, >, <, the operand will be negated and saved, and switch from adding to the left of expresion and adding to the right
 */
-enum ERR_CODES ASTeditTruthExpresion(ASTNodePtr truthExpresion, ASTNodePtr expresionPart);
+enum ERR_CODES ASTeditTruthExpresion(ASTNodePtr truthExpresion, struct SymVariable *variable, TOKEN_PTR value, TOKEN_PTR operand);
 
 /**
  * Function to edit the declaration node
@@ -105,20 +107,30 @@ enum ERR_CODES ASTeditAssignNode(ASTNodePtr assignNode, struct SymVariable *vari
  * Function to edit the if node
  * 
  * @param ifNode The if node
- * @param condition The condition of the if statement
+ * @param variable The variable in the symbol table
+ * @param value The value to assign
+ * @param operand The operand
+ * @param truVar The variable to assign if the condition is true
+ * @param nulVar The variable to assign if the condition is false
+ * @return err codes
+ * @note the function expect, that you will either set one of these 3 args to not be NULl -> (varibale, value, operand)
+ * @note or you will set one or both of the truVar and nulVar to not be NULL
+ * @note if you are setting one of the 3 args, it works just like in editing truth expresion
+ * 
 */
-enum ERR_CODES ASTeditIfNode(ASTNodePtr ifNode, ASTNodePtr conditionPart);
+enum ERR_CODES ASTeditIfNode(ASTNodePtr ifNode, struct SymVariable *variable, TOKEN_PTR value, TOKEN_PTR operand, struct SymVariable *truVar, struct SymVariable *nulVar);
 
 /**
  * Function to edit the function call node
  * 
  * @param functionCallNode The function call node
  * @param functionName The name of the function
- * @param arguments The list of arguments
+ * @param varArg The variable argument
+ * @param valueArg The value argument
  * @return err codes
- * @note the arguments will be added one by one
+ * @note the arguments will be added one by one, the function expects, that only one of the varArg and valueArg is not NULL
 */
-enum ERR_CODES ASTeditFunctionCallNode(ASTNodePtr functionCallNode, char *functionName, ASTNodePtr argument);
+enum ERR_CODES ASTeditFunctionCallNode(ASTNodePtr functionCallNode, char *functionName, struct SymVariable *varArg, TOKEN_PTR valueArg);
 
 /**
  * Function to edit the function node
@@ -126,19 +138,28 @@ enum ERR_CODES ASTeditFunctionCallNode(ASTNodePtr functionCallNode, char *functi
  * @param functionNode The function node
  * @param functionName The name of the function
  * @param returnType The return type of the function
- * @param arguments The list of arguments
+ * @param nullable The nullable value of the function
+ * @param argument one argument of the function
  * @return err codes
  * @note the arguments will be added one by one
 */
-enum ERR_CODES ASTeditFunctionNode(ASTNodePtr functionNode, char *functionName, enum DATA_TYPES returnType, int nullable, ASTNodePtr argument);
+enum ERR_CODES ASTeditFunctionNode(ASTNodePtr functionNode, char *functionName, enum DATA_TYPES returnType, int nullable, struct SymVariable *argument);
 
 /**
  * Function to edit the while node
  * 
  * @param whileNode The while node
- * @param condition The condition of the while loop
+ * @param variable The variable in the symbol table
+ * @param value The value to assign
+ * @param operand The operand
+ * @param truVar The variable to assign if the condition is true
+ * @param nulVar The variable to assign if the condition is false
+ * @return err codes
+ * @note the function expect, that you will either set one of these 3 args to not be NULl -> (varibale, value, operand)
+ * @note or you will set one or both of the truVar and nulVar to not be NULL
+ * @note if you are setting one of the 3 args, it works just like in editing truth expresion
 */
-enum ERR_CODES ASTeditWhileNode(ASTNodePtr whileNode, ASTNodePtr condition);
+enum ERR_CODES ASTeditWhileNode(ASTNodePtr whileNode, struct SymVariable *variable, TOKEN_PTR value, TOKEN_PTR operand, struct SymVariable *truVar, struct SymVariable *nulVar);
 
 /**
  * Function to edit the return node
@@ -147,7 +168,7 @@ enum ERR_CODES ASTeditWhileNode(ASTNodePtr whileNode, ASTNodePtr condition);
  * @param expresionPart The return expresion
  * @return err codes
 */
-enum ERR_CODES ASTeditReturnNode(ASTNodePtr returnNode, ASTNodePtr expresionPart);
+enum ERR_CODES ASTeditReturnNode(ASTNodePtr returnNode, struct SymVariable *variable, TOKEN_PTR value, TOKEN_PTR operand);
 
 /**
  * Function to destroy a node

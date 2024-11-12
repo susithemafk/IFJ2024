@@ -41,6 +41,7 @@ SymVariable write_var = {4, "write", DATA_TYPE_VOID, false, true, false};
 
 */
 
+SymVariable write_var = {4, "write", dTypeNone, false, false, true};
 SymVariable term1 = {1, "term", dTypeI32, false, false, true};
 SymVariable term2 = {2, "term", dTypeF64, false, false, true};
 SymVariable term3 = {3, "term", dTypeU8, false, false, true};
@@ -69,83 +70,57 @@ void fillInBuildInFuncions(fnDefinitionsPtr validator) {
     addFunctionDefinition(validator, readf64);
 
     //pub fn ifj.write(term) void;
-    // need to specify the term type later, skip for now
+    write = ASTcreateNode(AST_NODE_FUNCTION);
+    err = ASTeditFunctionNode(write, "ifj.write", dTypeVoid, 0, &write_var);
+
 
     //pub fn ifj.i2f(term: i32) f64;
     i2f = ASTcreateNode(AST_NODE_FUNCTION);
-    var = ASTcreateNode(AST_NODE_VARIABLE);
-    err = ASTinitNodeVariable(var, &term1);
-    err = ASTeditFunctionNode(i2f, "ifj.i2f", dTypeF64, 0, var);
+    err = ASTeditFunctionNode(i2f, "ifj.i2f", dTypeF64, 0, &term1);
     addFunctionDefinition(validator, i2f);
 
     //pub fn ifj.f2i(term: f64) i32;
     f2i = ASTcreateNode(AST_NODE_FUNCTION);
-    var = ASTcreateNode(AST_NODE_VARIABLE);
-    err = ASTinitNodeVariable(var, &term2);
-    err = ASTeditFunctionNode(f2i, "ifj.f2i", dTypeI32, 0, var);
+    err = ASTeditFunctionNode(f2i, "ifj.f2i", dTypeI32, 0, &term2);
     addFunctionDefinition(validator, f2i);
 
     //pub fn ifj.string(term) []u8;
     string = ASTcreateNode(AST_NODE_FUNCTION);
-    var = ASTcreateNode(AST_NODE_VARIABLE);
-    err = ASTinitNodeVariable(var, &term3);
-    err = ASTeditFunctionNode(string, "ifj.string", dTypeU8, 0, var);
+    err = ASTeditFunctionNode(string, "ifj.string", dTypeU8, 0, &term3);
     addFunctionDefinition(validator, string);
 
     //pub fn ifj.length(s: []u8) i32;
     length = ASTcreateNode(AST_NODE_FUNCTION);
-    var = ASTcreateNode(AST_NODE_VARIABLE);
-    err = ASTinitNodeVariable(var, &s);
-    err = ASTeditFunctionNode(length, "ifj.length", dTypeI32, 0, var);
+    err = ASTeditFunctionNode(length, "ifj.length", dTypeI32, 0, &s);
     addFunctionDefinition(validator, length);
 
     //pub fn ifj.concat(s1: []u8, s2: []u8) []u8;
     concat = ASTcreateNode(AST_NODE_FUNCTION);
-    var = ASTcreateNode(AST_NODE_VARIABLE);
-    err = ASTinitNodeVariable(var, &s1);
-    err = ASTeditFunctionNode(concat, "ifj.concat", dTypeU8, 0, var);
-    var = ASTcreateNode(AST_NODE_VARIABLE);
-    err = ASTinitNodeVariable(var, &s2);
-    err = ASTeditFunctionNode(concat, NULL, dTypeUndefined, -1, var);
+    err = ASTeditFunctionNode(concat, "ifj.concat", dTypeU8, 0, &s1);
+    err = ASTeditFunctionNode(concat, NULL, dTypeUndefined, -1, &s2);
     addFunctionDefinition(validator, concat);
 
     //pub fn ifj.substring(s: []u8, i: i32, j: i32) ?[]u8;
     substring = ASTcreateNode(AST_NODE_FUNCTION);
-    var = ASTcreateNode(AST_NODE_VARIABLE);
-    err = ASTinitNodeVariable(var, &s);
-    err = ASTeditFunctionNode(substring, "ifj.substring", dTypeU8, 1, var);
-    var = ASTcreateNode(AST_NODE_VARIABLE);
-    err = ASTinitNodeVariable(var, &i);
-    err = ASTeditFunctionNode(substring, NULL, dTypeUndefined, -1, var);
-    var = ASTcreateNode(AST_NODE_VARIABLE);
-    err = ASTinitNodeVariable(var, &j);
-    err = ASTeditFunctionNode(substring, NULL, dTypeUndefined, -1, var);
+    err = ASTeditFunctionNode(substring, "ifj.substring", dTypeU8, 1, &s);
+    err = ASTeditFunctionNode(substring, NULL, dTypeUndefined, -1, &i);
+    err = ASTeditFunctionNode(substring, NULL, dTypeUndefined, -1, &j);
     addFunctionDefinition(validator, substring);
 
     //pub fn ifj.strcmp(s1: []u8, s2: []u8) i32;
     Strcmp = ASTcreateNode(AST_NODE_FUNCTION);
-    var = ASTcreateNode(AST_NODE_VARIABLE);
-    err = ASTinitNodeVariable(var, &s1);
-    err = ASTeditFunctionNode(Strcmp, "ifj.strcmp", dTypeI32, 0, var);
-    var = ASTcreateNode(AST_NODE_VARIABLE);
-    err = ASTinitNodeVariable(var, &s2);
-    err = ASTeditFunctionNode(Strcmp, NULL, dTypeUndefined, -1, var);
+    err = ASTeditFunctionNode(Strcmp, "ifj.strcmp", dTypeI32, 0, &s1);
+    err = ASTeditFunctionNode(Strcmp, NULL, dTypeUndefined, -1, &s2);
     addFunctionDefinition(validator, Strcmp);
 
     //pub fn ifj.ord(s: []u8, i: i32) i32;
     ord = ASTcreateNode(AST_NODE_FUNCTION);
-    var = ASTcreateNode(AST_NODE_VARIABLE);
-    err = ASTinitNodeVariable(var, &s);
-    err = ASTeditFunctionNode(ord, "ifj.ord", dTypeI32, 0, var);
-    var = ASTcreateNode(AST_NODE_VARIABLE);
-    err = ASTinitNodeVariable(var, &i);
-    err = ASTeditFunctionNode(ord, NULL, dTypeUndefined, -1, var);
+    err = ASTeditFunctionNode(ord, "ifj.ord", dTypeI32, 0, &s);
+    err = ASTeditFunctionNode(ord, NULL, dTypeUndefined, -1, &i);
     addFunctionDefinition(validator, ord);
 
     //pub fn ifj.chr(i: i32) []u8;
     chr = ASTcreateNode(AST_NODE_FUNCTION);
-    var = ASTcreateNode(AST_NODE_VARIABLE);
-    err = ASTinitNodeVariable(var, &i);
-    err = ASTeditFunctionNode(chr, "ifj.chr", dTypeU8, 0, var);
+    err = ASTeditFunctionNode(chr, "ifj.chr", dTypeU8, 0, &i);
     addFunctionDefinition(validator, chr);
 }
