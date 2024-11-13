@@ -1,6 +1,17 @@
+//* These work
+// if (a == 5) { x = 5 - 6; } else { x = 6; }
+// while (a > b) { x = 5; }
+// while (a > b) {
+// 	x = 5;
+// 	var y: i32 = 6;
+// }
+// while (a > 5) {}
+
+
 // var x: i32 = a;
 // var x: i32 = 10 + 5;
 // const y: f64 = 20.5;
 // pub fn add(a: i32, b: i32): i32 { return a; }
-// while (true) { x = 5; }
-if (a == 5) { x = 5 - 6; } else { x = 6; } // WORKS
+// while (true) {
+// 	x = 5;
+// } // TODO: pridat do lexikalky + odkomentovat v parseru

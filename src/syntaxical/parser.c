@@ -270,33 +270,51 @@ bool parse_assignment()
 	return false;
 }
 
-// <expression> -> <term> | <term> <operator> <term> | <term> <comparison_operator> <term>
+// <no_truth_expr> -> <term> | <term> <operator> <term>
 bool parse_no_truth_expr()
 {
+	memset(expression, 0, sizeof(expression)); // Reset the global expression buffer
+
 	if (!parse_term())
 		return false;
 
-	while (currentToken.type == TOKEN_PLUS || currentToken.type == TOKEN_MINUS || currentToken.type == TOKEN_MULTIPLY || currentToken.type == TOKEN_DIVIDE || currentToken.type == TOKEN_EQUALS)
+	while (currentToken.type == TOKEN_PLUS || currentToken.type == TOKEN_MINUS || currentToken.type == TOKEN_MULTIPLY || currentToken.type == TOKEN_DIVIDE)
 	{
-		if (currentToken.type == TOKEN_EQUALS)
-		{
-			if (!parse_comparison_operator())
-				return false;
-		}
-		else
-		{
-			if (!parse_operator())
-				return false;
-		}
+		if (!parse_operator())
+			return false;
 
 		if (!parse_term())
 			return false;
 	}
 
-	printf("Parsed expression: \t%s\n", expression);
+	printf("Parsed no truth expression: %s\n", expression);
+	return true;
+}
 
+// <truth_expr> -> <term> <comparison_operator> <term>
+bool parse_truth_expr()
+{
 	memset(expression, 0, sizeof(expression));
 
+	// handle true / false // TODO odkomentovat až přidáme do lexikálky true false
+	// if (currentToken.type == TOKEN_TRUE || currentToken.type == TOKEN_FALSE)
+	// {
+	// 	strncat(expression, currentToken.value, sizeof(expression) - strlen(expression) - 1);
+	// 	getNextToken();
+	// 	printf("Parsed truth expression: %s\n", expression);
+	// 	return true;
+	// }
+
+	if (!parse_term())
+		return false;
+
+	if (!parse_comparison_operator())
+		return false;
+
+	if (!parse_term())
+		return false;
+
+	printf("Parsed truth expression: %s\n", expression);
 	return true;
 }
 
@@ -490,7 +508,7 @@ bool parse_while_statement()
 		{
 			printf("Parsed left parenthesis: \t%s\n", currentToken.value);
 			getNextToken();
-			if (parse_no_truth_expr())
+			if (parse_truth_expr())
 			{
 				if (currentToken.type == TOKEN_RPAR)
 				{
