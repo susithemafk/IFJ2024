@@ -17,6 +17,9 @@
 
 // ####################### Function Call Validation #######################
 
+void freeFuncDefsWrapper(void **data);
+void freeListWrapper(void **data);
+
 /**
  * @brief Struct for the function call validator
  * @param funcDefinitions - the function defintions
@@ -47,7 +50,7 @@ fnDefinitionsPtr initFunctionDefinitions(void);
  * @param func - pointer to the AST of the function
  * @return enum ERR_CODES
 */
-enum ERR_CODES addFunctionDefinition(fnDefinitionsPtr validator, ASTNodePtr func);
+enum ERR_CODES addFunctionDefinition(fnDefinitionsPtr defs, ASTNodePtr func);
 
 /**
  * Function to find a function definition in the validator
@@ -56,7 +59,7 @@ enum ERR_CODES addFunctionDefinition(fnDefinitionsPtr validator, ASTNodePtr func
  * @param functionName - name of the function to search for
  * @return pointer to the AST of the function, if the function was found, NULL otherwise
 */
-ASTNodePtr findFunctionDefinition(fnDefinitionsPtr validator, char *functionName);
+ASTNodePtr findFunctionDefinition(fnDefinitionsPtr defs, char *functionName);
 
 /**
  * Function to free the function definitions

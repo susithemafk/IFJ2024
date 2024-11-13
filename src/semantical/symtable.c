@@ -18,6 +18,10 @@
 
 // ####################### Function Call Validation #######################
 
+void freeFuncDefsWrapper(void **data) {
+    _freeFuncDefSameHahs((LinkedList **)data);
+}
+
 // Function to init the funtion call validator
 fnDefinitionsPtr initFunctionDefinitions(void) {
 
@@ -26,7 +30,7 @@ fnDefinitionsPtr initFunctionDefinitions(void) {
     if (validator == NULL) return NULL;
 
     // init the BST
-    validator->funcDefinitions = bstInit((void (*)(void **))_freeFuncDefSameHahs);
+    validator->funcDefinitions = bstInit(freeFuncDefsWrapper);
     if (validator->funcDefinitions == NULL) {
         free(validator);
         return NULL;
@@ -150,6 +154,10 @@ bool _searchForVarSameHash(LinkedList *list, char *name) {
     return false;
 }
 
+void freeListWrapper(void **data) {
+    removeList((LinkedList **)data);
+}
+
 // Function to init the symbol table
 SymTable *symTableInit(void) {
 
@@ -166,7 +174,7 @@ SymTable *symTableInit(void) {
     globalScope->type = SYM_GLOBAL;
     globalScope->key = 0; // key for the global scope
     globalScope->parent = NULL; // no parent
-    globalScope->variables = bstInit((void (*)(void **))removeList); // link to variables, in global scope disabled
+    globalScope->variables = bstInit(freeListWrapper); // link to variables, in global scope disabled
     globalScope->innerScope = NULL; // link to other scopes
 
     // check for init problems
@@ -261,7 +269,7 @@ bool symTableMoveScopeDown(SymTable *table, enum SYMTABLE_NODE_TYPES type) {
 
     // create the new scope
     SymTableNode *newScope = (SymTableNode *)malloc(sizeof(SymTableNode));
-    BST *variables = bstInit((void (*)(void **))removeList);
+    BST *variables = bstInit(freeListWrapper);
 
     // check if the memory was allocated
 
@@ -321,7 +329,6 @@ void _symTableTraverseVariables(TreeNode *node, bool *result) {
 
     return;
 }
-
 
 // Function to check if all variables in the symbol table were accesed
 bool _symTableAllVariablesAccesed(SymTableNode *node) {
@@ -512,8 +519,6 @@ void _symTableFreeNode(SymTableNode *node) {
 bool symTableFree(SymTable **table) {
 
     SymTable *tTable = *table;
-
-    printf("current scope type: %d\n", tTable->currentScope->type);
 
     if (table == NULL)
         return false;
