@@ -14,6 +14,14 @@ static enum ERR_CODES status;
 static struct TOKEN currentToken;
 static struct TOKEN lookaheadToken;
 
+// Global variables for storing parsed data
+char *modifier = NULL;
+char *identifier = NULL;
+char *data_type = NULL;
+char expression[256] = {0}; // Buffer to store the expression
+char *return_type = NULL;
+char parameter_list[256] = {0}; // Buffer to store the parameter list
+
 /**
  * Intro functions
  */
@@ -38,6 +46,28 @@ void getLookaheadToken()
 	status = scanner_peek_token(&lookaheadToken);
 }
 
+void resetGlobalVariables()
+{
+	modifier = NULL;
+	identifier = NULL;
+	data_type = NULL;
+	memset(expression, 0, sizeof(expression));
+	return_type = NULL;
+	memset(parameter_list, 0, sizeof(parameter_list));
+}
+
+void printGlobalVariables()
+{
+	puts("\n");
+	printf("Modifier: %s\n", modifier);
+	printf("Identifier: %s\n", identifier);
+	printf("Data type: %s\n", data_type);
+	printf("Expression: %s\n", expression);
+	printf("Return type: %s\n", return_type);
+	printf("Parameter list: %s\n", parameter_list);
+	puts("\n");
+}
+
 enum ERR_CODES parser_parse()
 {
 	// load first token
@@ -55,6 +85,71 @@ enum ERR_CODES parser_parse()
 	return SUCCESS;
 }
 
+bool a() // TODO
+{
+	return true;
+	// pravidla dle verči ale nějak mi to nesedí
+
+	// <program> -> <prolog> <u_functions> <main> <u_functions> // TODO
+	// bool parse_program() { return true; }
+
+	// <prolog> -> const ifj = @ import ("ifj24.zig"); // TODO
+	// bool parse_prolog() { return true; }
+
+	// <main> -> pub fn main () void {< >} // TODO
+	// bool parse_main() { return true; }
+
+	// <u_functions> -> <function> <u_functions> | ε // TODO
+	// bool parse_u_functions() { return true; }
+
+	// <function> -> pub fn <func_id> (<params>) <data_type> {<func_body> <exit>} // TODO
+	// bool parse_function() { return true; }
+
+	// <func_call> -> <func_id> (<params>); // TODO
+	// bool parse_func_call() { return true; }
+
+	// <func_assign> -> <var_id> = <func_call>; // TODO
+	// bool parse_func_assign() { return true; }
+
+	// <params> -> <parameter> <parameter_next> | ε // TODO
+	// bool parse_params() { return true; }
+
+	// <parameter> -> <var_id> : <data_type> // TODO
+	// bool parse_parameter() { return true; }
+
+	// <parameter_next> -> , <parameter> | ε  // TODO
+	// bool parse_parameter_next() { return true; }
+
+	// <exit> -> <exit_value> | ε // TODO
+	// bool parse_exit() { return true; }
+
+	// <exit_value> -> return <no_truth_expr>; // TODO
+	// bool parse_exit_value() { return true; }
+
+	// <var_def> -> <const | var> <var_id> : <data_type> = <no_truth_expr>;  // TODO
+	// bool parse_var_def() { return true; }
+
+	// <var_assign> -> <var_id> = <no_truth_expr>; // TODO
+	// bool parse_var_assign() { return true; }
+
+	// <if> -> if (<truth_expr>) {<body>} <else>           // TODO: cekame na vercu
+	// <if> -> if (<no_truth_expr>) |<arithm_expr>| {<body>} <else> // TODO: cekame na vercu
+	// <else> -> else {<body>} // TODO: cekame na vercu
+	// <else> -> ε // TODO: cekame na vercu
+
+	// <while> -> while (<truth_expr>) {<body>}            // TODO: cekame na vercu
+	// <while> -> while (<no_truth_expr>) |<arithm_expr>| {<body>}  // TODO: cekame na vercu
+
+	// <expr> -> <truth_expr> | <no_truth_expr> // TODO
+	// bool parse_expr() { return true; }
+
+	// <truth_expr> -> <term> <comparison_operator> <term> // TODO
+	// bool parse_truth_expr() { return true; }
+
+	// <no_truth_expr> -> <arithm_expr> | <null_expr>  // TODO
+	// bool parse_no_truth_expr() { return true; }
+}
+
 // TODO:
 /**
  * init symtable v mainu a poslat si na ni odkaz sem
@@ -64,33 +159,38 @@ enum ERR_CODES parser_parse()
  * checkovat expressions a az pak je vkladat do astcka
  */
 
-// <program> -> <statement> <program> | ε
-bool parse_program() { return true; }
-
-// <statement> -> <variable_definition> ; | <assignment> ; | <function_definition> | <if_statement> | <while_statement> | <function_call> ;
-bool parse_statement() { return true; }
-
-// <variable_definition> -> <modifier> <identifier> <optional_data_type> <assignment> <expression> ;
-bool parse_variable_definition()
+//* <var_def> -> <modifier: const | var> <var_id> : <optional_data_type> = <no_truth_expr>;
+bool parse_var_def()
 {
-	// do symtablu, ta vrati data, pak do ast
 	if (!parse_modifier())
 		return false;
-	if (!parse_identifier())
+	modifier = strdup(currentToken.value);
+
+	getNextToken();
+
+	if (!parse_var_id())
 		return false;
+	identifier = strdup(currentToken.value);
+
+	getNextToken();
+
 	if (!parse_optional_data_type())
 		return false;
+	data_type = strdup(currentToken.value);
+
+	getNextToken();
 
 	if (currentToken.type != TOKEN_ASSIGN)
 		return false;
 	getNextToken();
 
-	if (!parse_expression())
-		return false;
-	if (!parse_end_with_semicolon())
+	if (!parse_no_truth_expr())
 		return false;
 
-	// TODO: add to AST
+	getNextToken();
+
+	// printGlobalVariables();
+
 	printf("Added to AST\n\n");
 	return true;
 }
@@ -101,7 +201,6 @@ bool parse_modifier()
 	if (currentToken.type == TOKEN_CONST || currentToken.type == TOKEN_VAR)
 	{
 		printf("Parsed modifier: \t%s\n", currentToken.value);
-		getNextToken();
 		return true;
 	}
 	puts("Expected 'const' or 'var' modifier");
@@ -109,12 +208,11 @@ bool parse_modifier()
 }
 
 // <identifier> -> IDENTIFIER
-bool parse_identifier()
+bool parse_var_id()
 {
 	if (currentToken.type == TOKEN_IDENTIFIER)
 	{
 		printf("Parsed identifier: \t%s\n", currentToken.value);
-		getNextToken();
 		return true;
 	}
 	puts("Expected identifier");
@@ -139,7 +237,6 @@ bool parse_data_type()
 	if (currentToken.type == TOKEN_I32 || currentToken.type == TOKEN_F64 || currentToken.type == TOKEN_STRING)
 	{
 		printf("Parsed data type: \t%s\n", currentToken.value);
-		getNextToken();
 		return true;
 	}
 	puts("Expected data type (i32, f64, or string)");
@@ -159,9 +256,8 @@ bool parse_assignment()
 			printf("Parsed assignment: \t%s\n", currentToken.value);
 			getNextToken();
 
-			if (parse_expression())
+			if (parse_no_truth_expr())
 			{
-				printf("CUrrentToken: %s\n", currentToken.value);
 				parse_end_with_semicolon();
 				getNextToken();
 				return true;
@@ -175,7 +271,7 @@ bool parse_assignment()
 }
 
 // <expression> -> <term> | <term> <operator> <term> | <term> <comparison_operator> <term>
-bool parse_expression()
+bool parse_no_truth_expr()
 {
 	if (!parse_term())
 		return false;
@@ -197,7 +293,10 @@ bool parse_expression()
 			return false;
 	}
 
-	printf("Parsed expression\n");
+	printf("Parsed expression: \t%s\n", expression);
+
+	memset(expression, 0, sizeof(expression));
+
 	return true;
 }
 
@@ -206,7 +305,7 @@ bool parse_term()
 {
 	if (currentToken.type == TOKEN_IDENTIFIER || currentToken.type == TOKEN_I32 || currentToken.type == TOKEN_F64 || currentToken.type == TOKEN_STRING)
 	{
-		printf("Parsed term: \t%s\n", currentToken.value);
+		strncat(expression, currentToken.value, sizeof(expression) - strlen(expression) - 1);
 		getNextToken();
 		return true;
 	}
@@ -224,7 +323,6 @@ bool parse_operator()
 {
 	if (currentToken.type == TOKEN_PLUS || currentToken.type == TOKEN_MINUS || currentToken.type == TOKEN_MULTIPLY || currentToken.type == TOKEN_DIVIDE)
 	{
-		printf("Parsed operator: \t%s\n", currentToken.value);
 		getNextToken();
 		return true;
 	}
@@ -238,7 +336,7 @@ bool parse_comparison_operator()
 {
 	if (currentToken.type == TOKEN_EQUALS || currentToken.type == TOKEN_NOTEQUAL || currentToken.type == TOKEN_LESSTHAN || currentToken.type == TOKEN_GREATERTHAN || currentToken.type == TOKEN_LESSOREQUAL || currentToken.type == TOKEN_GREATEROREQUAL)
 	{
-		printf("Parsed comparison operator: \t%s\n", currentToken.value);
+		strncat(expression, currentToken.value, sizeof(expression) - strlen(expression) - 1);
 		getNextToken();
 		return true;
 	}
@@ -332,35 +430,53 @@ bool parse_return_type()
 // <if_statement> -> if ( <expression> ) <block> else <block>
 bool parse_if_statement()
 {
-	if (currentToken.type == TOKEN_IF)
-	{
-		printf("Parsed if statement: \t%s\n", currentToken.value);
-		getNextToken();
-		if (currentToken.type == TOKEN_LPAR)
-		{
-			getNextToken();
-			if (parse_expression())
-			{
-				if (currentToken.type == TOKEN_RPAR)
-				{
-					getNextToken();
-					if (parse_block())
-					{
-						getNextToken();
+	printf("Parsed if statement: \t%s\n", currentToken.value);
+	getNextToken();
 
-						if (currentToken.type == TOKEN_ELSE)
-						{
-							getNextToken();
-							return parse_block();
-						}
-						return true;
-					}
-				}
-			}
+	if (!currentToken.type == TOKEN_LPAR)
+	{
+		puts("Expected '(' after if statement");
+		return false;
+	}
+
+	getNextToken();
+
+	if (!parse_no_truth_expr())
+	{
+		puts("Error in if statement's expression");
+		return false;
+	}
+
+	if (!currentToken.type == TOKEN_RPAR)
+	{
+		puts("Expected ')' after if statement's expression");
+		return false;
+	}
+
+	getNextToken();
+
+	if (!parse_block())
+	{
+		puts("Error in if statement's block");
+		return false;
+	}
+
+	getNextToken();
+
+	if (currentToken.type == TOKEN_ELSE)
+	{
+		printf("Parsed 'else': \t\t%s\n", currentToken.value);
+		getNextToken();
+
+		if (!parse_block())
+		{
+			puts("Error in 'else' statement's block");
+			return false;
 		}
 	}
-	puts("Error in if statement");
-	return false;
+
+	printf("Parsed 'if' statement with optional 'else' block\n");
+	return true;
 }
 
 // <while_statement> -> while ( <expression> ) <block>
@@ -374,7 +490,7 @@ bool parse_while_statement()
 		{
 			printf("Parsed left parenthesis: \t%s\n", currentToken.value);
 			getNextToken();
-			if (parse_expression())
+			if (parse_no_truth_expr())
 			{
 				if (currentToken.type == TOKEN_RPAR)
 				{
@@ -416,13 +532,13 @@ bool parse_function_call()
 // <argument_list> -> <expression> (, <expression>)* | ε
 bool parse_argument_list()
 {
-	if (!parse_expression())
+	if (!parse_no_truth_expr())
 		return false;
 
 	while (currentToken.type == TOKEN_COMMA)
 	{
 		getNextToken();
-		if (!parse_expression())
+		if (!parse_no_truth_expr())
 			return false;
 	}
 
@@ -437,7 +553,6 @@ bool parse_block()
 		puts("Expected '{' at the start of block");
 		return false;
 	}
-	printf("Parsed block: \t\t%s\n", currentToken.value);
 	getNextToken();
 
 	while (currentToken.type != TOKEN_RBRACE)
@@ -449,8 +564,6 @@ bool parse_block()
 		}
 	}
 
-	printf("Finished block: \t\t%s\n", currentToken.value);
-	// getNextToken();
 	return true;
 }
 
@@ -464,7 +577,7 @@ bool parse_return_statement()
 
 		if (currentToken.type != TOKEN_SEMICOLON)
 		{
-			if (!parse_expression())
+			if (!parse_no_truth_expr())
 			{
 				puts("Error: Invalid return expression");
 				return false;
@@ -500,12 +613,12 @@ bool parse_end_with_semicolon()
 // parser decide where to go
 bool parser_decide()
 {
-	printf("Deciding on token: \t%s\n", currentToken.value);
+	printf("\nDeciding on token: \t%s\n", currentToken.value);
 	switch (currentToken.type)
 	{
 	case TOKEN_VAR:
 	case TOKEN_CONST:
-		return parse_variable_definition();
+		return parse_var_def();
 	case TOKEN_PUB:
 		return parse_function_definition();
 	case TOKEN_IDENTIFIER:
