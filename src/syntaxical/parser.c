@@ -259,7 +259,6 @@ bool parse_assignment()
 			if (parse_no_truth_expr())
 			{
 				parse_end_with_semicolon();
-				getNextToken();
 				return true;
 			}
 		}
@@ -273,12 +272,13 @@ bool parse_assignment()
 // <no_truth_expr> -> <term> | <term> <operator> <term>
 bool parse_no_truth_expr()
 {
-	memset(expression, 0, sizeof(expression)); // Reset the global expression buffer
+	memset(expression, 0, sizeof(expression));
 
 	if (!parse_term())
 		return false;
 
-	while (currentToken.type == TOKEN_PLUS || currentToken.type == TOKEN_MINUS || currentToken.type == TOKEN_MULTIPLY || currentToken.type == TOKEN_DIVIDE)
+	while (currentToken.type == TOKEN_PLUS || currentToken.type == TOKEN_MINUS ||
+		   currentToken.type == TOKEN_MULTIPLY || currentToken.type == TOKEN_DIVIDE)
 	{
 		if (!parse_operator())
 			return false;
@@ -321,15 +321,31 @@ bool parse_truth_expr()
 // <term> -> IDENTIFIER | NUMBER | STRING | <function_call>
 bool parse_term()
 {
-	if (currentToken.type == TOKEN_IDENTIFIER || currentToken.type == TOKEN_I32 || currentToken.type == TOKEN_F64 || currentToken.type == TOKEN_STRING)
+	if (currentToken.type == TOKEN_IDENTIFIER)
+	{
+		strncat(expression, currentToken.value, sizeof(expression) - strlen(expression) - 1);
+
+		getLookaheadToken();
+		if (lookaheadToken.type == TOKEN_LPAR)
+		{
+			// Handle function call
+			if (!parse_function_call())
+				return false;
+
+			return true;
+		}
+		else
+		{
+			// It’s just an identifier, so consume the token
+			getNextToken();
+			return true;
+		}
+	}
+	else if (currentToken.type == TOKEN_I32 || currentToken.type == TOKEN_F64 || currentToken.type == TOKEN_STRING)
 	{
 		strncat(expression, currentToken.value, sizeof(expression) - strlen(expression) - 1);
 		getNextToken();
 		return true;
-	}
-	else if (currentToken.type == TOKEN_IDENTIFIER)
-	{
-		return parse_function_call();
 	}
 
 	puts("Expected term (identifier, number, string, or function call)");
@@ -341,6 +357,7 @@ bool parse_operator()
 {
 	if (currentToken.type == TOKEN_PLUS || currentToken.type == TOKEN_MINUS || currentToken.type == TOKEN_MULTIPLY || currentToken.type == TOKEN_DIVIDE)
 	{
+		strncat(expression, currentToken.value, sizeof(expression) - strlen(expression) - 1);
 		getNextToken();
 		return true;
 	}
@@ -526,30 +543,38 @@ bool parse_while_statement()
 // <function_call> -> <identifier> ( <argument_list> )
 bool parse_function_call()
 {
-	if (currentToken.type == TOKEN_IDENTIFIER)
+	printf("Parsing function call for: %s\n", currentToken.value);
+
+	getNextToken();
+	if (currentToken.type != TOKEN_LPAR)
 	{
-		printf("Parsed function call: \t%s\n", currentToken.value);
-		getNextToken();
-		if (currentToken.type == TOKEN_LPAR)
-		{
-			getNextToken();
-			if (parse_argument_list())
-			{
-				if (currentToken.type == TOKEN_RPAR)
-				{
-					getNextToken();
-					return true;
-				}
-			}
-		}
+		puts("Expected '(' for function call");
+		return false;
 	}
-	puts("Expected function call");
-	return false;
+
+	getNextToken();
+	if (currentToken.type != TOKEN_RPAR)
+	{
+		if (!parse_argument_list())
+			return false;
+	}
+
+	if (currentToken.type != TOKEN_RPAR)
+	{
+		puts("Expected ')' at the end of function call");
+		return false;
+	}
+
+	getNextToken();
+	return true;
 }
 
 // <argument_list> -> <expression> (, <expression>)* | ε
 bool parse_argument_list()
 {
+	if (currentToken.type == TOKEN_RPAR)
+		return true;
+
 	if (!parse_no_truth_expr())
 		return false;
 
@@ -560,6 +585,7 @@ bool parse_argument_list()
 			return false;
 	}
 
+	printf("Parsed argument list: %s\n", expression);
 	return true;
 }
 
@@ -643,8 +669,10 @@ bool parser_decide()
 		getLookaheadToken();
 		if (lookaheadToken.type == TOKEN_ASSIGN)
 			return parse_assignment();
-		else
+		else if (lookaheadToken.type == TOKEN_LPAR)
 			return parse_function_call();
+		else
+			return parse_no_truth_expr();
 	case TOKEN_IF:
 		return parse_if_statement();
 	case TOKEN_WHILE:
