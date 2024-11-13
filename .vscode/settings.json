@@ -15,6 +15,14 @@
         "symtable.h": "c",
         "stdio.h": "c",
         "__node_handle": "c",
+        "__bit_reference": "c",
+        "bitset": "c",
+        "deque": "c",
+        "limits": "c",
+        "ratio": "c",
+        "tuple": "c",
+        "ios": "c",
+        "stdlib.h": "c"
         "parser.h": "c"
     }
 }

@@ -13,154 +13,122 @@
 #include "semantical/symtable.h"
 #include "semantical/sem_enums.h"
 #include "utility/binary_search_tree.h"
+#include "semantical/abstract_syntax_tree.h"
+#include "ast_assets/inbuild_funcs.h"
 
 // ####################### Function Call Validation #######################
 
-// Function to init the function call validator
-BST *initFunctionCallValidator(void) {
+// Function to init the funtion call validator
+fnDefinitionsPtr initFunctionDefinitions(void) {
 
-    // create the BST
-    BST *validator = bstInit((void (*)(void **))removeList);
+    // create the validator
+    fnDefinitionsPtr validator = (fnDefinitionsPtr)malloc(sizeof(struct fnDefinitions));
+    if (validator == NULL) return NULL;
+
+    // init the BST
+    validator->funcDefinitions = bstInit((void (*)(void **))_freeFuncDefSameHahs);
+    if (validator->funcDefinitions == NULL) {
+        free(validator);
+        return NULL;
+    }
+
+    // add the inbuild functions
+    fillInBuildInFuncions(validator);
 
     return validator;
 }
 
-// Function to free the validator
-enum ERR_CODES _freeFunctionCallValidator(BST **validator) {
+// Function to add a function definition to the validator
+enum ERR_CODES addFunctionDefinition(fnDefinitionsPtr validator, ASTNodePtr func) {
 
-    // check if the validator is not NULL
-    if (validator == NULL || *validator == NULL) return E_INTERNAL;
-
-    // free the BST
-    if (bstFree(validator) != true) return E_INTERNAL;
-
-    return SUCCESS; 
-}
-
-// Function to find the same hash funcitons in the validator
-LinkedList *_findSameHashFunction(BST *validator, unsigned int hash) {
-
-    // check if the call is valid
-    if (validator == NULL) return NULL;
-
-    // find the functions with the same hash
-
-    LinkedList *sameHashFuncs = (LinkedList *)bstSearchForNode(validator, hash);
-
-    return sameHashFuncs;
-}   
-
-// Function to find a function by name
-enum ERR_CODES _findFunction(BST *validator, char *name, ASTNodePtr *result) {
-
-    // check if call is valid
-    if (validator == NULL || name == NULL) return E_INTERNAL;
-
-    // get the hash of the name
-    unsigned int hash = hashString(name);
-
-    LinkedList *sameHashFuncs = (LinkedList *)bstSearchForNode(validator, hash);
-
-    if (sameHashFuncs == NULL) return E_INTERNAL;
-
-    // we have the hash, need to find the func
-    for (unsigned int i = 0; i < getSize(sameHashFuncs); i++) {
-        ASTNodePtr function  = (ASTNodePtr)getDataAtIndex(sameHashFuncs, i);
-        if (function == NULL || function->type != AST_NODE_FUNCTION) return E_INTERNAL;
-        if (strcmp(function->data->function->functionName, name) == 0) {
-            *result = function;
-            return SUCCESS;
-        } 
-    }
-
-    *result = NULL;
-    return SUCCESS;
-}
-
-// Function to add a new function definition to the validator
-enum ERR_CODES addFunctionDefinition(BST *validator, ASTNodePtr func) {
-    
-    // check if the call is valid
+    // internal error handeling
     if (validator == NULL || func == NULL) return E_INTERNAL;
-
-    // check for right type of function AST
     if (func->type != AST_NODE_FUNCTION) return E_INTERNAL;
 
-    // get the function name
-    char *name = func->data->function->functionName;
-    unsigned int hash = hashString(name);
+    unsigned int hash = hashString(func->data->function->functionName);
 
-    // find the funcitons with the same hash
-    LinkedList *sameHashFuncs = _findSameHashFunction(validator, hash);
+    // check for redefinition
+    LinkedList *sameHashFunctions = bstSearchForNode(validator->funcDefinitions, hash);
 
-    // we do not have this hash yet, need to inti
-    if (sameHashFuncs == NULL) {
-        sameHashFuncs = initLinkedList(false);
-        if (sameHashFuncs == NULL) return E_INTERNAL;
-        if (!insertNodeAtIndex(sameHashFuncs, (void *)func, 0)) return E_INTERNAL;
-        if (!bstInsertNode(validator, hash, (void *)sameHashFuncs)) return E_INTERNAL;
+    // save the new function
+    if (sameHashFunctions == NULL) {
+        sameHashFunctions = initLinkedList(false);
+        if (sameHashFunctions == NULL) return E_INTERNAL;
+        if (!insertNodeAtIndex(sameHashFunctions, (void *)func, -1)) return E_INTERNAL;
+        if (!bstInsertNode(validator->funcDefinitions, hash, (void *)sameHashFunctions)) {
+            removeList(&sameHashFunctions);
+            return E_INTERNAL;
+        }
         return SUCCESS;
     }
 
-    // we have the hash, need to find, if we are not redifining the function
-    for (unsigned int i = 0; i < getSize(sameHashFuncs); i++) {
-        ASTNodePtr function = (ASTNodePtr)getDataAtIndex(sameHashFuncs, i);
-        if (function == NULL || function->type != AST_NODE_FUNCTION) return E_INTERNAL;
-        if (strcmp(function->data->function->functionName, name) == 0) return E_SEMANTIC_REDIFINITION;
+    // check for redefinition
+    for (unsigned int i = 0; i < getSize(sameHashFunctions); i++) {
+        ASTNodePtr function = (ASTNodePtr)getDataAtIndex(sameHashFunctions, i);
+        if (function == NULL) return E_INTERNAL;
+        if (strcmp(function->data->function->functionName, func->data->function->functionName) == 0) {
+            return E_SEMANTIC_REDIFINITION;
+        }
     }
 
-    // insert the function into the list
-    if (!insertNodeAtIndex(sameHashFuncs, (void *)func, -1)) return E_INTERNAL;
+    // save the new function
+    if (!insertNodeAtIndex(sameHashFunctions, (void *)func, -1)) return E_INTERNAL;
 
     return SUCCESS;
 }
 
-// Function to validate a function call
-enum ERR_CODES validateFunctionCall(BST *validator, ASTNodePtr call, enum DATA_TYPES *returnType) {
+// Function to find a function definition based on a function name
+ASTNodePtr findFunctionDefinition(fnDefinitionsPtr validator, char *functionName) {
 
-    // check if the call is valid
-    if (validator == NULL || call == NULL || returnType == NULL) return E_INTERNAL;
+    // internal error handeling
+    if (validator == NULL || functionName == NULL) return NULL;
 
-    // check for the right type of the call AST
-    if (call->type != AST_NODE_FUNC_CALL) return E_INTERNAL;
+    unsigned int hash = hashString(functionName);
 
-    // get the function name
-    char *name = call->data->functionCall->functionName;
+    // search for the function
+    LinkedList *sameHashFunctions = bstSearchForNode(validator->funcDefinitions, hash);
+    if (sameHashFunctions == NULL) return NULL;
 
-    // find the function in the validator
-    ASTNodePtr function;
-    enum ERR_CODES result = _findFunction(validator, name, &function);
-
-    if (result != SUCCESS) return result;
-
-    // check if the function was found
-    if (function == NULL) return E_SEMANTIC_UND_FUNC_OR_VAR;
-
-    // check if the function has the right number of arguments
-    unsigned int callArgs = getSize(call->data->functionCall->arguments);
-    unsigned int funcArgs = getSize(function->data->function->arguments);
-
-    if (callArgs != funcArgs) return E_SEMANTIC_INVALID_FUN_PARAM;
-
-    // check if the arguments are of the right type
-    LinkedList *callArgsList = call->data->functionCall->arguments;
-    LinkedList *funcArgsList = function->data->function->arguments;
-
-    for (unsigned int i = 0; i < getSize(funcArgsList); i++) {
-        ASTNodePtr callArg = (ASTNodePtr)getDataAtIndex(callArgsList, i);
-        ASTNodePtr funcArg = (ASTNodePtr)getDataAtIndex(funcArgsList, i);
-
-        if (callArg == NULL || funcArg == NULL) return E_INTERNAL;
-
-        if (callArg->type != AST_NODE_VARIABLE || funcArg->type != AST_NODE_VARIABLE) return E_INTERNAL;
-        if (callArg->data->variable->type != funcArg->data->variable->type) return E_SEMANTIC_INVALID_FUN_PARAM;
+    // search for the function in the list
+    for (unsigned int i = 0; i < getSize(sameHashFunctions); i++) {
+        ASTNodePtr function = (ASTNodePtr)getDataAtIndex(sameHashFunctions, i);
+        if (function == NULL) return NULL;
+        if (strcmp(function->data->function->functionName, functionName) == 0) {
+            return function;
+        }
     }
 
-    // set the return type
-    *returnType = function->data->function->returnType;
-    return SUCCESS;
+    return NULL;
 }
 
+// helper functio to free a BST node
+void _freeFuncDefSameHahs(LinkedList **list) {
+    if (list == NULL || *list == NULL) return;
+
+    for (unsigned int i = 0; i < getSize(*list); i++) {
+        ASTNodePtr function = (ASTNodePtr)getDataAtIndex(*list, i);
+        if (function == NULL) continue;
+        ASTfreeNode(&function);
+    }
+
+    removeList(list);
+}
+
+// Function to free the function definitions
+bool freeFunctionDefinitions(fnDefinitionsPtr *validator) {
+
+    // internal error handeling
+    if (validator == NULL || *validator == NULL) return false;
+
+    // free the BST
+    bool result = bstFree(&(*validator)->funcDefinitions);
+
+    // free the validator
+    free(*validator);
+    *validator = NULL;
+
+    return result;
+}
 
 // ####################### SYMTABLE #######################
 
@@ -198,14 +166,85 @@ SymTable *symTableInit(void) {
     globalScope->type = SYM_GLOBAL;
     globalScope->key = 0; // key for the global scope
     globalScope->parent = NULL; // no parent
-    globalScope->variables = NULL; // link to variables, in global scope disabled
+    globalScope->variables = bstInit((void (*)(void **))removeList); // link to variables, in global scope disabled
     globalScope->innerScope = NULL; // link to other scopes
+
+    // check for init problems
+    if (globalScope->variables == NULL) {
+        free(globalScope);
+        free(table);
+        return NULL;
+    }
+
+    // init global constants
+    LinkedList *globalConstants = initLinkedList(false);
+    if (globalConstants == NULL) {
+        free(globalScope);
+        free(table);
+        return NULL;
+    }
+
+    // fill in global constants
+    SymVariable *thorwAway = (SymVariable *)malloc(sizeof(SymVariable));
+    if (thorwAway == NULL) {
+        free(globalScope);
+        free(table);
+        free(globalConstants);
+        return NULL;
+    }
+
+    // init the _ variable
+    thorwAway->name = malloc(sizeof(char) * 2);
+    if (thorwAway->name == NULL) {
+        free(thorwAway);
+        free(globalScope);
+        free(table);
+        free(globalConstants);
+        return NULL;
+    }
+    strcpy(thorwAway->name, "_");
+    thorwAway->type = dTypeUndefined;
+    thorwAway->accesed = true;
+    thorwAway->id = 0;
+    thorwAway->mutable = false;
+    thorwAway->nullable = 1;
+    if (!insertNodeAtIndex(globalConstants, (void *)thorwAway, -1)) {
+        free(thorwAway);
+        free(globalScope);
+        free(table);
+        return NULL;
+    }
+   
+    // save the global constants
+    if (!bstInsertNode(globalScope->variables, hashString("_"), (void *)globalConstants)) {
+        free(thorwAway);
+        free(globalScope);
+        free(table);
+        return NULL;
+    }
+
+    // alocate the data thing
+    LinkedList *data = initLinkedList(false);
+    if (data == NULL) {
+        free(globalScope);
+        free(table);
+        return NULL;
+    }
+
+    // save the constant to the data
+    if (!insertNodeAtIndex(data, (void *)thorwAway, -1)) {
+        free(thorwAway);
+        free(globalScope);
+        free(table);
+        return NULL;
+    }
 
     // fill the table
     table->root = globalScope;
     table->currentScope = globalScope;
-    table->varCount = 0;
+    table->varCount = 1;
     table->scopeCount = 1;
+    table->data = data;
 
     return table;
 }
@@ -298,36 +337,22 @@ bool _symTableAllVariablesAccesed(SymTableNode *node) {
 }
 
 // Function to exit the current scope
-bool symTableExitScope(SymTable *table, enum ERR_CODES *returnCode) {
+enum ERR_CODES symTableExitScope(SymTable *table) {
 
     // check if the table is not NULL
     if (table == NULL) {
-        return false;
-    }
-
-    // in case we are trying to exit the global scope
-    if (
-        table->currentScope->innerScope == NULL && 
-        table->currentScope->type == SYM_GLOBAL) {
-        symTableFree(table);
-        if (returnCode != NULL) {
-            *returnCode = SUCCESS;
-        }
-        return true;
+        return E_INTERNAL;
     }
 
     // need to remove the current scope
     SymTableNode *currentScope = table->currentScope;
+    enum ERR_CODES returnCode;
 
     // check if all variables were accesed
     if (_symTableAllVariablesAccesed(currentScope)) {
-        if (returnCode != NULL) {
-            *returnCode = SUCCESS;
-        }
+        returnCode = SUCCESS;
     } else {
-        if (returnCode != NULL) {
-            *returnCode = E_SEMANTIC_UNUSED_VAR;
-        }
+        returnCode = E_SEMANTIC_UND_FUNC_OR_VAR;
     }
 
     // update the current scope
@@ -338,21 +363,21 @@ bool symTableExitScope(SymTable *table, enum ERR_CODES *returnCode) {
     bool result = bstFree(&currentScope->variables);
     free(currentScope);
 
-    return result;
+    if (!result) return E_INTERNAL;
+
+    return returnCode;
 }
 
 // Function to insert a new
-SymVariable *symTableDeclareVariable(SymTable *table, char *name, enum DATA_TYPES type, bool mutable, ASTNodePtr declaration) {
+SymVariable *symTableDeclareVariable(SymTable *table, char *name, enum DATA_TYPES type, bool mutable, int nullable) {
     // Check if the table or current scope is invalid (if global scope declaration is disallowed)
     if (table == NULL || table->currentScope->type == SYM_GLOBAL) {
         return NULL;
     }
 
     // Check if the variable already exists in the current scope
-    SymVariable *var = NULL;
-    if (symTableFindVariable(table, name, &var)) {
-        return NULL; // Variable already exists
-    }
+    SymVariable *var = symTableFindVariable(table, name);
+    if (var != NULL)  return NULL; // Variable already exists
 
     // Allocate memory for a new variable
     SymVariable *newVariable = (SymVariable *)malloc(sizeof(SymVariable));
@@ -360,20 +385,21 @@ SymVariable *symTableDeclareVariable(SymTable *table, char *name, enum DATA_TYPE
         return NULL;
     }
 
-    // Duplicate the name and check if strdup succeeded
-    newVariable->name = name;
+    // Allocate memory for the name and copy it
+    newVariable->name = (char *)malloc(strlen(name) + 1);
     if (newVariable->name == NULL) {
-        free(newVariable); // Cleanup if strdup fails
+        free(newVariable); // Cleanup if malloc fails
         return NULL;
     }
+    strcpy(newVariable->name, name);
 
     table->varCount++; // Increment the variable count
 
     // Initialize other fields
     newVariable->type = type;
     newVariable->mutable = mutable;
+    newVariable->nullable = nullable;
     newVariable->accesed = false;
-    newVariable->declaration = declaration;
     newVariable->id = table->varCount;
 
     // Get the hash of the variable's name
@@ -383,10 +409,21 @@ SymVariable *symTableDeclareVariable(SymTable *table, char *name, enum DATA_TYPE
     BST *variables = table->currentScope->variables;
     void *sameHashVariables = bstSearchForNode(variables, hash);
 
+    // save the data into the linked list dedicated for data
+    if (!insertNodeAtIndex(table->data, (void *)newVariable, -1)) {
+        free(newVariable->name);
+        free(newVariable); // Cleanup if insertion fails
+        return NULL;
+    }
+
     if (sameHashVariables == NULL) {
         // Create a new linked list for variables with the same hash
-        sameHashVariables = initLinkedList(true);
-        insertNodeAtIndex((LinkedList *)sameHashVariables, (void *)newVariable, -1);
+        sameHashVariables = initLinkedList(false);
+        if (!insertNodeAtIndex((LinkedList *)sameHashVariables, (void *)newVariable, -1)) {
+            free(newVariable->name);
+            free(newVariable); // Cleanup if insertion fails
+            return NULL;
+        }
         bstInsertNode(variables, hash, (void *)sameHashVariables);
         return newVariable;    
     } 
@@ -402,11 +439,11 @@ SymVariable *symTableDeclareVariable(SymTable *table, char *name, enum DATA_TYPE
 }
 
 // Function to find a variable in the current scope (including parent scopes)
-bool symTableFindVariable(SymTable *table, char *name, SymVariable **returnData) {
+SymVariable *symTableFindVariable(SymTable *table, char *name) {
 
     // Check if the table or name is null
     if (table == NULL || name == NULL) 
-        return false;
+        return NULL;
 
     // Hash the name to find the corresponding variables
     unsigned int hash = hashString(name);
@@ -433,19 +470,17 @@ bool symTableFindVariable(SymTable *table, char *name, SymVariable **returnData)
                 continue;
 
             // Mark the variable as accessed if found
-            if (returnData != NULL) 
-                *returnData = variable;
 
             variable->accesed = true; // Only mark if you intend to track access
 
-            return true;
+            return variable;
         }
         
         // Move up to the parent scope if not found
         currentScope = currentScope->parent;
     }
     
-    return false; // Variable not found
+    return NULL; // Variable not found
 }
 
 // Function to check, if a variable can be mutated
@@ -474,46 +509,33 @@ void _symTableFreeNode(SymTableNode *node) {
 }
 
 // Function to free the symbol table
-bool symTableFree(SymTable *table) {
+bool symTableFree(SymTable **table) {
+
+    SymTable *tTable = *table;
+
+    printf("current scope type: %d\n", tTable->currentScope->type);
 
     if (table == NULL)
         return false;
 
     // free the inner scopes
-    if (table->root != NULL) 
-        _symTableFreeNode(table->root);
+    if (tTable->root != NULL) 
+        _symTableFreeNode(tTable->root);
+
+    // free the variables
+    for (unsigned int i = 0; i < getSize(tTable->data); i++) {
+        SymVariable *variable = (SymVariable *)getDataAtIndex(tTable->data, i);
+        if (variable == NULL) {
+            return false;
+        }
+        free(variable->name);
+        free(variable);
+    }
+
+    removeList(&tTable->data);
     
     // free the table
-    free(table);
+    free(tTable);
+    *table = NULL;
     return true;
 }
-
-// Function to copy a variable
-SymVariable *copyVariable(SymVariable *variable) {
-
-    // check if the variable is not NULL
-    if (variable == NULL) {
-        return NULL;
-    }
-
-    // allocate memory for the new variable
-    SymVariable *newVariable = (SymVariable *)malloc(sizeof(SymVariable));
-    if (newVariable == NULL) return NULL;
-
-    // copy the name
-    newVariable->name = strdup(variable->name);
-    if (newVariable->name == NULL) {
-        free(newVariable);
-        return NULL;
-    }
-
-    // copy the type
-    newVariable->type = variable->type;
-    newVariable->mutable = variable->mutable;
-    newVariable->accesed = variable->accesed;
-
-    return newVariable;
-
-}
-
-
