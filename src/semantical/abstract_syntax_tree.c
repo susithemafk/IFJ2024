@@ -15,15 +15,6 @@
 #include "utility/linked_list.h"
 #include "utility/enumerations.h"
 
-
-/*
-var a;
-var a = 5;
-var a = a;
-var a = 5 + 6;
-
-*/
-
 // Function to create a new AST Node
 ASTNodePtr ASTcreateNode(enum ASTNodeTypes type) {
 
