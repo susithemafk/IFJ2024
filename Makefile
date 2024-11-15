@@ -28,77 +28,102 @@ SRC_FILES = $(filter-out $(SRC_DIR)/main.c, \
             $(wildcard $(SRC_DIR)/*.c) \
             $(wildcard $(AST_ASSETS_DIR)/*.c))
 
+# Define the `printCmd` variable based on the platform
+printCmd := $(shell if [ "$$(uname)" = "Darwin" ]; then echo "echo"; else echo "echo -e"; fi)
+
 # Targets
 all: main
 
 main: $(SRC_FILES) $(SRC_DIR)/main.c
-	@echo "Building main program..."
+	@$(printCmd) "\033[1;36m==================================\033[0m"
+	@$(printCmd) "Building main program ..."
+	@$(printCmd) "\033[1;36m==================================\033[0m"
 	@$(CC) $(CFLAGS) $(INCLUDES) $(SRC_FILES) $(SRC_DIR)/main.c -o $@
-	@echo "Done."
+	@$(printCmd) "\033[1;36m==================================\033[0m"
+	@$(printCmd) "\033[1;32mBuild completed successfully!   \033[0m"
+	@$(printCmd) "\033[1;36m==================================\033[0m"
 
 run: main
 	@./main < src/input.txt
 
 # Build test target (build only, no execution)
-test_%: $(TEST_DIR)/test_%.c
-	@echo "Building $@..."
+test_%: $(TEST_DIR)/test_%.c	
+	@$(printCmd) "\033[1;36m==================================\033[0m"
+	@$(printCmd) "Building \033[1;33m$@...                  \033[0m"
+	@$(printCmd) "\033[1;36m==================================\033[0m"
 	@rm -f $@
 	@$(CC) $(CFLAGS) $(INCLUDES) $(SRC_FILES) $(TEST_DIR)/test_$*.c -o $@ -std=c99
-	@echo "Done."
+	@$(printCmd) "\033[1;36m==================================\033[0m"
+	@$(printCmd) "\033[1;32mBuild completed successfully!   \033[0m"
+	@$(printCmd) "\033[1;36m==================================\033[0m"
 
 # Run specific test target
 run_%:
-	@echo "Building $@..."
-	$(CC) $(CFLAGS) $(INCLUDES) $(DEBUG_FLAG) $(SRC_FILES) $(TEST_DIR)/test_$*.c -o $@ -std=c99
-	@echo "running $@..."
+	@$(printCmd) "\033[1;36m==================================\033[0m"
+	@$(printCmd) "Building \033[1;33m $@...                  \033[0m"
+	@$(printCmd) "\033[1;36m==================================\033[0m"
+	@$(CC) $(CFLAGS) $(INCLUDES) $(DEBUG_FLAG) $(SRC_FILES) $(TEST_DIR)/test_$*.c -o $@ -std=c99
+	@$(printCmd) "\033[1;36m==================================\033[0m"
+	@$(printCmd) "Running \033[1;33m $@...                   \033[0m"
+	@$(printCmd) "\033[1;36m==================================\033[0m"
 	@if [ "$*" = "lex" ]; then \
 		./$@ < ./tests/lexical/input.txt; \
 	else \
 		./$@; \
 	fi
 	@rm -f $@
-	@echo "Cleaning $@..."
-	@echo "Done."
+	@$(printCmd) "\033[1;36m==================================\033[0m"
+	@$(printCmd) "\033[1;32mCleaning $@...            \033[0m"
+	@$(printCmd) "\033[1;32mProgram run successfully!       \033[0m"
+	@$(printCmd) "\033[1;36m==================================\033[0m"
 
 # Run specific test target with memory check
 valgrind_%:
-	@echo "Building $@..."
+	@$(printCmd) "\033[1;36m==================================\033[0m"
+	@$(printCmd) "Building \033[1;33m$@ ...                  \033[0m"
+	@$(printCmd) "\033[1;36m==================================\033[0m"
 	@$(CC) $(CFLAGS) $(INCLUDES) $(SRC_FILES) $(TEST_DIR)/test_$*.c -o $@ -std=c99
-	@echo "Running $@ with memory checker..."
+	@$(printCmd) "\033[1;36m==================================\033[0m"
+	@$(printCmd) "Running \033[1;33m$@\033[0m with memory checker ..."
+	@$(printCmd) "\033[1;36m==================================\033[0m"
 	@if [ "$*" = "lex" ]; then \
 		if [ "$$(uname)" = "Darwin" ]; then \
-			echo "Using leaks on macOS for lex test..."; \
+			$(printCmd) "\033[1;32mUsing leaks on macOS for lex test...\033[0m"; \
 			leaks --atExit --fullStacks -- ./test_$* < ./tests/lexical/input.txt; \
 		else \
-			echo "Using valgrind on non-macOS system for lex test..."; \
+			$(printCmd) "\033[1;32mUsing valgrind on non-macOS system for lex test...\033[0m"; \
 			valgrind -s --leak-check=full --track-origins=yes --dsymutil=yes --show-leak-kinds=all ./test_$* < ./tests/lexical/input.txt; \
 		fi; \
 	else \
 		if [ "$$(uname)" = "Darwin" ]; then \
-			echo "Using leaks on macOS..."; \
+			$(printCmd) "\033[1;32mUsing leaks on macOS...\033[0m"; \
 			leaks --atExit --fullStacks -- ./$@; \
 		else \
-			echo "Using valgrind on non-macOS system..."; \
+			$(printCmd) "\033[1;32mUsing valgrind on non-macOS system...\033[0m"; \
 			valgrind -s --leak-check=full --track-origins=yes --dsymutil=yes --show-leak-kinds=all ./$@; \
 		fi; \
 	fi
+	@$(printCmd) "\033[1;36m==================================\033[0m"
+	@$(printCmd) "Memory check complete for \033[1;32m$@"
 	@rm -f $@
-	@echo "Cleaning $@..."
-	@echo "Done."
-
+	@$(printCmd) "\033[1;36mCleaning $@...\033[0m"
+	@$(printCmd) "\033[1;32mProgram run successfully!\033[0m"
+	@$(printCmd) "\033[1;36m==================================\033[0m"
 
 clean:
-	@echo "Cleaning build files..."
+	@$(printCmd) "\033[1;36m==================================\033[0m"
+	@$(printCmd) "\033[1;33mCleaning build files...         \033[0m"
 	@rm -f main test_* ifj_to_go.zip
-	@rm -f 
+	@$(printCmd) "\033[1;32mAll build files cleaned\033[0m"
+	@$(printCmd) "\033[1;36m==================================\033[0m"
 
 zip:
-	@echo "Zipping project..."
-	@cd ../ && zip -rq ./IFJ2024/ifj_to_go.zip ./IFJ2024 -x "*/.git/*" "*/.gitignore" || echo "Zipping failed."
-	@echo "Project zipped successfully: ../IFJ2024/ifj_to_go.zip"
-
-# Define the `printCmd` variable based on the platform
-printCmd := $(shell if [ "$$(uname)" = "Darwin" ]; then echo "echo"; else echo "echo -e"; fi)
+	@$(printCmd) "\033[1;36m==================================\033[0m"
+	@$(printCmd) "\033[1;33mZipping project...              \033[0m"
+	@cd ../ && zip -rq ./IFJ2024/ifj_to_go.zip ./IFJ2024 -x "*/.git/*" "*/.gitignore" || \
+		$(printCmd) "\033[1;31mZipping failed.\033[0m"
+	@$(printCmd) "\033[1;32mProject zipped successfully: ../IFJ2024/ifj_to_go.zip\033[0m"
+	@$(printCmd) "\033[1;36m==================================\033[0m"
 
 # help command
 help:
