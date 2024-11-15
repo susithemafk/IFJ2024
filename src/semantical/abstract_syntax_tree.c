@@ -15,15 +15,6 @@
 #include "utility/linked_list.h"
 #include "utility/enumerations.h"
 
-
-/*
-var a;
-var a = 5;
-var a = a;
-var a = 5 + 6;
-
-*/
-
 // Function to create a new AST Node
 ASTNodePtr ASTcreateNode(enum ASTNodeTypes type) {
 
@@ -565,6 +556,7 @@ enum ERR_CODES ASTeditFunctionNode(ASTNodePtr functionNode, char *functionName, 
 
 // Function to edit the function call node
 enum ERR_CODES ASTeditFunctionCallNode(ASTNodePtr functionCallNode, char *functionName, struct SymVariable *varArg, TOKEN_PTR valueArg) {
+
     //check call validity
     if (functionCallNode == NULL) return E_INTERNAL;
     bool editArg = (varArg != NULL) + (valueArg != NULL) == 1;
@@ -583,14 +575,12 @@ enum ERR_CODES ASTeditFunctionCallNode(ASTNodePtr functionCallNode, char *functi
         if (curFunc->functionName == NULL) return E_INTERNAL;
 
         strcpy(curFunc->functionName, functionName);
-        return SUCCESS;
     }
 
     if (!editArg) return SUCCESS; // skip this part, if we are not editing the argument
 
     // handeling var arguments
     if (varArg != NULL) {
-
         // create the variable node
         ASTNodePtr arg = ASTcreateNode(AST_NODE_VARIABLE);
         if (arg == NULL) return E_INTERNAL;

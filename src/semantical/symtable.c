@@ -105,7 +105,7 @@ ASTNodePtr findFunctionDefinition(fnDefinitionsPtr validator, char *functionName
     return NULL;
 }
 
-// helper functio to free a BST node
+// helper function to free a BST node
 void _freeFuncDefSameHahs(LinkedList **list) {
     if (list == NULL || *list == NULL) return;
 
@@ -211,7 +211,7 @@ SymTable *symTableInit(void) {
         return NULL;
     }
     strcpy(thorwAway->name, "_");
-    thorwAway->type = dTypeUndefined;
+    thorwAway->type = dTypeNone;
     thorwAway->accesed = true;
     thorwAway->id = 0;
     thorwAway->mutable = false;

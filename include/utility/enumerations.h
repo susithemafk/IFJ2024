@@ -15,7 +15,10 @@
 #define COLOR_PASS "\033[0;32m" // Green
 #define COLOR_FAIL "\033[0;31m" // Red
 #define COLOR_WARN "\033[0;33m" // Yellow
+#define COLOR_INFO "\033[0;36m" // Cyan
 #define COLOR_RESET "\033[0m"   // Reset to default
+#define COLOR_FILE "\033[2;37m" // Faint White
+#define COLOR_FUNC "\033[0;35m" // Magenta
 
 /**
  * @brief Enums for error codes
@@ -70,6 +73,7 @@ enum ERR_CODES {
                            eg. memory allocation error, accesing out of bounds, etc.
                        */
 };
+
 
 enum TOKEN_TYPE
 {
@@ -152,6 +156,17 @@ enum TOKEN_TYPE negateOperand(enum TOKEN_TYPE operand);
 */
 enum DATA_TYPES covertTokneDataType(enum TOKEN_TYPE type);
 
+// Debug macro
+#define DEBUG_MSG(message) printDebug(__FILE__, __func__, message)
+
+/**
+ * Function to print out a debug message
+ * 
+ * @param file_name The name of the file
+ * @param message The message to print
+ * @return void
+*/
+void printDebug(const char *file_name, const char *function_name, const char *message);
 
 /**
  * Function to hash a string
@@ -177,8 +192,6 @@ typedef struct TestInstance
  */
 TestInstancePtr initTestInstance(char *testName);
 
-
-
 /**
  * Function to finish the test instance
  *
@@ -196,5 +209,13 @@ void finishTestInstance(TestInstancePtr testInstance);
  * @param testResultFailMsg The message to print if the test fails
  */
 void testCase(TestInstancePtr testInstance, bool testResult, char *testName, char *testResultPassMsg, char *testResultFailMsg);
+
+/**
+ * Function to print the error code
+ * 
+ * @param errCode The error code to print
+ * @return void
+ */
+void printErrCode(enum ERR_CODES errCode);
 
 #endif // ENUMERATIONS_H

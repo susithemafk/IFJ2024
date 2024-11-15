@@ -72,7 +72,7 @@ void fillInBuildInFuncions(fnDefinitionsPtr validator) {
     //pub fn ifj.write(term) void;
     write = ASTcreateNode(AST_NODE_FUNCTION);
     err = ASTeditFunctionNode(write, "ifj.write", dTypeVoid, 0, &write_var);
-
+    addFunctionDefinition(validator, write);
 
     //pub fn ifj.i2f(term: i32) f64;
     i2f = ASTcreateNode(AST_NODE_FUNCTION);

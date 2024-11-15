@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <string.h>
 #include "semantical/sem_validator.h"
 #include "semantical/sem_enums.h"
 #include "utility/linked_list.h"
@@ -16,115 +17,20 @@
 #include "semantical/symtable.h"
 #include "utility/binary_search_tree.h"
 
-// ####################### Validator #######################
-
-// Function to initialize the validator
-ASTValidatorPtr initValidator(void) {
-
-    // create the validator
-    ASTValidatorPtr validator = (ASTValidatorPtr)malloc(sizeof(struct ASTValidator));
-    if (validator == NULL) return NULL;
-
-    // create the stack
-    validator->stack = initLinkedList(false);
-    if (validator->stack == NULL) {
-        free(validator);
-        return NULL;
-    }
-
-    // init the func defs
-    validator->funcDefs = initFunctionDefinitions();
-    if (validator->funcDefs == NULL) {
-        free(validator->stack);
-        free(validator);
-        return NULL;
-    }
-
-    return validator;
-}
-
-// Function to add an AST to the stack
-enum ERR_CODES addASTToStack(ASTValidatorPtr validator, ASTNodePtr ast) {
-
-    // check if the call is valid
-    if (validator == NULL || ast == NULL) return E_INTERNAL;
-
-    // save any function definitions
-    if (ast->type == AST_NODE_FUNCTION) {
-        if (!addFunctionDefinition(validator->funcDefs, ast)) return E_INTERNAL;
-    }
-
-    // insert the AST to the stack
-    if (!insertNodeAtIndex(validator->stack, (void *)ast, -1)) return E_INTERNAL;
-
-    return SUCCESS;
-}
-
-// Function to validate all the ASTs in the stack
-enum ERR_CODES validateASTs(ASTValidatorPtr validator) {
-
-    // check if the call is valid
-    if (validator == NULL) return E_INTERNAL;
-
-    ASTNodePtr currentFunc = NULL;
-
-    // get the size of the stack
-    unsigned int size = getSize(validator->stack);
-
-    // validate all the ASTs in the stack
-    for (unsigned int i = 0; i < size; i++) {
-        ASTNodePtr ast = (ASTNodePtr)getDataAtIndex(validator->stack, i);
-        if (ast == NULL) return E_INTERNAL;
-        if (ast->type == AST_NODE_FUNCTION) currentFunc = ast;
-
-        // validate the AST
-        enum ERR_CODES result = _validateAST(ast, validator->funcDefs, currentFunc);
-        if (result != SUCCESS) {
-            freeValidator(&validator);
-            return result;
-        };
-
-        // call code gen here?
-        // what we have available -> the AST, and the current function definition
-
-        // Free the ast, after the code gen finished, funcion definitions will be freed at the end of the code gen
-        if (ast->type != AST_NODE_FUNCTION) {
-            ASTfreeNode(&ast);
-        }
-    }
-
-    // free the validator
-    freeValidator(&validator);
-
-    return SUCCESS;
-}
-
-// Function to free the validator
-void freeValidator(ASTValidatorPtr *validator) {
-
-    // check if the call is valid
-    if (validator == NULL || *validator == NULL) return;
-
-    // free the function definitions
-    freeFunctionDefinitions(&(*validator)->funcDefs);
-
-    // frre the stack
-    unsigned int size = getSize((*validator)->stack);
-    for (unsigned int i = 0; i < size; i++) {
-        ASTNodePtr ast = (ASTNodePtr)getDataAtIndex((*validator)->stack, i);
-        ASTfreeNode(&ast);
-    }
-
-    removeList(&(*validator)->stack);
-    free(*validator);
-    *validator = NULL;
-}
+// ####################### Semantic validation #######################
 
 // Function to validate the AST
-enum ERR_CODES _validateAST(ASTNodePtr ast, fnDefinitionsPtr funcDefinitions, ASTNodePtr currentFunc) {
+enum ERR_CODES validateAST(ASTNodePtr ast, fnDefinitionsPtr funcDefinitions, ASTNodePtr *currentFunc) {
 
     // check if the call is valid
-    if (ast == NULL || funcDefinitions == NULL) return E_INTERNAL;
+    if (ast == NULL || funcDefinitions == NULL) {
+        #ifdef DEBUG
+        DEBUG_MSG("validateAST - invalid call");
+        #endif
+        return E_INTERNAL;
+    }
+
+    ASTNodePtr funDef;
 
     // check the type of the AST
 
@@ -139,21 +45,26 @@ enum ERR_CODES _validateAST(ASTNodePtr ast, fnDefinitionsPtr funcDefinitions, AS
         case AST_NODE_WHILE:
             return __validateWhile(ast);
         case AST_NODE_RETURN:
-            return __validateReturn(ast, currentFunc);
-        case AST_NODE_FUNC_CALL:
-            return __validateFuncCall(ast, funcDefinitions);
+            return __validateReturn(ast, *currentFunc);
         case AST_NODE_FUNCTION:
-            return SUCCESS; // function definitions shoudl be all fine, this should be handeled by te Func defs validator
+            // if we are entering a function, set the current function
+            *currentFunc = ast;
+            return SUCCESS;
+        case AST_NODE_FUNC_CALL:
+            // if a function call is here, it needs to have a runn type of None, so the definitons should have the return type None
+            funDef = findFunctionDefinition(funcDefinitions, ast->data->functionCall->functionName);
+            if (funDef == NULL) return E_SEMANTIC_UND_FUNC_OR_VAR;
+            if (funDef->data->function->returnType != dTypeVoid) return E_SEMANTIC_INCOMPATABLE_TYPES;
+            return __validateFuncCall(ast, funDef);
         default:
             return E_INTERNAL; // this should never happen, since that would mean bad syntax
     }
 }
 
 // Function to get the return type of a node
-enum DATA_TYPES getOneNodeType(ASTNodePtr node) {
+enum DATA_TYPES ___getOneNodeType(ASTNodePtr node) {
 
     switch (node->type) {
-
         case AST_NODE_VALUE:
             return node->data->value->type;
         case AST_NODE_VARIABLE:
@@ -164,10 +75,9 @@ enum DATA_TYPES getOneNodeType(ASTNodePtr node) {
 }
 
 // Function to check if a node is nullable
-bool nodeIsNullable(ASTNodePtr node) {
+bool ___nodeIsNullable(ASTNodePtr node) {
 
     switch (node->type) {
-
         case AST_NODE_VALUE:
             return false;
         case AST_NODE_VARIABLE:
@@ -177,83 +87,262 @@ bool nodeIsNullable(ASTNodePtr node) {
     }
 }
 
-// Function to change the type of a node
-void changeNodeToType(ASTNodePtr node, enum DATA_TYPES type) {
 
-    if (node == NULL) return;
+enum ERR_CODES ___changeNodeToType(ASTNodePtr node, enum DATA_TYPES type) {
+    if (node == NULL) return E_INTERNAL;
+    if (type == dTypeUndefined || type == dTypeNone || type == dTypeU8) return E_INTERNAL;
 
     switch (node->type) {
-
         case AST_NODE_VALUE:
-            node->data->value->type = type;
-            // in case changing float to int or int to float, change the stored value??
-            break;
+            // incompatable types
+            if (node->data->value->type == dTypeU8) {
+                #ifdef DEBUG
+                DEBUG_MSG("changing type of u8 value");
+                #endif
+                return E_SEMANTIC_INCOMPATABLE_TYPES;
+            };
+
+            // No change needed
+            if (node->data->value->type == type) return SUCCESS;
+
+            // Convert int literal to float
+            if (node->data->value->type == dTypeI32 && type == dTypeF64) {
+                char *oldValue = node->data->value->value;
+                size_t oldLen = strlen(oldValue);
+                char *newValue = malloc(oldLen + 3); // Enough for ".0" and null terminator
+                if (newValue == NULL) return E_INTERNAL;
+
+                snprintf(newValue, oldLen + 3, "%s.0", oldValue);
+                free(oldValue); // Free old value
+                node->data->value->value = newValue;
+                node->data->value->type = dTypeF64;
+                return SUCCESS;
+            } 
+
+            // Convert float literal to int
+            if (node->data->value->type == dTypeF64 && type == dTypeI32) {
+                char *oldValue = node->data->value->value;
+                char *dotPosition = strchr(oldValue, '.');
+
+                // No decimal point, invalid float format
+                if (dotPosition == NULL)  return E_SEMANTIC_INCOMPATABLE_TYPES;
+
+                // Check if all characters after the decimal point are '0'
+                char *p = dotPosition + 1;
+                while (*p == '0') p++;
+
+                // Cannot safely convert
+                if (*p != '\0')   return E_SEMANTIC_INCOMPATABLE_TYPES;
+
+                // If we only found '0's or nothing after '.'
+                size_t newLen = dotPosition - oldValue;
+                char *newValue = malloc(newLen + 1); // Enough for truncated value and null terminator
+                if (newValue == NULL) return E_INTERNAL;
+
+                strncpy(newValue, oldValue, newLen);
+                newValue[newLen] = '\0'; // Null-terminate the string
+
+                free(oldValue); // Free old value
+                node->data->value->value = newValue;
+                node->data->value->type = dTypeI32;
+                return SUCCESS;
+            } 
+            #ifdef DEBUG
+            DEBUG_MSG("unsupported conversion");
+            #endif
+            // Unsupported conversion
+            return E_SEMANTIC_INCOMPATABLE_TYPES;
+
         case AST_NODE_VARIABLE:
-            node->data->variable->type = type;
-            break;
+            if (node->data->variable->type == dTypeU8) {
+                #ifdef DEBUG
+                DEBUG_MSG("trying to change type of u8 variable");
+                #endif
+                return E_SEMANTIC_INCOMPATABLE_TYPES;
+            }
+
+            // if the type has not been set yet, we can covert it.
+            if (node->data->variable->type == dTypeNone) {
+                node->data->variable->type = type;  
+                return SUCCESS;
+            }   
+            // if the type is allready set, we cannot change it
+            if (node->data->variable->type != type) {
+                #ifdef DEBUG
+                DEBUG_MSG("trying to change type of a variable that has allready been set");
+                #endif
+                return E_SEMANTIC_INCOMPATABLE_TYPES;
+            }
+            // pointless call in this case, where type before and after as the same, but whatever
+            return SUCCESS;
+
+        // conversion of other types is not supported
         default:
-            return;
+            #ifdef DEBUG
+            DEBUG_MSG("this should never be seen. Unsupported type conversion");
+            #endif
+            return E_SEMANTIC_INCOMPATABLE_TYPES;
     }
+
+    return E_INTERNAL;
 }
 
 // Function to check if a node is a literal
-enum DATA_TYPES getReturnTypeOnOperation(ASTNodePtr one, ASTNodePtr two, ASTNodePtr operand) {
-    if (one == NULL || two == NULL || operand == NULL) return dTypeUndefined;
-
-    enum DATA_TYPES oneType = getOneNodeType(one);
-    enum DATA_TYPES twoType = getOneNodeType(two);
-
-    // Early rejection for undefined or unsupported types
-    if (oneType == dTypeUndefined || twoType == dTypeUndefined) return dTypeUndefined;
-    if (oneType == dTypeU8 || twoType == dTypeU8) return dTypeUndefined; // u8 is unsupported
-
-    // Handle cases where one node inherits the type from the other
-    if (oneType == dTypeNone) {
-        changeNodeToType(one, twoType);
-        return twoType;
-    }
-    if (twoType == dTypeNone) {
-        changeNodeToType(two, oneType);
-        return oneType;
-    }
-
-    // Special handling for division (`/`)
-    if (operand->data->operand->type == TOKEN_DIVIDE) {
-        if (oneType == dTypeI32 && twoType == dTypeI32) {
-            return dTypeI32; // Integer division
-        }
-        if (oneType == dTypeF64 || twoType == dTypeF64) {
-            // Allow implicit conversion of `i32` literals to `f64`
-            if (one->type == AST_NODE_VALUE && oneType == dTypeI32) {
-                changeNodeToType(one, dTypeF64);
-            }
-            if (two->type == AST_NODE_VALUE && twoType == dTypeI32) {
-                changeNodeToType(two, dTypeF64);
-            }
-            return dTypeF64; // Floating-point division
-        }
-        return dTypeUndefined; // Mixed or unsupported types
-    }
-
-    if (oneType == twoType) {
-        return oneType; // Same types
-    }
-
-    // Handling for `+`, `-`, and `*`
-    // Handle mixed types
-    if ((oneType == dTypeI32 && twoType == dTypeF64) || (oneType == dTypeF64 && twoType == dTypeI32)) {
-        // Allow implicit conversion of `i32` literals to `f64`
-        if (one->type == AST_NODE_VALUE && oneType == dTypeI32) {
-            changeNodeToType(one, dTypeF64);
-        }
-        if (two->type == AST_NODE_VALUE && twoType == dTypeI32) {
-            changeNodeToType(two, dTypeF64);
-        }
-        return dTypeF64; // Mixed operations result in `f64`
-    }
-    return dTypeUndefined; // Unsupported mixed types
+bool ___isLiteral(ASTNodePtr node) {
+    return node && node->type == AST_NODE_VALUE; // Adjust for your AST structure
 }
 
+// Function to check if a node is a literal
+enum DATA_TYPES __getReturnTypeOnOperation(ASTNodePtr one, ASTNodePtr two, ASTNodePtr operand) {
+    // early rejection
+    if (one == NULL || two == NULL || operand == NULL) return dTypeUndefined;
+
+    enum DATA_TYPES oneType = ___getOneNodeType(one);
+    enum DATA_TYPES twoType = ___getOneNodeType(two);
+    enum ERR_CODES err;
+
+    // Early rejection for unsupported or undefined types
+    if (oneType == dTypeUndefined || twoType == dTypeUndefined) return dTypeUndefined;
+    if (oneType == dTypeU8 || twoType == dTypeU8) return dTypeUndefined; // u8 is unsupported
+    if (oneType == dTypeNone || twoType == dTypeNone) return dTypeNone; // Both are undefined
+
+    // If types are the same, operation is valid
+    if (oneType == twoType) return oneType;
+
+    // Handle mixed `i32` and `f64` types
+    if ((oneType == dTypeI32 && twoType == dTypeF64) || (oneType == dTypeF64 && twoType == dTypeI32)) {
+        // Convert the literal operand to match the variable's type
+        if (___isLiteral(one) && oneType == dTypeI32) {
+            err = ___changeNodeToType(one, dTypeF64);
+            return (err == SUCCESS) ? dTypeF64 : dTypeUndefined;
+        }
+        if (___isLiteral(two) && twoType == dTypeI32) {
+            err = ___changeNodeToType(two, dTypeF64);
+            return (err == SUCCESS) ? dTypeF64 : dTypeUndefined;
+        }
+        if (___isLiteral(one) && oneType == dTypeF64) {
+            err = ___changeNodeToType(one, dTypeI32);
+            return (err == SUCCESS) ? dTypeI32 : dTypeUndefined;
+        }
+        if (___isLiteral(two) && twoType == dTypeF64) {
+            err = ___changeNodeToType(two, dTypeI32);
+            return (err == SUCCESS) ? dTypeI32 : dTypeUndefined;
+        }
+
+        // If neither operand is a literal, operation fails
+        return dTypeUndefined;
+    }
+
+    // If types are incompatible
+    return dTypeUndefined;
+}
+
+
+// Function to find out what is the return type of any epxresion
+enum ERR_CODES ___calculateExpresionType(ASTNodePtr expresion, enum DATA_TYPES *retType, bool *nullable) {
+
+    // internal err check
+    if (expresion == NULL) return E_INTERNAL;
+
+    // finish the expresion
+    if (!expresion->finished) {
+        enum ERR_CODES err = ASTfinishExpresion(expresion);
+        if (err != SUCCESS) return err;
+    }
+
+    LinkedList *postFixExpresion = expresion->data->expresion->output;
+
+    LinkedList *stack = initLinkedList(false);
+    if (stack == NULL) return E_INTERNAL;
+
+    // if we have just one value in the epxresion, it can also be null, and the expresion is auto valid
+    if (getSize(postFixExpresion) == 1) {
+        ASTNodePtr node = (ASTNodePtr)getDataAtIndex(postFixExpresion, 0);
+        *nullable = ___nodeIsNullable(node);
+        *retType = ___getOneNodeType(node);
+    }
+
+    // go throught the expresion, 
+    ASTNodePtr node, val1, val2;
+    
+    for (unsigned int i = 0; i < getSize(postFixExpresion); i++) {
+        // read the node form left to right
+        node = (ASTNodePtr)getDataAtIndex(postFixExpresion, i);
+
+        switch (node->type) {
+            // if it is a value or a variable, we just push it to the stack
+            case AST_NODE_VARIABLE:
+            case AST_NODE_VALUE:
+                if (!insertNodeAtIndex(stack, (void *)node, 0)) {
+                    removeList(&stack);
+                    return E_INTERNAL;
+                }
+                break;
+
+            // if it is an operand, we do stack[1] operand stack[0]
+            case AST_NODE_OPERAND:
+                // get the val1
+                if (!popNodeAtIndex(stack, 0, (void *)&val2)) {
+                    removeList(&stack);
+                    return E_SYNTAX;
+                }
+
+                // get the val2
+                if (!popNodeAtIndex(stack, 0, (void *)&val1)) {
+                    removeList(&stack);
+                    return E_SYNTAX;
+                }
+
+                // handle literal conversions
+                enum DATA_TYPES retType = __getReturnTypeOnOperation(val1, val2, node);
+                if (retType == dTypeUndefined) {
+                    removeList(&stack);
+                    return E_SEMANTIC_INCOMPATABLE_TYPES;
+                }
+
+                // oeprating on nullable types
+                if (___nodeIsNullable(val1) || ___nodeIsNullable(val2)) {
+                    removeList(&stack);
+                    return E_SEMANTIC_INCOMPATABLE_TYPES;
+                }
+
+                // now we need to save the result back to the stack, choose the val, which has the same type as the result
+                if (retType == ___getOneNodeType(val1)) {
+                    if (!insertNodeAtIndex(stack, (void *)val1, 0)) {
+                        removeList(&stack);
+                        return E_INTERNAL;
+                    }
+                } else {
+                    if (!insertNodeAtIndex(stack, (void *)val2, 0)) {
+                        removeList(&stack);
+                        return E_INTERNAL;
+                    }
+                }
+                break;
+            default:
+                removeList(&stack);
+                return E_INTERNAL;
+
+        }
+    }
+
+    // now the stack should have only one element, which should have the correc ret type
+    if (getSize(stack) != 1) {
+        removeList(&stack);
+        return E_SYNTAX;
+    }
+
+    node = (ASTNodePtr)getDataAtIndex(stack, 0);
+    if (node == NULL) {
+        removeList(&stack);
+        return E_INTERNAL;
+    }
+
+    *retType = ___getOneNodeType(node);
+    *nullable = false; // exprsion with more than one value cannot be null
+    removeList(&stack);
+    return SUCCESS;
+}
 
 // Function to find the return type of some AST (variable, value, expresion, func call)
 enum ERR_CODES __findASTreturnType(ASTNodePtr ast, fnDefinitionsPtr defs, enum DATA_TYPES *returnType, bool *nullable) {
@@ -278,108 +367,26 @@ enum ERR_CODES __findASTreturnType(ASTNodePtr ast, fnDefinitionsPtr defs, enum D
     if (ast->type == AST_NODE_FUNC_CALL) {
         ASTNodePtr funcDef = findFunctionDefinition(defs, ast->data->functionCall->functionName);
         if (funcDef == NULL) return E_SEMANTIC_UND_FUNC_OR_VAR;
+        enum ERR_CODES err = __validateFuncCall(ast, funcDef);
+        if (err != SUCCESS) {
+            #ifdef DEBUG
+            DEBUG_MSG("failed to validate function call paramaters");
+            #endif
+            return err;
+        }
+
         *returnType = funcDef->data->function->returnType;
         *nullable = funcDef->data->function->nullable;
         return SUCCESS;
     }
 
     // Expresion
-    if (ast->type == AST_NODE_EXPRESION) {
-
-        *nullable = false;
-
-        if (!ast->finished) {
-            enum ERR_CODES err = ASTfinishExpresion(ast);
-            if (err != SUCCESS) return E_INTERNAL;
-        }
-
-        LinkedList *output = initLinkedList(false);
-        if (output == NULL) return E_INTERNAL;
-
-        // go throught the expresion, and find the return type
-        ASTNodePtr oneNode;
-        for (unsigned int i = 0; i < getSize(ast->data->expresion->output); i++) {
-            oneNode = (ASTNodePtr)getDataAtIndex(ast->data->expresion->output, i);
-            if (oneNode == NULL) {
-                removeList(&output);
-                return E_INTERNAL;
-            }
-
-            // if it is value or var, add it to the output stack
-            if (oneNode->type == AST_NODE_VALUE || oneNode->type == AST_NODE_VARIABLE) {
-                if (!insertNodeAtIndex(output, (void *)oneNode, -1)) {
-                    removeList(&output);
-                    return E_INTERNAL;
-                }
-            }
-
-            // in case we have an operand, we pop the first two values, and do some coversion
-            if (oneNode->type == AST_NODE_OPERAND) {
-                ASTNodePtr one, two;
-                if (!popNodeAtIndex(output, 0, (void *)&one)) {
-                    removeList(&output);
-                    return E_SYNTAX;
-                }   
-                if (!popNodeAtIndex(output, 0, (void *)&two)) {
-                    removeList(&output);
-                    return E_SYNTAX;
-                }
-
-                enum DATA_TYPES retType = getReturnTypeOnOperation(one, two, oneNode);
-
-                if (nodeIsNullable(one) != nodeIsNullable(two)) {
-                    removeList(&output);
-                    return E_SEMANTIC_INCOMPATABLE_TYPES;
-                }
-                   
-                if (retType == dTypeUndefined) {
-                    removeList(&output);
-                    *returnType = dTypeUndefined;
-                    return SUCCESS;
-                }
-
-                // add the correct type back
-                if (retType == getOneNodeType(one)) {
-                    if (!insertNodeAtIndex(output, (void *)one, -1)) {
-                        removeList(&output);
-                        return E_INTERNAL;
-                    }
-                } else {
-                    if (!insertNodeAtIndex(output, (void *)two, -1)) {
-                        removeList(&output);
-                        return E_INTERNAL;
-                    }
-                }
-            }
-        }
-
-        // now the stack should have only one element, which should have the correc ret type
-        if (getSize(output) != 1) {
-            removeList(&output);
-            return E_SYNTAX;
-        }
-
-        oneNode = (ASTNodePtr)getDataAtIndex(output, 0);
-        if (oneNode == NULL) {
-            removeList(&output);
-            return E_INTERNAL;
-        }
-
-        *returnType = getOneNodeType(oneNode);
-        removeList(&output);
-        return SUCCESS;
-    }
-
+    if (ast->type == AST_NODE_EXPRESION) return ___calculateExpresionType(ast, returnType, nullable);
     return E_INTERNAL;
 }
 
 // function to validate the declare node
 enum ERR_CODES __validateDeclare(ASTNodePtr ast, fnDefinitionsPtr defs) {
-
-    /*
-    what can happen here? If i am just declaring, it should be fine, so just return success
-    if I am trying to assing some value to the declaration, we should either determin the type of the value, or check if the value is of the correc type
-    */
 
     // check if the value is null
     if (ast->type != AST_NODE_DECLARE) return E_INTERNAL;
@@ -390,22 +397,35 @@ enum ERR_CODES __validateDeclare(ASTNodePtr ast, fnDefinitionsPtr defs) {
     // now we need to find the return type of the value
     enum DATA_TYPES valueType;
     bool nullable;
-
     enum ERR_CODES result = __findASTreturnType(ast->data->declare->value, defs, &valueType, &nullable);
-    if (result != SUCCESS) return result;
+    if (result != SUCCESS) {
+        #ifdef DEBUG
+        DEBUG_MSG("failed to find return type of the value");
+        #endif
+        return result;
+    }
 
     // now, in case expresion can bu null, but we are tryitn to assign to not nullable value, we error out
-    if (nullable && !ast->data->declare->variable->nullable) return E_SEMANTIC_INCOMPATABLE_TYPES;
+    if (nullable && !ast->data->declare->variable->nullable) {
+        #ifdef DEBUG
+        DEBUG_MSG("nullable value assigned to not nullable variable");
+        #endif
+        return E_SEMANTIC_INCOMPATABLE_TYPES;
+    }
 
     // now we check type, if the type is dTypeNone, we can just assign the type
     if (ast->data->declare->variable->type == dTypeNone) {
-        ast->data->declare->variable->type = valueType;
+        if (ast->data->declare->variable->id) ast->data->declare->variable->type = valueType; // ignore the _ variable
         return SUCCESS;
     }
 
     // if the types are not the same, we error out
-    if (ast->data->declare->variable->type != valueType) return E_SEMANTIC_INCOMPATABLE_TYPES;
-
+    if (ast->data->declare->variable->type != valueType) {
+        #ifdef DEBUG
+        DEBUG_MSG("types are not the same");
+        #endif
+        return E_SEMANTIC_INCOMPATABLE_TYPES;
+    }
     return SUCCESS;
 }
 
@@ -423,20 +443,34 @@ enum ERR_CODES __validateAssign(ASTNodePtr ast, fnDefinitionsPtr funcDefinitions
 
     // get the type of the value
     enum ERR_CODES result = __findASTreturnType(ast->data->assign->value, funcDefinitions, &valueType, &nullable);
-    if (result != SUCCESS) return result;   
+    if (result != SUCCESS) {
+        #ifdef DEBUG
+        DEBUG_MSG("failed to find return type of the value");
+        #endif
+        return result;
+    }
 
     // now if we are trying to assign to a not nullable value, but the value can be null, we error out
-    if (nullable && !ast->data->assign->variable->nullable) return E_SEMANTIC_INCOMPATABLE_TYPES;
+    if (nullable && !ast->data->assign->variable->nullable) {
+        #ifdef DEBUG
+        DEBUG_MSG("nullable value assigned to not nullable variable");
+        #endif
+        return E_SEMANTIC_INCOMPATABLE_TYPES;
+    }
 
     // if the variable type is dTypeNone, we can just assign the type
     if (ast->data->assign->variable->type == dTypeNone) {
-        ast->data->assign->variable->type = valueType;
+        if (ast->data->assign->variable->id) ast->data->assign->variable->type = valueType; // ingnore the _ variable
         return SUCCESS;
     }
 
     // if the types are not the same, we error out
-    if (ast->data->assign->variable->type != valueType) return E_SEMANTIC_INCOMPATABLE_TYPES;
-
+    if (ast->data->assign->variable->type != valueType) {
+        #ifdef DEBUG
+        DEBUG_MSG("types are not the same");
+        #endif
+        return E_SEMANTIC_INCOMPATABLE_TYPES;
+    }
     return SUCCESS;
 }
 
@@ -451,11 +485,8 @@ enum ERR_CODES __validateReturn(ASTNodePtr ast, ASTNodePtr currentFunc) {
 
     // if the function is void, we should not return anything
     if (currentFunc->data->function->returnType == dTypeVoid) {
-
         // check if the return value is NULL
         if (ast->data->returnNode->expression == NULL) return SUCCESS;
-
-        // check for return null?
         return E_SEMANTIC_INCOMPATABLE_TYPES;
     }
 
@@ -475,9 +506,117 @@ enum ERR_CODES __validateReturn(ASTNodePtr ast, ASTNodePtr currentFunc) {
     return SUCCESS;
 }
 
+// funciton to validate if a truth expreison is valid or not
+enum ERR_CODES __validateTruthExpresion(ASTNodePtr truthExpression) {
+
+    bool leftNullable, rightNullable;
+    enum DATA_TYPES leftType, rightType;
+    enum ERR_CODES err;
+
+    // get the return type and nullable of the left side
+    err = __findASTreturnType(truthExpression->data->truthExpresion->left, NULL, &leftType, &leftNullable);
+    if (err != SUCCESS) return err;
+    
+    // get the return type and nullable of the right side
+    err = __findASTreturnType(truthExpression->data->truthExpresion->right, NULL, &rightType, &rightNullable);
+    if (err != SUCCESS) return err;
+
+    unsigned int sizeLeft, sizeRight;
+    sizeLeft = getSize(truthExpression->data->truthExpresion->left->data->expresion->output);
+    sizeRight = getSize(truthExpression->data->truthExpresion->right->data->expresion->output);
+    ASTNodePtr leftExp, rightExp;
+
+    // handle nullability
+    switch (truthExpression->data->truthExpresion->operator) {
+        case TOKEN_GREATERTHAN:
+        case TOKEN_GREATEROREQUAL:
+        case TOKEN_LESSOREQUAL:
+        case TOKEN_LESSTHAN:
+            // if any of the types is nullable, operation is invalid
+            if (leftNullable || rightNullable) return E_SEMANTIC_INCOMPATABLE_TYPES;
+            break;
+            // for equality operators, we can have nullable types
+        default:
+            break;
+    }
+
+    // type checking is the same for all operators
+    // expresions on both sidex, types need to match
+    if (sizeLeft != 1 && sizeRight != 1) {
+        if (leftType != rightType) return E_SEMANTIC_INCOMPATABLE_TYPES;
+        return SUCCESS;
+    }
+    // if any one of the types is not i32 and f64, we error out
+    if (leftType != dTypeI32 && leftType != dTypeF64) return E_SEMANTIC_INCOMPATABLE_TYPES;
+    if (rightType != dTypeI32 && rightType != dTypeF64) return E_SEMANTIC_INCOMPATABLE_TYPES;
+
+    // if both sidex are of size 1
+    if (sizeLeft == 1 && sizeRight == 1) {
+        leftExp = (ASTNodePtr)getDataAtIndex(truthExpression->data->truthExpresion->left->data->expresion->output, 0);
+        rightExp = (ASTNodePtr)getDataAtIndex(truthExpression->data->truthExpresion->right->data->expresion->output, 0);
+
+        // both are values
+        if (leftExp->type == AST_NODE_VALUE && rightExp->type == AST_NODE_VALUE) {
+            // try to convert to higher type
+            if (leftType == rightType)  return SUCCESS;
+            if (leftType == dTypeI32) return ___changeNodeToType(leftExp, dTypeF64);
+            return ___changeNodeToType(rightExp, dTypeF64);
+        }
+
+        // both are variables
+        if (leftExp->type == AST_NODE_VARIABLE && rightExp->type == AST_NODE_VARIABLE) {
+            if (leftType != rightType) return E_SEMANTIC_INCOMPATABLE_TYPES;
+            return SUCCESS;
+        }
+
+        // left is value, right is variable
+        if (leftExp->type == AST_NODE_VALUE) return ___changeNodeToType(leftExp, rightType);
+
+        // right is value, left is variable
+        if (rightExp->type == AST_NODE_VALUE) return ___changeNodeToType(rightExp, leftType);
+
+        // to make the compiler happy
+        return E_INTERNAL;
+    }
+
+    // one side is expresion, the other is not
+    if (sizeLeft == 1) {
+        leftExp = (ASTNodePtr)getDataAtIndex(truthExpression->data->truthExpresion->left->data->expresion->output, 0);
+        if (leftExp->type == AST_NODE_VARIABLE) {
+            if (leftType != rightType) return E_SEMANTIC_INCOMPATABLE_TYPES;
+            return SUCCESS;
+        } 
+        // left side is value
+        if (leftType != rightType) {
+            // left side is i32, try to convert to f64
+            if (leftType == dTypeI32) return ___changeNodeToType(leftExp, dTypeF64);
+            // left side is f64, try to convert to i32
+            return ___changeNodeToType(leftExp, dTypeI32);
+        }
+    }
+
+    // right side is expresion, the other is not
+    if (sizeRight == 1) {
+        rightExp = (ASTNodePtr)getDataAtIndex(truthExpression->data->truthExpresion->right->data->expresion->output, 0);
+        if (rightExp->type == AST_NODE_VARIABLE) {
+            if (leftType != rightType) return E_SEMANTIC_INCOMPATABLE_TYPES;
+            return SUCCESS;
+        } 
+        // right side is value
+        if (leftType != rightType) {
+            // right side is i32, try to convert to f64
+            if (rightType == dTypeI32) return ___changeNodeToType(rightExp, dTypeF64);
+            // right side is f64, try to convert to i32
+            return ___changeNodeToType(rightExp, dTypeI32);
+        }
+    }
+
+    // to make the compiler happy
+    return E_INTERNAL;
+}
+
 // function to validate the if else node
 enum ERR_CODES __validateIfElse(ASTNodePtr ast) {
-
 
     // internal err check
     if (ast == NULL) return E_INTERNAL;
@@ -487,58 +626,125 @@ enum ERR_CODES __validateIfElse(ASTNodePtr ast) {
     if ((ast->data->ifElse->condition == NULL) + (ast->data->ifElse->truVar != NULL || ast->data->ifElse->nulVar != NULL) != 1) return E_SYNTAX;
 
     // handeling condition
-    if (ast->data->ifElse->condition != NULL) {
+    if (ast->data->ifElse->condition != NULL) return __validateTruthExpresion(ast->data->ifElse->condition);
 
-        enum ERR_CODES err1, err2;
-        enum DATA_TYPES valueType1, valueType2;
-        bool nullable1, nullable2;
+    // handeling variables
+    if (ast->data->ifElse->truVar == NULL || ast->data->ifElse->nulVar == NULL) return E_SYNTAX;
 
-        // get the return type of the condition
-        err1 = __findASTreturnType(ast->data->ifElse->condition, NULL, &valueType1, &nullable1);
-        if (err1 != SUCCESS) return err1;
-        err2 = __findASTreturnType(ast->data->ifElse->condition, NULL, &valueType2, &nullable2);
-        if (err2 != SUCCESS) return err2;
-
-        // now we have to go about and go along these rules -> 
-        /*
-        Equality Operators (==, !=):
-        Operands of the same type (non-nullable):
-        Valid for comparing i32 with i32, or f64 with f64.
-        Mixed numeric types (e.g., i32 and f64):
-        Valid if at least one operand is a constant/literal and can be implicitly converted without loss.
-        Semantic error: If neither operand is a constant/literal, or the conversion results in precision loss.
-        Nullable types:
-        Nullable types can be compared with other nullable or non-nullable types of the same base type (e.g., ?i32 with i32 or ?i32).
-        Semantic error:
-        Comparison between completely incompatible types (e.g., ?i32 and f64).
-        Nullable types compared to non-nullable types that are not the same base type.
-        Relational Operators (<, >, <=, >=):
-        Operands of the same type (non-nullable):
-        Valid for numeric types (i32 or f64).
-        Mixed numeric types:
-        Valid if implicit conversion of a literal is possible without precision loss (e.g., f64 > 2 is valid because 2 converts to 2.0).
-        Semantic error:
-        If implicit conversion results in precision loss (e.g., i32 > 1.5).
-        If neither operand is a literal or known at compile time.
-        Nullable types:
-        Semantic error: Any relational operation with a nullable operand
-        */
-
-        // if the types are not the same, we error out
-
-        return SUCCESS; // remove 
-
-    }
-
+    return SUCCESS;
 }
 
 // function to validate the while node
 enum ERR_CODES __validateWhile(ASTNodePtr ast) {
 
+    // internal err check
+    if (ast == NULL) return E_INTERNAL;
+    if (ast->type != AST_NODE_WHILE) return E_INTERNAL;
+
+    // here, we can either have a truth expresion, or two variables
+    if ((ast->data->whileLoop->condition == NULL) + (ast->data->whileLoop->truVar != NULL || ast->data->whileLoop->nulVar != NULL) != 1) return E_SYNTAX;
+
+    // handeling condition
+    if (ast->data->whileLoop->condition != NULL) return __validateTruthExpresion(ast->data->whileLoop->condition);
+
+    // handeling variables
+    if (ast->data->whileLoop->truVar == NULL || ast->data->whileLoop->nulVar == NULL) return E_SYNTAX;
+
+    return SUCCESS;
 }
 
 // function to validate the function call node
-enum ERR_CODES __validateFuncCall(ASTNodePtr ast, fnDefinitionsPtr funcDefinitions) {
+enum ERR_CODES __validateFuncCall(ASTNodePtr call, ASTNodePtr funcDef) {
 
+    // check if the call is valid
+    if (call == NULL || funcDef == NULL) return E_INTERNAL;
+
+    // check for correct node type
+    if (call->type != AST_NODE_FUNC_CALL || funcDef->type != AST_NODE_FUNCTION) return E_INTERNAL;
+
+    // validate the arguments types
+    unsigned int defSize = getSize(funcDef->data->function->arguments);
+
+    if (defSize != getSize(call->data->functionCall->arguments)) {
+        #ifdef DEBUG
+        DEBUG_MSG("invalid number of arguments");
+        #endif
+        return E_SEMANTIC_INVALID_FUN_PARAM;
+    }
+
+    ASTNodePtr defArg, callArg;
+    enum DATA_TYPES defArgType, callArgType;
+    bool defArgNullable, callArgNullable;
+
+    // check if the types of the args are the same
+    for (unsigned int i = 0; i < defSize; i++) {
+        defArg = (ASTNodePtr)getDataAtIndex(funcDef->data->function->arguments, i);
+        callArg = (ASTNodePtr)getDataAtIndex(call->data->functionCall->arguments, i);
+
+        // get the types and the nullability of the args
+        defArgType = ___getOneNodeType(defArg);
+        callArgType = ___getOneNodeType(callArg);
+
+        defArgNullable = ___nodeIsNullable(defArg);
+        callArgNullable = ___nodeIsNullable(callArg);
+
+        // if the argument is not nullable, and the call arg is nullable, we error out
+        if (!defArgNullable && callArgNullable) {
+            #ifdef DEBUG
+            DEBUG_MSG("nullable value assigned to not nullable variable");
+            #endif
+            return E_SEMANTIC_INVALID_FUN_PARAM;
+        }
+
+        // if the argument is not defined int he function (for inbuild functions) we return success
+        if (defArgType == dTypeNone) continue;
+
+        // if both types are the same, we have a match
+        if (defArgType == callArgType) continue;;
+
+        // if both args are variables, we error out, since cannot convert variables
+        if (defArg->type == AST_NODE_VARIABLE && callArg->type == AST_NODE_VARIABLE) {
+            #ifdef DEBUG
+            DEBUG_MSG("cannot convert variables");
+            #endif
+            return E_SEMANTIC_INVALID_FUN_PARAM;
+        }
+
+        // in this case, if both args are neither i32 nor f64 we have a probelm
+        if (defArgType != dTypeI32 && defArgType != dTypeF64) {
+            #ifdef DEBUG
+            DEBUG_MSG("invalid function argument type in definition, one is not i32 or f64");
+            #endif
+            return E_SEMANTIC_INVALID_FUN_PARAM;
+        }
+        if (callArgType != dTypeI32 && callArgType != dTypeF64) {
+            #ifdef DEBUG
+            DEBUG_MSG("invalid function argument type in call, one is not i32 or f64");
+            #endif
+            return E_SEMANTIC_INVALID_FUN_PARAM;
+        }
+        
+        // in case we have a variable, that is not inited, or that does not have a type, we know, we have an unknown type, se we err out
+        if (callArgType != dTypeI32 && callArgType != dTypeF64) {
+            #ifdef DEBUG
+            DEBUG_MSG("unknown type");
+            #endif
+            return E_SEMANTIC_UNKNOWN_TYPE;
+        }
+
+        // now, if one of the args is a value, we can try to conver it to the other type
+        if (callArgType == dTypeI32 && defArgType == dTypeF64) return ___changeNodeToType(callArg, dTypeF64);
+
+        // same goes if call arg is f64 and def arg is i32
+        if (callArgType == dTypeF64 && defArgType == dTypeI32) return ___changeNodeToType(callArg, dTypeI32);
+
+        #ifdef DEBUG
+        DEBUG_MSG("should never be here?");
+        #endif
+        // if we are here, we have a problem
+        return E_SEMANTIC_INVALID_FUN_PARAM;
+    }
+
+    return SUCCESS;
 }
 
