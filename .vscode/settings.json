@@ -1,0 +1,27 @@
+{
+    "files.associations": {
+        "linked_list.h": "c",
+        "scanner.h": "c",
+        "type_traits": "c",
+        "xtr1common": "c",
+        "common.h": "c",
+        "initializer_list": "c",
+        "enumerations.h": "c",
+        "stdbool.h": "c",
+        "array": "c",
+        "string": "c",
+        "string_view": "c",
+        "vector": "c",
+        "symtable.h": "c",
+        "stdio.h": "c",
+        "__node_handle": "c",
+        "__bit_reference": "c",
+        "bitset": "c",
+        "deque": "c",
+        "limits": "c",
+        "ratio": "c",
+        "tuple": "c",
+        "ios": "c",
+        "stdlib.h": "c"
+    }
+}
