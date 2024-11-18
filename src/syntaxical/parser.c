@@ -8,7 +8,7 @@
 #include "utility/enumerations.h"
 #include "syntaxical/parser_pass1.h"
 
-void parser_init()
+void parser_init(FILE *input)
 {
 	puts("parser_init");
 
@@ -17,9 +17,8 @@ void parser_init()
 	LinkedList *buffer = initLinkedList(false);
 	puts("buffer initialized");
 
-	enum ERR_CODES err = firstPass(table, stdin, buffer);
+	enum ERR_CODES err = firstPass(table, input, buffer);
 	puts("first pass done");
-
 
 	TOKEN_PTR token = (TOKEN_PTR)getDataAtIndex(buffer, 0);
 	printf("token value: %s\n", token->value);

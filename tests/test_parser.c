@@ -7,7 +7,7 @@
 #include "syntaxical/parser.h"
 #include "syntaxical/parser_pass1.h"
 
-int main() {
-	parser_init();
+int main(void) {
+	parser_init(stdin);
 	return 0;
 }
