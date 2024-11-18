@@ -56,7 +56,7 @@ test_%: $(TEST_DIR)/test_%.c
 	@$(printCmd) "\033[1;36m==================================\033[0m"
 	@$(printCmd) "\033[1;32mBuild completed successfully!   \033[0m"
 	@$(printCmd) "\033[1;36m==================================\033[0m"
-	@if [ "$*" = "lex" ]; then \
+	@if [ "$*" = "lex" ] || [ "$*" = "syntax_pass1" ]; then \
 		./$@ < ./tests/lexical/input.txt; \
 	else \
 		./$@; \
@@ -77,7 +77,7 @@ run_%:
 	@$(printCmd) "\033[1;36m==================================\033[0m"
 	@$(printCmd) "Running \033[1;33m $@...                   \033[0m"
 	@$(printCmd) "\033[1;36m==================================\033[0m"
-	@if [ "$*" = "lex" ]; then \
+	@if [ "$*" = "lex" ] || [ "$*" = "syntax_pass1" ]; then \
 		./$@ < ./tests/lexical/input.txt; \
 	else \
 		./$@; \
@@ -97,21 +97,21 @@ valgrind_%:
 	@$(printCmd) "\033[1;36m==================================\033[0m"
 	@$(printCmd) "Running \033[1;33m$@\033[0m with memory checker ..."
 	@$(printCmd) "\033[1;36m==================================\033[0m"
-	@if [ "$*" = "lex" ]; then \
+	@if [ "$*" = "lex" ] || [ "$*" = "syntax_pass1" ]; then \
 		if [ "$$(uname)" = "Darwin" ]; then \
 			$(printCmd) "\033[1;32mUsing leaks on macOS for lex test...\033[0m"; \
-			leaks --atExit --fullStacks -- ./test_$* < ./tests/lexical/input.txt; \
+			leaks --atExit --fullStacks -- ./valgrind_$* < ./tests/lexical/input.txt; \
 		else \
 			$(printCmd) "\033[1;32mUsing valgrind on non-macOS system for lex test...\033[0m"; \
-			valgrind -s --leak-check=full --track-origins=yes --dsymutil=yes --show-leak-kinds=all ./test_$* < ./tests/lexical/input.txt; \
+			valgrind -s --leak-check=full --track-origins=yes --dsymutil=yes --show-leak-kinds=all ./valgrind_$* < ./tests/lexical/input.txt; \
 		fi; \
 	else \
 		if [ "$$(uname)" = "Darwin" ]; then \
 			$(printCmd) "\033[1;32mUsing leaks on macOS...\033[0m"; \
-			leaks --atExit --fullStacks -- ./$@; \
+			leaks --atExit --fullStacks -- /valgrind_$*; \
 		else \
 			$(printCmd) "\033[1;32mUsing valgrind on non-macOS system...\033[0m"; \
-			valgrind -s --leak-check=full --track-origins=yes --dsymutil=yes --show-leak-kinds=all ./$@; \
+			valgrind -s --leak-check=full --track-origins=yes --dsymutil=yes --show-leak-kinds=all /valgrind_$*; \
 		fi; \
 	fi
 	@$(printCmd) "\033[1;36m==================================\033[0m"
