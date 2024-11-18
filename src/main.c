@@ -13,35 +13,22 @@
 #include "utility/enumerations.h"
 
 #include "lexical/scanner.h"
-#include "syntaxical/parser.h"
 
 static enum ERR_CODES status;
+static struct TOKEN token;
 
 int main(void)
 {
 	FILE *input = stdin;
-	puts("_______Initiating scanner_______");
 	scanner_init(input);
-	puts("_______Initiating parser_______");
 
-	status = parser_init();
+	status = scanner_get_token(&token);
 
-	if (status != SUCCESS)
+	while (status == SUCCESS && token.type != TOKEN_EOF)
 	{
-		printf("Chyba pri inicializaci parseru!\n");
-		return status;
-	}
-
-	status = parser_parse();
-
-	if (status == SUCCESS)
-	{
-		printf("\nSyntaxe je spravna!\n");
-		// AST is ready to work with now
-	}
-	else
-	{
-		printf("\nChyba v syntaxi!\n");
+		// printf("Token type: %d\n", token.type);
+		// printf("Token \n -value: %s\n -type: %d\n\n", token.value, token.type);
+		status = scanner_get_token(&token);
 	}
 
 	return 0;
