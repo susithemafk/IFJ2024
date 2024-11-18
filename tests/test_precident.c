@@ -354,6 +354,83 @@ int main(void) {
 
     freeTestEnviroment(&buffer, &startIdx);
 
+    //testing expressions starting with an operator (multiple)
+    //Test case: + + a;
+    prepareTestEnviroment(&buffer, &startIdx);
+    insertNodeAtIndex(buffer, (void *)&plus, -1);
+    insertNodeAtIndex(buffer, (void *)&plus, -1);
+    insertNodeAtIndex(buffer, (void *)&a, -1);
+    insertNodeAtIndex(buffer, (void *)&semicolon, -1);
+
+    err = startPrecedentAnalysis(buffer, &startIdx, true);
+    testCase(
+        test,
+        err == E_SYNTAX,
+        "Validating expresion -> + + a;",
+        "Precedent analysis failed (expected)",
+        "Precedent analysis passed (unexpected)"
+    );
+    if (err != E_SYNTAX) printErrCode(err);
+
+    freeTestEnviroment(&buffer, &startIdx);
+
+    //Test case: * * a;
+    prepareTestEnviroment(&buffer, &startIdx);
+    insertNodeAtIndex(buffer, (void *)&multiply, -1);
+    insertNodeAtIndex(buffer, (void *)&multiply, -1);
+    insertNodeAtIndex(buffer, (void *)&a, -1);
+    insertNodeAtIndex(buffer, (void *)&semicolon, -1);
+
+    err = startPrecedentAnalysis(buffer, &startIdx, true);
+    testCase(
+        test,
+        err == E_SYNTAX,
+        "Validating expresion -> * * a;",
+        "Precedent analysis failed (expected)",
+        "Precedent analysis passed (unexpected)"
+    );
+    if (err != E_SYNTAX) printErrCode(err);
+
+    freeTestEnviroment(&buffer, &startIdx);
+
+    //Test case: / / a;
+    prepareTestEnviroment(&buffer, &startIdx);
+    insertNodeAtIndex(buffer, (void *)&divide, -1);
+    insertNodeAtIndex(buffer, (void *)&divide, -1);
+    insertNodeAtIndex(buffer, (void *)&a, -1);
+    insertNodeAtIndex(buffer, (void *)&semicolon, -1);
+
+    err = startPrecedentAnalysis(buffer, &startIdx, true);
+    testCase(
+        test,
+        err == E_SYNTAX,
+        "Validating expresion -> / / a;",
+        "Precedent analysis failed (expected)",
+        "Precedent analysis passed (unexpected)"
+    );
+    if (err != E_SYNTAX) printErrCode(err);
+
+    freeTestEnviroment(&buffer, &startIdx);
+
+    //Test case: < < a)
+    prepareTestEnviroment(&buffer, &startIdx);
+    insertNodeAtIndex(buffer, (void *)&lessthan, -1);
+    insertNodeAtIndex(buffer, (void *)&lessthan, -1);
+    insertNodeAtIndex(buffer, (void *)&a, -1);
+    insertNodeAtIndex(buffer, (void *)&rpar, -1);
+
+    err = startPrecedentAnalysis(buffer, &startIdx, true);
+    testCase(
+        test,
+        err == E_SYNTAX,
+        "Validating expresion -> < < a)",
+        "Precedent analysis failed (expected)",
+        "Precedent analysis passed (unexpected)"
+    );
+    if (err != E_SYNTAX) printErrCode(err);
+
+    freeTestEnviroment(&buffer, &startIdx);
+
     // ####################### TRUTH EXPRESIONS #######################
     // test case 1, a == 2) 
     // truth expressions will be only found in ifs and whiles, so the end of the epxression will be )
@@ -441,9 +518,4 @@ int main(void) {
     removeList(&buffer);
     finishTestInstance(test);
 }
-
-
-
-
-
 
