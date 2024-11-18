@@ -41,9 +41,7 @@ struct LinkedList *initLinkedList(bool freeData) {
     // create the instance of the linked list
     struct LinkedList *list = (struct LinkedList *)malloc(sizeof(struct LinkedList)); 
 
-    if (list == NULL) {
-        return NULL;
-    }
+    if (list == NULL) return NULL;
 
     list->head = NULL;
     list->tail = NULL;
@@ -125,8 +123,8 @@ void _addNodeToEnd(struct LinkedList *list, struct Node *node) {
 // Function to move the active element to some index
 bool _moveActiveElement(struct LinkedList *list, int index) {
 
-    // check for internal error
-    unsigned int newIndex = (index < 0) ? list->size + index : index;
+    // convert the index to the positive index
+    unsigned int newIndex = (index < 0) ? list->size + index : (unsigned int)index;
 
     // check for out of bounds
     if (newIndex >= list->size) return false;
@@ -348,7 +346,7 @@ bool removeNodeAtIndex(struct LinkedList *list, int index) {
     return true;
 }
 
-// Function to get data at index
+// Function to get data at indexexit
 void *getDataAtIndex(struct LinkedList *list, int index) {
 
     // check for internal error

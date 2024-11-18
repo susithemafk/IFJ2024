@@ -8,6 +8,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include "semantical/symtable.h"
 #include "semantical/sem_enums.h"
 #include "utility/enumerations.h"
@@ -26,16 +27,45 @@ void test_variables(void) {
         "Failed to initialize a new symbol table (unexpected)"
     );
 
-    // 2. Test that declaring variables in the global scope fails
+    // 2. Test finding the value fohrow away variable in global scope
+    SymVariable *var = symTableFindVariable(table, "_");
+
     testCase(
         testInstance,
-        symTableDeclareVariable(table, "X", dTypeI32, true, NULL) == NULL,
+        var != NULL,
+        "Searching for the throw away variable '_' in the global scope",
+        "Found the throw away variable '_' in the global scope (expected)",
+        "Failed to find the throw away variable '_' in the global scope (unexpected)"
+    );
+
+    // 3. Test if the throw away variable is mutable
+    testCase(
+        testInstance,
+        !symTableCanMutate(var),
+        "Testing if the throw away variable '_' is mutable",
+        "The throw away variable '_' is immutable (expected)",
+        "The throw away variable '_' is mutable (unexpected)"
+    );
+
+    // 4. Test the name of the throw away variable
+    testCase(
+        testInstance,
+        strcmp(var->name, "_") == 0,
+        "Checking the name of the throw away variable",
+        "The name of the throw away variable is '_' (expected)",
+        "The name of the throw away variable is not '_' (unexpected)"
+    );
+
+    // 5. Test that declaring variables in the global scope fails
+    testCase(
+        testInstance,
+        symTableDeclareVariable(table, "X", dTypeI32, true, false) == NULL,
         "Attempting to declare variable 'X' in the global scope (should fail)",
         "Correctly failed to declare 'X' in the global scope (expected)",
         "Unexpectedly succeeded in declaring 'X' in the global scope (unexpected)"
     );
 
-    // 3. Add a new scope (e.g., function)
+    // 6. Add a new scope (e.g., function)
     testCase(
         testInstance,
         symTableMoveScopeDown(table, SYM_FUNCTION),
@@ -44,16 +74,16 @@ void test_variables(void) {
         "Failed to add function scope (unexpected)"
     );
 
-    // 4. Declare variable 'X' inside the function scope
+    // 7. Declare variable 'X' inside the function scope
     testCase(
         testInstance,
-        symTableDeclareVariable(table, "X", dTypeI32, true, NULL) != NULL,
+        symTableDeclareVariable(table, "X", dTypeI32, true, false) != NULL,
         "Declaring variable 'X' in the function scope",
         "Successfully declared 'X' in the function scope (expected)",
         "Failed to declare 'X' in the function scope (unexpected)"
     );
 
-    // 5. Move down to a new scope (e.g., inside a block)
+    // 8. Move down to a new scope (e.g., inside a block)
     testCase(
         testInstance,
         symTableMoveScopeDown(table, SYM_IF),
@@ -62,45 +92,45 @@ void test_variables(void) {
         "Failed to add block scope (unexpected)"
     );
 
-    // 6. Redeclare variable 'X' in the block scope (should fail)
+    // 9. Redeclare variable 'X' in the block scope (should fail)
     testCase(
         testInstance,
-        symTableDeclareVariable(table, "X", dTypeI32, true, NULL) == NULL,
+        symTableDeclareVariable(table, "X", dTypeI32, true, false) == NULL,
         "Attempting to redeclare variable 'X' in the block scope (should fail)",
         "Correctly failed to redeclare 'X' in the block scope (expected)",
         "Unexpectedly succeeded in redeclaring 'X' in the block scope (unexpected)"
     );
 
-    // 7. Declare a new variable 'Y' in the block scope
+    // 10. Declare a new variable 'Y' in the block scope
     testCase(
         testInstance,
-        symTableDeclareVariable(table, "Y", dTypeF64, true, NULL) != NULL,
+        symTableDeclareVariable(table, "Y", dTypeF64, true, false) != NULL,
         "Declaring variable 'Y' in the block scope",
         "Successfully declared 'Y' in the block scope (expected)",
         "Failed to declare 'Y' in the block scope (unexpected)"
     );
 
-    // 8. Test finding 'Y' in the current scope
-    SymVariable *varY = NULL;
+    // 11. Test finding 'Y' in the current scope
+    SymVariable *varY = symTableFindVariable(table, "Y");
     testCase(
         testInstance,
-        symTableFindVariable(table, "Y", &varY),
+        varY != NULL,
         "Searching for variable 'Y' in the block scope",
         "Found 'Y' in the block scope (expected)",
         "Failed to find 'Y' in the block scope (unexpected)"
     );
 
-    // 9. Test finding 'X' from the function scope
-    SymVariable *varX = NULL;
+    // 12. Test finding 'X' from the function scope
+    SymVariable *varX = symTableFindVariable(table, "X");
     testCase(
         testInstance,
-        symTableFindVariable(table, "X", &varX),
+        varX != NULL,
         "Searching for variable 'X' from the function scope",
         "Found 'X' from the function scope (expected)",
         "Failed to find 'X' from the function scope (unexpected)"
     );
 
-    // 10. Check if 'X' is mutable
+    // 13. Check if 'X' is mutable
     testCase(
         testInstance,
         symTableCanMutate(varX),
@@ -109,63 +139,64 @@ void test_variables(void) {
         "Variable 'X' is immutable (unexpected)"
     );
 
-    // 11. Exit block scope and test variable access
-    enum ERR_CODES code;
+    // 14. Test finding the value fohrow away variable in if scope
+    var = symTableFindVariable(table, "_");
+
     testCase(
         testInstance,
-        symTableExitScope(table, &code),
-        "Exiting block scope (we have searched for all the variables)",
-        "Exited block scope (expected)",
-        "Failed to exit block scope (unexpected)"
+        var != NULL,
+        "Searching for the throw away variable '_' in the global scope",
+        "Found the throw away variable '_' in the global scope (expected)",
+        "Failed to find the throw away variable '_' in the global scope (unexpected)"
     );
 
-    // 12. Check for unused variables
+    // 15. Test if the throw away variable is mutable
     testCase(
         testInstance,
-        code == SUCCESS,
+        !symTableCanMutate(var),
+        "Testing if the throw away variable '_' is mutable",
+        "The throw away variable '_' is immutable (expected)",
+        "The throw away variable '_' is mutable (unexpected)"
+    );
+
+    // 16. Test the name of the throw away variable
+    testCase(
+        testInstance,
+        strcmp(var->name, "_") == 0,
+        "Checking the name of the throw away variable",
+        "The name of the throw away variable is '_' (expected)",
+        "The name of the throw away variable is not '_' (unexpected)"
+    );
+
+    // 17. Check for unused variables
+    testCase(
+        testInstance,
+        symTableExitScope(table) == SUCCESS,
         "Checking for unused variables in exited block scope",
         "All variables were used (expected)",
         "Not all variables were used (unexpected)"
     );
 
-    // 13. Exit function scope and test variable access
+    // 18. Check for unused variables in function scope
     testCase(
         testInstance,
-        symTableExitScope(table, &code),
-        "Exiting function scope",
-        "Exited function scope (expected)",
-        "Failed to exit function scope (unexpected)"
-    );
-
-    // 14. Check for unused variables in function scope
-    testCase(
-        testInstance,
-        code == SUCCESS,
+        symTableExitScope(table) == SUCCESS,
         "Checking for unused variables in exited function scope",
-        "All variables were used (expected)",
-        "Not all variables were used (unexpected)"
-    );
-
-    // 15. Exit global scope and test variable access
-    testCase(
-        testInstance,
-        symTableExitScope(table, &code),
-        "Exiting global scope",
-        "Exited global scope (expected)",
-        "Failed to exit global scope (unexpected)"
-    );
-
-    // 16. Check for unused variables in global scope
-    testCase(
-        testInstance,
-        code == SUCCESS,
-        "Checking for unused variables in exited global scope",
         "All variables were used (expected)",
         "Not all variables were used (unexpected)"
     );
 
     // Free the symbol table
     printf("-- Freeing the symbol table (when exiting the global scope)\n");
+
+    // 19. Free the symbol table
+    testCase(
+        testInstance,
+        symTableFree(&table),
+        "Freeing the symbol table",
+        "Successfully freed the symbol table (expected)",
+        "Failed to free the symbol table (unexpected)"
+    );
 
     finishTestInstance(testInstance);
 

@@ -14,6 +14,8 @@
 #include "utility/linked_list.h"
 #include "utility/enumerations.h"
 
+// missing -> return and continue
+
 // types of nodes in the ASTtract syntax tree
 enum ASTNodeTypes {
     AST_NODE_DECLARE, // node for declaration -> var a = 6
@@ -26,7 +28,10 @@ enum ASTNodeTypes {
     AST_NODE_WHILE, // node for while loop -> while (a == 6) { ... }
     AST_NODE_VALUE, // node for value -> 6, 3.14, 'a', "string"
     AST_NODE_VARIABLE, // node for variable -> a
-    AST_NODE_OPERAND // node for operand -> +, -, *, /, ...
+    AST_NODE_OPERAND, // node for operand -> +, -, *, /, ...
+    AST_NODE_RETURN, // node for return -> return a
+    AST_NODE_ELSE_START, // node for else start
+    AST_BLOCK_END // node for block end
 };
 
 // >>>>>>>>>>>>>>>>>>> AST NODES START <<<<<<<<<<<<<<<<<<<<
@@ -61,8 +66,11 @@ typedef union ASTNodeData {
     struct ASTNodeFunction *function; // for functions
     struct ASTNodeWhile *whileLoop; // for while loops
     struct ASTNodeValue *value; // for values
+    struct ASTNodeReturn *returnNode; // for return nodes
     struct SymVariable *variable; // for variables
     struct TOKEN *operand; // for operands
+    bool elseStart; // for else start
+    bool blockEnd; // for if, function and while end
 } *ASTNodeDataPtr;
 
 /**2
@@ -75,6 +83,14 @@ typedef struct ASTNode  {
     bool finished; // if the node is finished inicializing
     ASTNodeDataPtr data; // data of the node 
 } *ASTNodePtr;
+
+/**
+ * @brief Struct for the AST Node return
+ * @param expression - the return expression
+*/
+typedef struct ASTNodeReturn {
+    struct ASTNode *expression; // the return expression
+} *ASTNodeReturnPtr;
 
 /**
  * @brief Struct for the AST Node Declare
@@ -152,7 +168,9 @@ typedef struct ASTNodeExpresion {
  * @param condition - condition of the if statement
 */
 typedef struct ASTNodeIf {
-    ASTNodePtr condition; // condition of the if statement
+    ASTNodePtr condition; // condition for the if statement, should be a truth expresion
+    struct SymVariable *truVar; // variable, that has to be nullabale, in this case it can be used instaid of the condition 
+    struct SymVariable *nulVar; // new variable, only accasable in the if and else block, has to be not be nullable
 } *ASTNodeIfPtr;
 
 /**
@@ -162,8 +180,6 @@ typedef struct ASTNodeIf {
 */
 typedef struct ASTNodeFunctionCall {
     char *functionName; // name of the function
-    struct ASTNode *current; // the current functin, that is being edited
-    struct ASTNode *parent; // in case of a funciton being an argument, this will point to the parent function call
     LinkedList *arguments; // list of arguments
 } *ASTNodeFunctionCallPtr;
 
@@ -175,6 +191,7 @@ typedef struct ASTNodeFunctionCall {
 typedef struct ASTNodeFunction {
     char *functionName; // name of the function
     enum DATA_TYPES returnType; // return type of the function
+    bool nullable; // if the function can return null
     LinkedList *arguments; // list of arguments
 } *ASTNodeFunctionPtr;
 
@@ -184,6 +201,8 @@ typedef struct ASTNodeFunction {
 */
 typedef struct ASTNodeWhile {
     ASTNodePtr condition; // condition of the while loop
+    struct SymVariable *truVar; // variable, that has to be nullabale, in this case it can be used instaid of the condition
+    struct SymVariable *nulVar; // new variable, only accasable in the while block, has to be not be nullable    
 } *ASTNodeWhilePtr;
 
 // >>>>>>>>>>>>>>>>>>> AST NODES END <<<<<<<<<<<<<<<<<<<<

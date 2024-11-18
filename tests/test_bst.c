@@ -30,7 +30,6 @@ void print_tree_node(unsigned int key, void *data) {
     printf("    %d: %u", key, node->key);
 }
 
-
 void test_case_1(void) {
 
     TestInstancePtr testInstance = initTestInstance("Binary Search Tree (BST) Test with ints, malloc");

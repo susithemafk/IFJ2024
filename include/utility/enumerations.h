@@ -15,7 +15,10 @@
 #define COLOR_PASS "\033[0;32m" // Green
 #define COLOR_FAIL "\033[0;31m" // Red
 #define COLOR_WARN "\033[0;33m" // Yellow
+#define COLOR_INFO "\033[0;36m" // Cyan
 #define COLOR_RESET "\033[0m"   // Reset to default
+#define COLOR_FILE "\033[2;37m" // Faint White
+#define COLOR_FUNC "\033[0;35m" // Magenta
 
 /**
  * @brief Enums for error codes
@@ -61,11 +64,16 @@ enum ERR_CODES {
     E_SEMANTIC_OTHER = 10,             /*
                     just other semantic errors, not covered by the previous categories
                 */
+    E_NONE = 11,                        /*
+                    No Error, used internally
+                */
+
     E_INTERNAL = 99                    /*
                            internal error of the compiler, that is a mistake, not caused by the source code
                            eg. memory allocation error, accesing out of bounds, etc.
                        */
 };
+
 
 enum TOKEN_TYPE
 {
@@ -113,21 +121,24 @@ enum TOKEN_TYPE
 	TOKEN_VAR,	  // 33. var
 	TOKEN_VOID,	  // 34. void
 	TOKEN_WHILE,  // 35. while
+    TOKEN_DELETE_VALUE, // 36 delte value ('_')
+    TOKEN_QUESTION_MARK, // 37 question mark ('?')
 };
 
-typedef struct TOKEN
-{
+typedef struct TOKEN {
     char *value;          // Token value
     enum TOKEN_TYPE type; // Token type
 } *TOKEN_PTR;
 
 
 enum DATA_TYPES {
-    dTypeUndefined, // 0. Undefined data type
+    dTypeUndefined, // 0. Undefined data type (used internaly to indacate ignoring of the tyep)
     dTypeNone, // 1. No data type
     dTypeI32, // 2. Integer 32 bit
     dTypeF64, // 3. Float 64 bit
-    dTypeU8 // 4. Unsigned 8 bit
+    dTypeU8, // 4. Unsigned 8 bit
+    dTypeVoid, // 5. Void
+    dTypeBool // 6. Boolean (used internaly)
 };
 
 /**
@@ -146,6 +157,17 @@ enum TOKEN_TYPE negateOperand(enum TOKEN_TYPE operand);
 */
 enum DATA_TYPES covertTokneDataType(enum TOKEN_TYPE type);
 
+// Debug macro
+#define DEBUG_MSG(message) printDebug(__FILE__, __func__, message)
+
+/**
+ * Function to print out a debug message
+ * 
+ * @param file_name The name of the file
+ * @param message The message to print
+ * @return void
+*/
+void printDebug(const char *file_name, const char *function_name, const char *message);
 
 /**
  * Function to hash a string
@@ -171,8 +193,6 @@ typedef struct TestInstance
  */
 TestInstancePtr initTestInstance(char *testName);
 
-
-
 /**
  * Function to finish the test instance
  *
@@ -190,5 +210,21 @@ void finishTestInstance(TestInstancePtr testInstance);
  * @param testResultFailMsg The message to print if the test fails
  */
 void testCase(TestInstancePtr testInstance, bool testResult, char *testName, char *testResultPassMsg, char *testResultFailMsg);
+
+/**
+ * Function to print the error code
+ * 
+ * @param errCode The error code to print
+ * @return void
+ */
+void printErrCode(enum ERR_CODES errCode);
+
+/**
+ * Function to print the token type
+ * 
+ * @param token The token to print
+ * @return void
+ */
+void printTokenType(enum TOKEN_TYPE token);
 
 #endif // ENUMERATIONS_H

@@ -1,85 +1,157 @@
 # Compiler settings
 CC = gcc
 CFLAGS = -std=c99 -Wall -Wextra -pedantic -fcommon
-DBFLAGS = -std=c99 -Wall -Wextra -pedantic -fcommon -g -fsanitize=address
-
-# Include directory
+DBFLAGS = $(CFLAGS) -g -fsanitize=address
 INCLUDES = -Iinclude
 
-# Source directories
+# Directories
 SRC_DIR = src
 CODE_GEN_DIR = $(SRC_DIR)/code_generation
 LEXICAL_DIR = $(SRC_DIR)/lexical
 SEMANTICAL_DIR = $(SRC_DIR)/semantical
 SYNTAXICAL_DIR = $(SRC_DIR)/syntaxical
 UTILITY_DIR = $(SRC_DIR)/utility
-
-# Test directory
+AST_ASSETS_DIR = $(SRC_DIR)/ast_assets
 TEST_DIR = tests
+BUILD_DIR = build
 
-# Collect all .c files from directories
-SRC_FILES = $(wildcard $(CODE_GEN_DIR)/*.c) \
+# Debug flag
+DEBUG_FLAG = -DDEBUG
+
+# main src files without the main.c
+SRC_FILES = $(filter-out $(SRC_DIR)/main.c, \
+            $(wildcard $(CODE_GEN_DIR)/*.c) \
             $(wildcard $(LEXICAL_DIR)/*.c) \
             $(wildcard $(SEMANTICAL_DIR)/*.c) \
             $(wildcard $(SYNTAXICAL_DIR)/*.c) \
             $(wildcard $(UTILITY_DIR)/*.c) \
-            $(wildcard $(SRC_DIR)/*.c)
+            $(wildcard $(SRC_DIR)/*.c) \
+            $(wildcard $(AST_ASSETS_DIR)/*.c))
 
-# Linked list test source files
-LINKED_LIST_TEST_SRC = $(wildcard $(UTILITY_DIR)/*.c) $(TEST_DIR)/test_linked_list.c
-
-# Binary search tree test source files
-BST_TEST_SRC = $(wildcard $(UTILITY_DIR)/*.c) $(TEST_DIR)/test_binary_search_tree.c
-
-# Symbol table test source files
-SYMTABLE_TEST_SRC = $(wildcard $(UTILITY_DIR)/*.c) $(SEMANTICAL_DIR)/symtable.c $(SEMANTICAL_DIR)/abstract_syntax_tree.c $(TEST_DIR)/test_symtable.c
-
-# Lexical analyzer test source files
-LEX_TEST_SRC = $(wildcard $(LEXICAL_DIR)/*.c) $(wildcard $(UTILITY_DIR)/*.c) $(TEST_DIR)/test_lex.c
-
-# AST test source files
-AST_TEST_SRC = $(wildcard $(SEMANTICAL_DIR)/*.c) $(wildcard $(UTILITY_DIR)/*.c) $(TEST_DIR)/test_ast.c
+# Define the `printCmd` variable based on the platform
+printCmd := $(shell if [ "$$(uname)" = "Darwin" ]; then echo "echo"; else echo "echo -e"; fi)
 
 # Targets
 all: main
 
-main: $(SRC_FILES)
-	$(CC) $(CFLAGS) $(INCLUDES) $(SRC_FILES) -o main
-
-clean:
-	rm -f main test_list test_bst test_lex
+main: $(SRC_FILES) $(SRC_DIR)/main.c
+	@$(printCmd) "\033[1;36m==================================\033[0m"
+	@$(printCmd) "Building main program ..."
+	@$(printCmd) "\033[1;36m==================================\033[0m"
+	@$(CC) $(CFLAGS) $(INCLUDES) $(SRC_FILES) $(SRC_DIR)/main.c -o $@
+	@$(printCmd) "\033[1;36m==================================\033[0m"
+	@$(printCmd) "\033[1;32mBuild completed successfully!   \033[0m"
+	@$(printCmd) "\033[1;36m==================================\033[0m"
 
 run: main
-	./main < src/input.txt
+	@./main < src/input.txt
 
-valgrind: main
-	valgrind -s --leak-check=full --track-origins=yes --dsymutil=yes ./main
+# Build test target (build only, no execution)
+test_%: $(TEST_DIR)/test_%.c	
+	@$(printCmd) "\033[1;36m==================================\033[0m"
+	@$(printCmd) "Building with debug flag: \033[1;33m$@...                  \033[0m"
+	@$(printCmd) "\033[1;36m==================================\033[0m"
+	@rm -f $@
+	@$(CC) $(CFLAGS) $(INCLUDES) $(DEBUG_FLAG) $(SRC_FILES) $(TEST_DIR)/test_$*.c -o $@ -std=c99
+	@$(printCmd) "\033[1;36m==================================\033[0m"
+	@$(printCmd) "\033[1;32mBuild completed successfully!   \033[0m"
+	@$(printCmd) "\033[1;36m==================================\033[0m"
+	@if [ "$*" = "lex" ] || [ "$*" = "syntax_pass1" ]; then \
+		./$@ < ./tests/lexical/input.txt; \
+	else \
+		./$@; \
+	fi
+	@rm -f $@
+	@$(printCmd) "\033[1;36m==================================\033[0m"
+	@$(printCmd) "\033[1;32mCleaning $@...            \033[0m"
+	@$(printCmd) "\033[1;32mProgram run successfully!       \033[0m"
+	@$(printCmd) "\033[1;36m==================================\033[0m"
 
-# Compile and run the test for the linked list
-test-list: $(LINKED_LIST_TEST_SRC)
-	$(CC) $(CFLAGS) $(INCLUDES) $(LINKED_LIST_TEST_SRC) -o test_list -std=c99
-	./test_list
-	rm -f test_list
 
-test-bst: $(BST_TEST_SRC)
-	$(CC) $(CFLAGS) $(INCLUDES) $(BST_TEST_SRC) -o test_bst -std=c99
-	./test_bst
-	rm -f test_bst
+# Run specific test target
+run_%:
+	@$(printCmd) "\033[1;36m==================================\033[0m"
+	@$(printCmd) "Building test to run: \033[1;33m $@...                  \033[0m"
+	@$(printCmd) "\033[1;36m==================================\033[0m"
+	@$(CC) $(CFLAGS) $(INCLUDES) $(SRC_FILES) $(TEST_DIR)/test_$*.c -o $@ -std=c99
+	@$(printCmd) "\033[1;36m==================================\033[0m"
+	@$(printCmd) "Running \033[1;33m $@...                   \033[0m"
+	@$(printCmd) "\033[1;36m==================================\033[0m"
+	@if [ "$*" = "lex" ] || [ "$*" = "syntax_pass1" ]; then \
+		./$@ < ./tests/lexical/input.txt; \
+	else \
+		./$@; \
+	fi
+	@rm -f $@
+	@$(printCmd) "\033[1;36m==================================\033[0m"
+	@$(printCmd) "\033[1;32mCleaning $@...            \033[0m"
+	@$(printCmd) "\033[1;32mProgram run successfully!       \033[0m"
+	@$(printCmd) "\033[1;36m==================================\033[0m"
 
-# Compile and run the test for the binary search tree (BST)
-test-symtable: $(SYMTABLE_TEST_SRC)
-	$(CC) $(CFLAGS) $(INCLUDES) $(SYMTABLE_TEST_SRC) -o test_symtable -std=c99
-	./test_symtable
-	rm -f test_symtable
+# Run specific test target with memory check
+valgrind_%:
+	@$(printCmd) "\033[1;36m==================================\033[0m"
+	@$(printCmd) "Building \033[1;33m$@ ...                  \033[0m"
+	@$(printCmd) "\033[1;36m==================================\033[0m"
+	@$(CC) $(CFLAGS) $(INCLUDES) $(SRC_FILES) $(TEST_DIR)/test_$*.c -o $@ -std=c99
+	@$(printCmd) "\033[1;36m==================================\033[0m"
+	@$(printCmd) "Running \033[1;33m$@\033[0m with memory checker ..."
+	@$(printCmd) "\033[1;36m==================================\033[0m"
+	@if [ "$*" = "lex" ] || [ "$*" = "syntax_pass1" ]; then \
+		if [ "$$(uname)" = "Darwin" ]; then \
+			$(printCmd) "\033[1;32mUsing leaks on macOS for lex test...\033[0m"; \
+			leaks --atExit --fullStacks -- ./valgrind_$* < ./tests/lexical/input.txt; \
+		else \
+			$(printCmd) "\033[1;32mUsing valgrind on non-macOS system for lex test...\033[0m"; \
+			valgrind -s --leak-check=full --track-origins=yes --dsymutil=yes --show-leak-kinds=all ./valgrind_$* < ./tests/lexical/input.txt; \
+		fi; \
+	else \
+		if [ "$$(uname)" = "Darwin" ]; then \
+			$(printCmd) "\033[1;32mUsing leaks on macOS...\033[0m"; \
+			leaks --atExit --fullStacks -- /valgrind_$*; \
+		else \
+			$(printCmd) "\033[1;32mUsing valgrind on non-macOS system...\033[0m"; \
+			valgrind -s --leak-check=full --track-origins=yes --dsymutil=yes --show-leak-kinds=all /valgrind_$*; \
+		fi; \
+	fi
+	@$(printCmd) "\033[1;36m==================================\033[0m"
+	@$(printCmd) "Memory check complete for \033[1;32m$@"
+	@rm -f $@
+	@$(printCmd) "\033[1;36mCleaning $@...\033[0m"
+	@$(printCmd) "\033[1;32mProgram run successfully!\033[0m"
+	@$(printCmd) "\033[1;36m==================================\033[0m"
 
-# Compile and run the test for the abstract syntax tree (AST)
-test-ast: $(AST_TEST_SRC)
-	$(CC) $(CFLAGS) $(INCLUDES) $(AST_TEST_SRC) -o test_ast -std=c99
-	./test_ast
-	rm -f test_ast
+clean:
+	@$(printCmd) "\033[1;36m==================================\033[0m"
+	@$(printCmd) "\033[1;33mCleaning build files...         \033[0m"
+	@rm -f main test_* ifj_to_go.zip
+	@$(printCmd) "\033[1;32mAll build files cleaned\033[0m"
+	@$(printCmd) "\033[1;36m==================================\033[0m"
 
-# Compile and run the test for the lexical analyzer (LEX)
-test-lex: $(LEX_TEST_SRC)
-	$(CC) $(CFLAGS) $(INCLUDES) $(LEX_TEST_SRC) -o test_lex -std=c99
-	./test_lex < ./tests/lexical/input.txt
-	rm -f test_lex
+zip:
+	@$(printCmd) "\033[1;36m==================================\033[0m"
+	@$(printCmd) "\033[1;33mZipping project...              \033[0m"
+	@cd ../ && zip -rq ./IFJ2024/ifj_to_go.zip ./IFJ2024 -x "*/.git/*" "*/.gitignore" || \
+		$(printCmd) "\033[1;31mZipping failed.\033[0m"
+	@$(printCmd) "\033[1;32mProject zipped successfully: ../IFJ2024/ifj_to_go.zip\033[0m"
+	@$(printCmd) "\033[1;36m==================================\033[0m"
+
+# help command
+help:
+	@$(printCmd) "\033[1;36m+--------------------------------+-----------------------------------------+--------------------------+\033[0m"
+	@$(printCmd) "\033[1;36m| \033[1;33mCommand                        \033[1;36m| \033[1;33mDescription                             \033[1;36m| \033[1;33mExample                  \033[1;36m|\033[0m"
+	@$(printCmd) "\033[1;36m+--------------------------------+-----------------------------------------+--------------------------+\033[0m"
+	@$(printCmd) "\033[1;36m| \033[1;32mmake\033[2;37m                           \033[0m\033[1;36m| \033[0mCompile the main program                \033[1;36m| \033[1;35mmake                     \033[1;36m|\033[0m"
+	@$(printCmd) "\033[1;36m| \033[1;32mmake\033[2;37m run                       \033[0m\033[1;36m| \033[0mCompile and run the main program        \033[1;36m| \033[1;35mmake run                 \033[1;36m|\033[0m"
+	@$(printCmd) "\033[1;36m| \033[1;32mmake\033[2;37m test_<test_name>          \033[0m\033[1;36m| \033[0mCompile the test program                \033[1;36m| \033[1;35mmake test_ast            \033[1;36m|\033[0m"
+	@$(printCmd) "\033[1;36m| \033[1;32mmake\033[2;37m run_<test_name>      	 \033[0m\033[1;36m| \033[0mCompile and run the test program        \033[1;36m| \033[1;35mmake run_ast             \033[1;36m|\033[0m"
+	@$(printCmd) "\033[1;36m| \033[1;32mmake\033[2;37m valgrind_<test_name> 	 \033[0m\033[1;36m| \033[0mCompile and run the test with Valgrind  \033[1;36m| \033[1;35mmake valgrind_ast        \033[1;36m|\033[0m"
+	@$(printCmd) "\033[1;36m| \033[1;32mmake\033[2;37m clean                     \033[0m\033[1;36m| \033[0mClean build files                       \033[1;36m| \033[1;35mmake clean               \033[1;36m|\033[0m"
+	@$(printCmd) "\033[1;36m| \033[1;32mmake\033[2;37m zip                       \033[0m\033[1;36m| \033[0mZip the project                         \033[1;36m| \033[1;35mmake zip                 \033[1;36m|\033[0m"
+	@$(printCmd) "\033[1;36m| \033[1;32mmake\033[2;37m help                      \033[0m\033[1;36m| \033[0mShow this help message                  \033[1;36m| \033[1;35mmake help                \033[1;36m|\033[0m"
+	@$(printCmd) "\033[1;36m+--------------------------------+-----------------------------------------+--------------------------+\033[0m"
+
+
+
+
+
