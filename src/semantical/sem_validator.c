@@ -497,8 +497,8 @@ enum ERR_CODES __validateReturn(ASTNodePtr ast, ASTNodePtr currentFunc) {
 
     if (err != SUCCESS) return err;
 
-    // if the return type can be null, and we dont have null return, we error out
-    if (currentFunc->data->function->nullable && !nullable) return E_SEMANTIC_INCOMPATABLE_TYPES;
+    // if the return type cant be null, and we have nullable return, we error out
+    if (!currentFunc->data->function->nullable && nullable) return E_SEMANTIC_INCOMPATABLE_TYPES;
 
     // if the return type is not the same as the function return type, we error out
     if (currentFunc->data->function->returnType != valueType) return E_SEMANTIC_INCOMPATABLE_TYPES;

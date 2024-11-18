@@ -49,20 +49,31 @@ run: main
 # Build test target (build only, no execution)
 test_%: $(TEST_DIR)/test_%.c	
 	@$(printCmd) "\033[1;36m==================================\033[0m"
-	@$(printCmd) "Building \033[1;33m$@...                  \033[0m"
+	@$(printCmd) "Building with debug flag: \033[1;33m$@...                  \033[0m"
 	@$(printCmd) "\033[1;36m==================================\033[0m"
 	@rm -f $@
-	@$(CC) $(CFLAGS) $(INCLUDES) $(SRC_FILES) $(TEST_DIR)/test_$*.c -o $@ -std=c99
+	@$(CC) $(CFLAGS) $(INCLUDES) $(DEBUG_FLAG) $(SRC_FILES) $(TEST_DIR)/test_$*.c -o $@ -std=c99
 	@$(printCmd) "\033[1;36m==================================\033[0m"
 	@$(printCmd) "\033[1;32mBuild completed successfully!   \033[0m"
 	@$(printCmd) "\033[1;36m==================================\033[0m"
+	@if [ "$*" = "lex" ]; then \
+		./$@ < ./tests/lexical/input.txt; \
+	else \
+		./$@; \
+	fi
+	@rm -f $@
+	@$(printCmd) "\033[1;36m==================================\033[0m"
+	@$(printCmd) "\033[1;32mCleaning $@...            \033[0m"
+	@$(printCmd) "\033[1;32mProgram run successfully!       \033[0m"
+	@$(printCmd) "\033[1;36m==================================\033[0m"
+
 
 # Run specific test target
 run_%:
 	@$(printCmd) "\033[1;36m==================================\033[0m"
-	@$(printCmd) "Building \033[1;33m $@...                  \033[0m"
+	@$(printCmd) "Building test to run: \033[1;33m $@...                  \033[0m"
 	@$(printCmd) "\033[1;36m==================================\033[0m"
-	@$(CC) $(CFLAGS) $(INCLUDES) $(DEBUG_FLAG) $(SRC_FILES) $(TEST_DIR)/test_$*.c -o $@ -std=c99
+	@$(CC) $(CFLAGS) $(INCLUDES) $(SRC_FILES) $(TEST_DIR)/test_$*.c -o $@ -std=c99
 	@$(printCmd) "\033[1;36m==================================\033[0m"
 	@$(printCmd) "Running \033[1;33m $@...                   \033[0m"
 	@$(printCmd) "\033[1;36m==================================\033[0m"

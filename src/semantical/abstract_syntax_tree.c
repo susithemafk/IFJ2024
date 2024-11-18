@@ -1,7 +1,7 @@
 /** AUTHOR
  * 
  * @author <247581> Martin Mendl
- * @file symbol_tree.c
+ * @file abstract_syntax_tree.c
  * @date 28.9. 2024
  * @brief Implementation of the symbol tree
  */
@@ -254,7 +254,7 @@ bool ASTfreeNode(ASTNodePtr *nodePtr) {
             }
             free(node->data->ifElse);
             break;
-        case AST_NODE_FUNC_CALL: // need to fix free of symvariables
+        case AST_NODE_FUNC_CALL:
             free(node->data->functionCall->functionName);
             for (unsigned int i = 0; i < getSize(node->data->functionCall->arguments); i++) {
                 ASTNodePtr argument = (ASTNodePtr)getDataAtIndex(node->data->functionCall->arguments, i);
@@ -263,7 +263,7 @@ bool ASTfreeNode(ASTNodePtr *nodePtr) {
             result = removeList(&node->data->functionCall->arguments);
             free(node->data->functionCall);
             break;
-        case AST_NODE_FUNCTION: // need to fix free of symvariables
+        case AST_NODE_FUNCTION:
             free(node->data->function->functionName);
             for (unsigned int i = 0; i < getSize(node->data->function->arguments); i++) {
                 ASTNodePtr argument = (ASTNodePtr)getDataAtIndex(node->data->function->arguments, i);

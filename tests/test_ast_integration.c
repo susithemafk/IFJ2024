@@ -55,7 +55,7 @@ void run_tests(void) {
     LinkedList *returnAsts;
     TestInstancePtr test;
 
-    // ####################### TEST CASE 1 #######################
+    // ####################### TEST CASE 1 - valid ASTs #######################
     /*
     AST 1
 

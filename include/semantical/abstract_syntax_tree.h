@@ -1,7 +1,7 @@
 /** AUTHOR
  * 
  * @author <247581> Martin Mendl
- * @file symbol_tree.h
+ * @file abstract_syntax_tree.h
  * @date 28.9. 2024
  * @brief Header file for the symbol tree
  */
