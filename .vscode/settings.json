@@ -22,6 +22,9 @@
         "ratio": "c",
         "tuple": "c",
         "ios": "c",
-        "stdlib.h": "c"
+        "stdlib.h": "c",
+        "__hash_table": "c",
+        "variant": "c",
+        "precident.h": "c"
     }
 }

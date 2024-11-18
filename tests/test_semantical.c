@@ -21,17 +21,12 @@
 
 int main(void) {
 
-    #ifdef DEBUG
-    DEBUG_MSG("Starting the AST semantic validation test 1");
-    #endif
-
     SymTable *table = symTableInit();
     LinkedList *returnAsts = initLinkedList(false);
-    fnDefinitionsPtr fnDefs = initFunctionDefinitions();
     TestInstancePtr test = initTestInstance("AST semantic validation test 1");
     enum ERR_CODES err;
-    bool result;
     ASTNodePtr ast;
+    SymFunctionPtr fnDef;
     /*
     AST 1
 
@@ -40,6 +35,12 @@ int main(void) {
         return r;
     }
     */
+    // first pass, add the function definitions
+    fnDef = symInitFuncDefinition();
+    symEditFuncDef(fnDef, "bar", dTypeU8, 0);
+    symAddParamToFunc(fnDef, dTypeU8, false);
+    symTableAddFunction(table, fnDef);
+
     // generate the ASTs for the 1st function
     return_asts_1(table, returnAsts, NULL);
 
@@ -51,6 +52,12 @@ int main(void) {
         return ret;
     }
     */
+    // first add the function definition
+    fnDef = symInitFuncDefinition();
+    symEditFuncDef(fnDef, "foo", dTypeU8, 0);
+    symAddParamToFunc(fnDef, dTypeU8, false);
+    symTableAddFunction(table, fnDef);
+
     // generate the ASTs for the 2nd function
     return_asts_2(table, returnAsts, NULL);
 
@@ -62,31 +69,23 @@ int main(void) {
         _ = bar(par);
     }
     */
+    // first add the function definition
+    fnDef = symInitFuncDefinition();
+    symEditFuncDef(fnDef, "main", dTypeVoid, 0);
+    symTableAddFunction(table, fnDef);
+
     // gnerate the ASTs for the 3rd function
     return_asts_3(table, returnAsts, NULL);
-
-    // save the function definitions
-    for (unsigned int i = 0; i < getSize(returnAsts); i++) {
-        ast = (ASTNodePtr)getDataAtIndex(returnAsts, i);
-        if (ast->type == AST_NODE_FUNCTION) {
-            err = addFunctionDefinition(fnDefs, ast);
-            testCase(
-                test,
-                err == SUCCESS,
-                "Function definition add",
-                "Function definition added",
-                "Function definition failed to add"
-            );
-        }
-    }
 
     // dont need to add the main function, since it will never be called, just by the tests
 
     // now go through the ASTs and validate them
     ASTNodePtr currentFunc;
-    for (unsigned int i = 0; i < getSize(returnAsts); i++) {
+    unsigned int size = getSize(returnAsts);
+    for (unsigned int i = 0; i < size; i++) {
+        printf("test: %u/%u\n", i, size);
         ast = (ASTNodePtr)getDataAtIndex(returnAsts, i);
-        err = validateAST(ast, fnDefs, &currentFunc);
+        err = validateAST(ast, table, &currentFunc);
         testCase(
             test,
             err == SUCCESS,
@@ -95,27 +94,14 @@ int main(void) {
             "AST is invalid"
         );
         if (err != SUCCESS) printErrCode(err);
-        if (ast->type == AST_NODE_FUNCTION) continue;
-        result = ASTfreeNode(&ast);  
-        testCase(
-            test,
-            result,
-            "AST free",
-            "AST freed",
-            "AST failed to free"
-        );
+    }
+
+    for (unsigned int i = 0; i < size; i++) {
+        ast = (ASTNodePtr)getDataAtIndex(returnAsts, i);
+        ASTfreeNode(&ast);
     }
 
     // free the function definitions
-    result = freeFunctionDefinitions(&fnDefs);
-    testCase(
-        test,
-        result,
-        "Function definitions free",
-        "Function definitions freed",
-        "Function definitions failed to free"
-    );
-
     symTableFree(&table);
     finishTestInstance(test);
     removeList(&returnAsts);

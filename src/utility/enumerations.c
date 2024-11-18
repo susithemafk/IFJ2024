@@ -143,6 +143,126 @@ enum DATA_TYPES covertTokneDataType(enum TOKEN_TYPE type) {
     }
 }
 
+// Function to print out a token type
+void printTokenType(enum TOKEN_TYPE token) {
+    switch (token) {
+        case TOKEN_NONE:
+            printf("Token -> %sNONE%s\n", COLOR_WARN, COLOR_RESET);
+            break;
+        case TOKEN_IDENTIFIER:
+            printf("Token -> %sIDENTIFIER%s\n", COLOR_WARN, COLOR_RESET);
+            break;
+        case TOKEN_EOF:
+            printf("Token -> %sEOF%s\n", COLOR_WARN, COLOR_RESET);
+            break;
+        case TOKEN_PLUS:
+            printf("Token -> %sPLUS%s\n", COLOR_WARN, COLOR_RESET);
+            break;
+        case TOKEN_MINUS:
+            printf("Token -> %sMINUS%s\n", COLOR_WARN, COLOR_RESET);
+            break;
+        case TOKEN_DIVIDE:
+            printf("Token -> %sDIVIDE%s\n", COLOR_WARN, COLOR_RESET);
+            break;
+        case TOKEN_MULTIPLY:
+            printf("Token -> %sMULTIPLY%s\n", COLOR_WARN, COLOR_RESET);
+            break;
+        case TOKEN_EQUALS:
+            printf("Token -> %sEQUALS%s\n", COLOR_WARN, COLOR_RESET);
+            break;
+        case TOKEN_LESSTHAN:
+            printf("Token -> %sLESSTHAN%s\n", COLOR_WARN, COLOR_RESET);
+            break;
+        case TOKEN_LESSOREQUAL:
+            printf("Token -> %sLESSOREQUAL%s\n", COLOR_WARN, COLOR_RESET);
+            break;
+        case TOKEN_GREATERTHAN:
+            printf("Token -> %sGREATERTHAN%s\n", COLOR_WARN, COLOR_RESET);
+            break;
+        case TOKEN_GREATEROREQUAL:
+            printf("Token -> %sGREATEROREQUAL%s\n", COLOR_WARN, COLOR_RESET);
+            break;
+        case TOKEN_NOTEQUAL:
+            printf("Token -> %sNOTEQUAL%s\n", COLOR_WARN, COLOR_RESET);
+            break;
+        case TOKEN_STRING:
+            printf("Token -> %sSTRING%s\n", COLOR_WARN, COLOR_RESET);
+            break;
+        case TOKEN_CONCATENATE:
+            printf("Token -> %sCONCATENATE%s\n", COLOR_WARN, COLOR_RESET);
+            break;
+        case TOKEN_ASSIGN:
+            printf("Token -> %sASSIGN%s\n", COLOR_WARN, COLOR_RESET);
+            break;
+        case TOKEN_COLON:
+            printf("Token -> %sCOLON%s\n", COLOR_WARN, COLOR_RESET);
+            break;
+        case TOKEN_COMMA:
+            printf("Token -> %sCOMMA%s\n", COLOR_WARN, COLOR_RESET);
+            break;
+        case TOKEN_LPAR:
+            printf("Token -> %sLPAR%s\n", COLOR_WARN, COLOR_RESET);
+            break;
+        case TOKEN_RPAR:
+            printf("Token -> %sRPAR%s\n", COLOR_WARN, COLOR_RESET);
+            break;
+        case TOKEN_LBRACE:
+            printf("Token -> %sLBRACE%s\n", COLOR_WARN, COLOR_RESET);
+            break;
+        case TOKEN_RBRACE:
+            printf("Token -> %sRBRACE%s\n", COLOR_WARN, COLOR_RESET);
+            break;
+        case TOKEN_SEMICOLON:
+            printf("Token -> %sSEMICOLON%s\n", COLOR_WARN, COLOR_RESET);
+            break;
+        case TOKEN_CONST:
+            printf("Token -> %sCONST%s\n", COLOR_WARN, COLOR_RESET);
+            break;
+        case TOKEN_ELSE:
+            printf("Token -> %sELSE%s\n", COLOR_WARN, COLOR_RESET);
+            break;
+        case TOKEN_FN:
+            printf("Token -> %sFN%s\n", COLOR_WARN, COLOR_RESET);
+            break;
+        case TOKEN_IF:
+            printf("Token -> %sIF%s\n", COLOR_WARN, COLOR_RESET);
+            break;
+        case TOKEN_I32:
+            printf("Token -> %sI32%s\n", COLOR_WARN, COLOR_RESET);
+            break;
+        case TOKEN_F64:
+            printf("Token -> %sF64%s\n", COLOR_WARN, COLOR_RESET);
+            break;
+        case TOKEN_NULL:
+            printf("Token -> %sNULL%s\n", COLOR_WARN, COLOR_RESET);
+            break;
+        case TOKEN_PUB:
+            printf("Token -> %sPUB%s\n", COLOR_WARN, COLOR_RESET);
+            break;
+        case TOKEN_RETURN:
+            printf("Token -> %sRETURN%s\n", COLOR_WARN, COLOR_RESET);
+            break;
+        case TOKEN_U8:
+            printf("Token -> %sU8%s\n", COLOR_WARN, COLOR_RESET);
+            break;
+        case TOKEN_VAR:
+            printf("Token -> %sVAR%s\n", COLOR_WARN, COLOR_RESET);
+            break;
+        case TOKEN_VOID:
+            printf("Token -> %sVOID%s\n", COLOR_WARN, COLOR_RESET);
+            break;
+        case TOKEN_WHILE:
+            printf("Token -> %sWHILE%s\n", COLOR_WARN, COLOR_RESET);
+            break;
+        case TOKEN_DELETE_VALUE:
+            printf("Token -> %sDELETE_VALUE%s\n", COLOR_WARN, COLOR_RESET);
+            break;
+        default:
+            printf("Token -> %sUNKNOWN%s\n", COLOR_WARN, COLOR_RESET);
+            break;
+    }
+}
+
 // Function to initialize a test instance
 TestInstancePtr initTestInstance(char *testName) {
     TestInstancePtr testInstance = (TestInstancePtr)malloc(sizeof(struct TestInstance));

@@ -57,7 +57,7 @@ void return_asts_1(SymTable *table, LinkedList *returnASts, TestInstancePtr test
     }
 
     // declare the params of the function
-    SymVariable *param1 = symTableDeclareVariable(table, "param", dTypeU8, false, -1); // param : []u8
+    SymVariable *param1 = symTableDeclareVariable(table, "param", dTypeU8, false, false); // param : []u8
 
     if (test != NULL) {
         testCase(
@@ -99,7 +99,7 @@ void return_asts_1(SymTable *table, LinkedList *returnASts, TestInstancePtr test
         );
     }
 
-    SymVariable *r1 = symTableDeclareVariable(table, "r", dTypeNone, false, -1); // const r    
+    SymVariable *r1 = symTableDeclareVariable(table, "r", dTypeNone, false, false); // const r    
 
     if (test != NULL) {
         testCase(
@@ -253,7 +253,7 @@ void return_asts_2(SymTable *table, LinkedList *returnASts, TestInstancePtr test
         );
     }
 
-    SymVariable *par = symTableDeclareVariable(table, "par", dTypeU8, false, -1); // par : []u8
+    SymVariable *par = symTableDeclareVariable(table, "par", dTypeU8, false, false); // par : []u8
 
     if (test != NULL) {
         testCase(
@@ -304,7 +304,7 @@ void return_asts_2(SymTable *table, LinkedList *returnASts, TestInstancePtr test
         );
     }
 
-    SymVariable *ret = symTableDeclareVariable(table, "ret", dTypeU8, false, -1); // const ret
+    SymVariable *ret = symTableDeclareVariable(table, "ret", dTypeU8, false, false); // const ret
 
     if (test != NULL) {
         testCase(
@@ -498,7 +498,7 @@ void return_asts_3(SymTable *table, LinkedList *returnASts, TestInstancePtr test
         );
     }
 
-    SymVariable *par3 = symTableDeclareVariable(table, "par", dTypeU8, false, -1); // const par
+    SymVariable *par3 = symTableDeclareVariable(table, "par", dTypeU8, false, false); // const par
 
     if (test != NULL) {
         testCase(

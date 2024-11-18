@@ -124,8 +124,7 @@ enum TOKEN_TYPE
     TOKEN_DELETE_VALUE, // 36 delte value ('_')
 };
 
-typedef struct TOKEN
-{
+typedef struct TOKEN {
     char *value;          // Token value
     enum TOKEN_TYPE type; // Token type
 } *TOKEN_PTR;
@@ -137,7 +136,8 @@ enum DATA_TYPES {
     dTypeI32, // 2. Integer 32 bit
     dTypeF64, // 3. Float 64 bit
     dTypeU8, // 4. Unsigned 8 bit
-    dTypeVoid // 5. Void
+    dTypeVoid, // 5. Void
+    dTypeBool // 6. Boolean (used internaly)
 };
 
 /**
@@ -217,5 +217,13 @@ void testCase(TestInstancePtr testInstance, bool testResult, char *testName, cha
  * @return void
  */
 void printErrCode(enum ERR_CODES errCode);
+
+/**
+ * Function to print the token type
+ * 
+ * @param token The token to print
+ * @return void
+ */
+void printTokenType(enum TOKEN_TYPE token);
 
 #endif // ENUMERATIONS_H

@@ -21,7 +21,7 @@
  * @param funcDefinitions - pointer to the function definitions
  * @return enum ERR_CODES
  */
-enum ERR_CODES validateAST(ASTNodePtr ast, fnDefinitionsPtr funcDefinitions, ASTNodePtr *currentFunc);
+enum ERR_CODES validateAST(ASTNodePtr ast, SymTable *table , ASTNodePtr *currentFunc);
 
 /**
  * Function to get the variable type of a node
@@ -86,7 +86,7 @@ enum ERR_CODES ___calculateExpresionType(ASTNodePtr expresion, enum DATA_TYPES *
  * @return enum ERR_CODES
  * @note this function is internal
 */
-enum ERR_CODES __findASTreturnType(ASTNodePtr ast, fnDefinitionsPtr defs, enum DATA_TYPES *returnType, bool *nullable);
+enum ERR_CODES __findASTreturnType(ASTNodePtr ast, SymTable *table, enum DATA_TYPES *returnType, bool *nullable);
 
 /**
  * Function to validate the declare node
@@ -96,7 +96,7 @@ enum ERR_CODES __findASTreturnType(ASTNodePtr ast, fnDefinitionsPtr defs, enum D
  * @return enum ERR_CODES
  * @note this function is internal
 */
-enum ERR_CODES __validateDeclare(ASTNodePtr ast, fnDefinitionsPtr defs);
+enum ERR_CODES __validateDeclare(ASTNodePtr ast, SymTable *table);
 
 
 /**
@@ -107,7 +107,7 @@ enum ERR_CODES __validateDeclare(ASTNodePtr ast, fnDefinitionsPtr defs);
  * @return enum ERR_CODES
  * @note this function is internal
 */
-enum ERR_CODES __validateAssign(ASTNodePtr ast, fnDefinitionsPtr funcDefinitions);
+enum ERR_CODES __validateAssign(ASTNodePtr ast, SymTable *table);
 
 /**
  * Function to validate the if else node
@@ -152,6 +152,6 @@ enum ERR_CODES __validateWhile(ASTNodePtr ast);
  * @return enum ERR_CODES
  * @note this function is internal
 */
-enum ERR_CODES __validateFuncCall(ASTNodePtr call, ASTNodePtr funcDef);
+enum ERR_CODES __validateFuncCall(ASTNodePtr call, SymFunctionPtr funcDef);
 
 #endif // SEM_VALIDATOR_H
