@@ -7,14 +7,12 @@
 // }
 // while (a > 5) {}
 // b = 5;
-// b = 5 + 5;
+// c = 5 + 5;
 // b = a();
 // a = b();
-
-// var x: i32 = a;
-// var x: i32 = 10 + 5;
-// const y: f64 = 20.5;
-// pub fn add(a: i32, b: i32): i32 { return a; }
-// while (true) {
-// 	x = 5;
-// } // TODO: pridat do lexikalky + odkomentovat v parseru
+// if (E < E) { };
+// if (E > E) { };
+if (E <= E) { };
+// if (E <= E) { };
+// if (E != E) { };
+// if (E == E) { };

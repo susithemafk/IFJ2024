@@ -178,7 +178,8 @@ bool parse_var_def()
 		return false;
 	data_type = strdup(currentToken.value);
 
-	getNextToken();
+	// printf("Current token: %s\n", currentToken.value);
+	// getNextToken();
 
 	if (currentToken.type != TOKEN_ASSIGN)
 		return false;
@@ -225,7 +226,12 @@ bool parse_optional_data_type()
 	if (currentToken.type == TOKEN_COLON)
 	{
 		getNextToken();
-		return parse_data_type();
+		if (!parse_data_type())
+		{
+			puts("Error parsing data type after ':'");
+			return false;
+		}
+		return true;
 	}
 	printf("No data type specified (optional)\n");
 	return true; // ε
@@ -237,6 +243,7 @@ bool parse_data_type()
 	if (currentToken.type == TOKEN_I32 || currentToken.type == TOKEN_F64 || currentToken.type == TOKEN_STRING)
 	{
 		printf("Parsed data type: \t%s\n", currentToken.value);
+		getNextToken();
 		return true;
 	}
 	puts("Expected data type (i32, f64, or string)");
@@ -256,11 +263,16 @@ bool parse_assignment()
 			printf("Parsed assignment: \t%s\n", currentToken.value);
 			getNextToken();
 
-			if (parse_no_truth_expr())
+			if (!parse_no_truth_expr())
 			{
-				parse_end_with_semicolon();
-				return true;
+				puts("Error parsing assignment expression");
+				return false;
 			}
+
+			parse_end_with_semicolon();
+			printf("Added assignment to AST\n");
+			printf("CurrentToken: %s\n", currentToken.value);
+			return true;
 		}
 	}
 
@@ -275,7 +287,9 @@ bool parse_no_truth_expr()
 	memset(expression, 0, sizeof(expression));
 
 	if (!parse_term())
+	{
 		return false;
+	}
 
 	while (currentToken.type == TOKEN_PLUS || currentToken.type == TOKEN_MINUS ||
 		   currentToken.type == TOKEN_MULTIPLY || currentToken.type == TOKEN_DIVIDE)
@@ -369,6 +383,7 @@ bool parse_operator()
 // <comparison_operator> -> == | != | < | > | <= | >=
 bool parse_comparison_operator()
 {
+	printf("CUrrentToken: %s\n", currentToken.value);
 	if (currentToken.type == TOKEN_EQUALS || currentToken.type == TOKEN_NOTEQUAL || currentToken.type == TOKEN_LESSTHAN || currentToken.type == TOKEN_GREATERTHAN || currentToken.type == TOKEN_LESSOREQUAL || currentToken.type == TOKEN_GREATEROREQUAL)
 	{
 		strncat(expression, currentToken.value, sizeof(expression) - strlen(expression) - 1);
@@ -395,6 +410,7 @@ bool parse_function_definition()
 				getNextToken();
 				if (currentToken.type == TOKEN_LPAR)
 				{
+					printf("Parsed left parenthesis: \t%s\n", currentToken.value);
 					getNextToken();
 					if (!parse_parameter_list())
 						return false;
@@ -476,7 +492,7 @@ bool parse_if_statement()
 
 	getNextToken();
 
-	if (!parse_no_truth_expr())
+	if (!parse_truth_expr())
 	{
 		puts("Error in if statement's expression");
 		return false;
@@ -606,6 +622,7 @@ bool parse_block()
 			puts("Error in statement inside block");
 			return false;
 		}
+		getNextToken();
 	}
 
 	return true;
@@ -651,6 +668,7 @@ bool parse_end_with_semicolon()
 		puts("Expected semicolon");
 		return false;
 	}
+	printf("Parsed semicolon: \t%s\n", currentToken.value);
 	return true;
 }
 
@@ -662,22 +680,34 @@ bool parser_decide()
 	{
 	case TOKEN_VAR:
 	case TOKEN_CONST:
+		printf("Going for var def\n");
 		return parse_var_def();
 	case TOKEN_PUB:
+		printf("Going for function definition\n");
 		return parse_function_definition();
 	case TOKEN_IDENTIFIER:
 		getLookaheadToken();
 		if (lookaheadToken.type == TOKEN_ASSIGN)
+		{
+			printf("Going for assignment\n");
 			return parse_assignment();
+		}
 		else if (lookaheadToken.type == TOKEN_LPAR)
+		{
+
+			printf("Going for function call\n");
 			return parse_function_call();
+		}
 		else
 			return parse_no_truth_expr();
 	case TOKEN_IF:
+		printf("Going for if statement\n");
 		return parse_if_statement();
 	case TOKEN_WHILE:
+		printf("Going for while statement\n");
 		return parse_while_statement();
 	case TOKEN_RETURN:
+		printf("Going for return statement\n");
 		return parse_return_statement();
 	default:
 		printf("Syntax error: unexpected token %s\n", currentToken.value);
