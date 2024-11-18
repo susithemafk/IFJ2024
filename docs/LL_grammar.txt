@@ -1,0 +1,103 @@
+Syntaxe programu:
+
+<program> -> <prolog> <functions> EOF
+
+<prolog> -> const ifj = @ import ("ifj24.zig");
+<functions> -> <function> <next_function>
+<next_function> -> ε
+<next_function> -> <function>
+
+<function> -> pub fn <func_id> ( <params> ) <data_type> { <func_body> }
+
+<params> -> <parameter> <parameter_next>
+<params> -> ε
+<parameter> -> <var_id> : <data_type>
+<parameter> -> ε
+<parameter_next> -> , <parameter>
+<parameter_next> -> ε
+
+<var_def> -> const <var_id> : <data_type> = <no_truth_expr>;
+<var_def> -> const <var_id> : <data_type> = <func_call>;
+<var_def> -> var <var_id> : <data_type> = <no_truth_expr>;
+<var_def> -> var <var_id> : <data_type> = <func_call>;
+<var_assign> -> <var_id> = <no_truth_expr>;
+<var_assign> -> <var_id> = <func_call>
+<var_assign> -> _ = <func_call>
+
+<func_call> -> <native_func_call>
+<func_call> -> <user_func_call>
+<native_func_call> -> ifj.<native_func_name> ( <params> );
+<user_func_call> -> <func_id> ( <params> );
+
+<if> -> if ( <truth_expr> ) { <body> } <else>
+<if> -> if ( <no_truth_expr> ) | <var_id> | { <body> } <else>
+<else> -> else { <body> }
+<else> -> ε
+
+<while> -> while ( <truth_expr> ) { <body> }
+<while> -> while ( <no_truth_expr> ) | <var_id> | { <body> }
+
+<body> -> <body_content> <body_content_next>
+<body_content_next> -> <body_content>
+<body_content_next> -> ε
+<body_content> -> <func_call>
+<body_content> -> <var_def>
+<body_content> -> <var_assign>
+<body_content> -> <if>
+<body_content> -> <while>
+<body_content> -> return <ret_value> ;
+<ret_value> -> <no_truth_expr>
+<ret_value> -> ε
+
+<truth_expr>
+<no_truth_expr> -> <arithm_expr>
+<no_truth_expr> -> <null_expr>
+
+<data_type> -> ? <type>
+<data_type> -> <type>
+
+terminály:
+<func_id>
+<var_id>
+<type>
+<null_expr>
+<arithm_expr>
+<truth_expr>
+<prolog>
+<native_func_name>
+---------------------------------------------------
+Pravdivostní výrazy (pouze 1 porovnávací operátor), rozvoj <truth_expr>:
+ S -> R
+ R -> ER'
+ R' -> < E
+ R' -> > E
+ R' -> <= E
+ R' -> >= E
+ R' -> != E
+ R' -> == E
+ R' -> ε
+ numerický rozvoj pravdivostních výrazů
+ E -> T E'
+ E' -> + T E'
+ E' -> - T E'
+ E' -> ε
+ E -> T
+ T -> F T'
+ T' -> * F T'
+ T' -> / F T'
+ T' -> ε
+ F -> ( E )
+ F -> id
+---------------------------------------------------
+Numerické výrazy, rozvoj <arithm_expr>:
+ S -> E
+ E -> T E'
+ E' -> + T E'
+ E' -> - T E'
+ E' -> ε
+ T -> F T'
+ T' -> * F T'
+ T' -> / F T'
+ T' -> ε
+ F -> ( E )
+ F -> id
