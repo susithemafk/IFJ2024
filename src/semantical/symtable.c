@@ -16,129 +16,172 @@
 #include "semantical/abstract_syntax_tree.h"
 #include "ast_assets/inbuild_funcs.h"
 
-// ####################### Function Call Validation #######################
+// ####################### SYMTABLE #######################
 
-// Function to init the funtion call validator
-fnDefinitionsPtr initFunctionDefinitions(void) {
+// Wrapper function to get rid of all the function definitions
+void freeFuncDefsWrapper(void **data) {
 
-    // create the validator
-    fnDefinitionsPtr validator = (fnDefinitionsPtr)malloc(sizeof(struct fnDefinitions));
-    if (validator == NULL) return NULL;
+    if (data == NULL || *data == NULL) return;
 
-    // init the BST
-    validator->funcDefinitions = bstInit((void (*)(void **))_freeFuncDefSameHahs);
-    if (validator->funcDefinitions == NULL) {
-        free(validator);
-        return NULL;
+    LinkedList *list = (LinkedList *)*data;
+    if (list == NULL) return;
+
+    SymFunctionPtr oneFunc;
+    unsigned int size = getSize(list);
+
+    for (unsigned int i = 0; i < size; i++) {
+        oneFunc = (SymFunctionPtr)getDataAtIndex(list, i);
+        symFreeFuncDefinition(&oneFunc);
     }
 
-    // add the inbuild functions
-    fillInBuildInFuncions(validator);
-
-    return validator;
+    removeList(&list);
 }
 
-// Function to add a function definition to the validator
-enum ERR_CODES addFunctionDefinition(fnDefinitionsPtr validator, ASTNodePtr func) {
+// Function to init an empty function definition
+SymFunctionPtr symInitFuncDefinition(void) {
 
-    // internal error handeling
-    if (validator == NULL || func == NULL) return E_INTERNAL;
-    if (func->type != AST_NODE_FUNCTION) return E_INTERNAL;
+    // allocate the memory for the function definition
+    SymFunctionPtr func = (SymFunctionPtr)malloc(sizeof(struct SymFunction));
+    if (func == NULL) return NULL;
 
-    unsigned int hash = hashString(func->data->function->functionName);
+    // init the function definition
+    func->funcName = NULL;
+    func->returnType = dTypeUndefined;
+    func->nullableReturn = false;
+    func->paramaters = NULL;
 
-    // check for redefinition
-    LinkedList *sameHashFunctions = bstSearchForNode(validator->funcDefinitions, hash);
+    return func;
+}
 
-    // save the new function
-    if (sameHashFunctions == NULL) {
-        sameHashFunctions = initLinkedList(false);
-        if (sameHashFunctions == NULL) return E_INTERNAL;
-        if (!insertNodeAtIndex(sameHashFunctions, (void *)func, -1)) return E_INTERNAL;
-        if (!bstInsertNode(validator->funcDefinitions, hash, (void *)sameHashFunctions)) {
-            removeList(&sameHashFunctions);
+// Function to free a function definition
+void symFreeFuncDefinition(SymFunctionPtr *func) {
+
+    if (func == NULL || *func == NULL) return;
+    
+    if ((*func)->funcName != NULL) free((*func)->funcName);
+    if ((*func)->paramaters != NULL) removeList(&(*func)->paramaters);
+
+    free(*func);
+    *func = NULL;
+}
+
+// Function to add a parameter to a function definition
+bool symAddParamToFunc(SymFunctionPtr func, enum DATA_TYPES type, bool nullable) {
+
+    if (func == NULL) return false;
+
+    // alocate the memory for the parameter
+    SymFunctionParamPtr param = (SymFunctionParamPtr)malloc(sizeof(struct SymFunctionParam));
+    if (param == NULL) return false;
+
+    // fill the parameter
+    param->type = type;
+    param->nullable = nullable;
+
+    // add the parameter to the arguments list
+    if (func->paramaters == NULL) {
+        func->paramaters = initLinkedList(true);
+        if (func->paramaters == NULL) {
+            free(param);
+            return false;
+        }
+    }
+
+    // insert
+    if (!insertNodeAtIndex(func->paramaters, (void *)param, -1)) {
+        free(param);
+        return false;
+    }
+
+    return true;
+}
+
+// Function to edit a function definition
+bool symEditFuncDef(SymFunctionPtr func, char *name, enum DATA_TYPES returnType, int nullable) {
+
+    // check if the call is valid
+    if (func == NULL) return false;
+    if ((name == NULL && returnType == dTypeUndefined && nullable == -1)) return false;
+
+    // handle name
+    if (name != NULL) {
+        if (func->funcName != NULL) return false;
+        func->funcName = malloc(sizeof(char) * (strlen(name) + 1));
+        if (func->funcName == NULL) return false;
+        strcpy(func->funcName, name);
+    }
+
+    // handle return type
+    if (returnType != dTypeUndefined) {
+        if (func->returnType != dTypeUndefined) return false;
+        func->returnType = returnType;
+    }
+
+    // handle nullable
+    if (nullable != -1) {
+        if (func->nullableReturn != false) return false;
+        func->nullableReturn = (nullable == 1) ? true : false;
+    }
+
+    return true;
+}   
+
+// Function to insert a new function definition into the symbol table
+enum ERR_CODES symTableAddFunction(SymTable *table, SymFunctionPtr function) {
+
+    if (table == NULL || function == NULL) return E_INTERNAL;
+
+    // check if the function is already in the table
+    if (symTableFindFunction(table, function->funcName) != NULL) return E_SEMANTIC_REDIFINITION;
+
+    // insert the function into the table
+    unsigned int hash = hashString(function->funcName);
+
+    LinkedList *sameHashFuncs = (LinkedList *)bstSearchForNode(table->functionDefinitions, hash);
+    if (sameHashFuncs == NULL) {
+        sameHashFuncs = initLinkedList(false);
+        if (sameHashFuncs == NULL) return E_INTERNAL;
+        if (!insertNodeAtIndex(sameHashFuncs, (void *)function, -1)) {
+            removeList(&sameHashFuncs);
+            return E_INTERNAL;
+        }
+        if (!bstInsertNode(table->functionDefinitions, hash, (void *)sameHashFuncs)) {
+            removeList(&sameHashFuncs);
             return E_INTERNAL;
         }
         return SUCCESS;
     }
 
-    // check for redefinition
-    for (unsigned int i = 0; i < getSize(sameHashFunctions); i++) {
-        ASTNodePtr function = (ASTNodePtr)getDataAtIndex(sameHashFunctions, i);
-        if (function == NULL) return E_INTERNAL;
-        if (strcmp(function->data->function->functionName, func->data->function->functionName) == 0) {
-            return E_SEMANTIC_REDIFINITION;
-        }
-    }
-
-    // save the new function
-    if (!insertNodeAtIndex(sameHashFunctions, (void *)func, -1)) return E_INTERNAL;
+    // add the function to the list
+    if (!insertNodeAtIndex(sameHashFuncs, (void *)function, -1)) return E_INTERNAL;
 
     return SUCCESS;
 }
 
-// Function to find a function definition based on a function name
-ASTNodePtr findFunctionDefinition(fnDefinitionsPtr validator, char *functionName) {
+// Function to find a function definition
+SymFunctionPtr symTableFindFunction(SymTable *table, char *name) {
 
-    // internal error handeling
-    if (validator == NULL || functionName == NULL) return NULL;
+    if (table == NULL || name == NULL) return NULL;
 
-    unsigned int hash = hashString(functionName);
+    unsigned int hash = hashString(name);
+    LinkedList *sameHashFuncs = (LinkedList *)bstSearchForNode(table->functionDefinitions, hash);
 
-    // search for the function
-    LinkedList *sameHashFunctions = bstSearchForNode(validator->funcDefinitions, hash);
-    if (sameHashFunctions == NULL) return NULL;
+    if (sameHashFuncs == NULL) return NULL;
 
-    // search for the function in the list
-    for (unsigned int i = 0; i < getSize(sameHashFunctions); i++) {
-        ASTNodePtr function = (ASTNodePtr)getDataAtIndex(sameHashFunctions, i);
-        if (function == NULL) return NULL;
-        if (strcmp(function->data->function->functionName, functionName) == 0) {
-            return function;
-        }
+    unsigned int size = getSize(sameHashFuncs);
+    for (unsigned int i = 0; i < size; i++) {
+        SymFunctionPtr func = (SymFunctionPtr)getDataAtIndex(sameHashFuncs, i);
+        if (func != NULL && strcmp(func->funcName, name) == 0) return func;
     }
 
     return NULL;
 }
 
-// helper functio to free a BST node
-void _freeFuncDefSameHahs(LinkedList **list) {
-    if (list == NULL || *list == NULL) return;
-
-    for (unsigned int i = 0; i < getSize(*list); i++) {
-        ASTNodePtr function = (ASTNodePtr)getDataAtIndex(*list, i);
-        if (function == NULL) continue;
-        ASTfreeNode(&function);
-    }
-
-    removeList(list);
-}
-
-// Function to free the function definitions
-bool freeFunctionDefinitions(fnDefinitionsPtr *validator) {
-
-    // internal error handeling
-    if (validator == NULL || *validator == NULL) return false;
-
-    // free the BST
-    bool result = bstFree(&(*validator)->funcDefinitions);
-
-    // free the validator
-    free(*validator);
-    *validator = NULL;
-
-    return result;
-}
-
-// ####################### SYMTABLE #######################
-
 // Function to search for a scope in the same hash variables list
 bool _searchForVarSameHash(LinkedList *list, char *name) {
 
     // check if the list is not NULL
-    if (list == NULL) {
-        return false;
-    }
+    if (list == NULL) return false;
 
     unsigned int size = getSize(list);
     for (unsigned int i = 0; i < size; i++) {
@@ -148,6 +191,10 @@ bool _searchForVarSameHash(LinkedList *list, char *name) {
         }
     }
     return false;
+}
+
+void freeListWrapper(void **data) {
+    removeList((LinkedList **)data);
 }
 
 // Function to init the symbol table
@@ -166,7 +213,7 @@ SymTable *symTableInit(void) {
     globalScope->type = SYM_GLOBAL;
     globalScope->key = 0; // key for the global scope
     globalScope->parent = NULL; // no parent
-    globalScope->variables = bstInit((void (*)(void **))removeList); // link to variables, in global scope disabled
+    globalScope->variables = bstInit(freeListWrapper); // link to variables, in global scope disabled
     globalScope->innerScope = NULL; // link to other scopes
 
     // check for init problems
@@ -203,7 +250,7 @@ SymTable *symTableInit(void) {
         return NULL;
     }
     strcpy(thorwAway->name, "_");
-    thorwAway->type = dTypeUndefined;
+    thorwAway->type = dTypeNone;
     thorwAway->accesed = true;
     thorwAway->id = 0;
     thorwAway->mutable = false;
@@ -245,6 +292,9 @@ SymTable *symTableInit(void) {
     table->varCount = 1;
     table->scopeCount = 1;
     table->data = data;
+    table->functionDefinitions = bstInit(freeFuncDefsWrapper);
+    // need to also add all the function definitions that are build in
+    fillInBuildInFuncions(table);
 
     return table;
 }
@@ -261,7 +311,7 @@ bool symTableMoveScopeDown(SymTable *table, enum SYMTABLE_NODE_TYPES type) {
 
     // create the new scope
     SymTableNode *newScope = (SymTableNode *)malloc(sizeof(SymTableNode));
-    BST *variables = bstInit((void (*)(void **))removeList);
+    BST *variables = bstInit(freeListWrapper);
 
     // check if the memory was allocated
 
@@ -322,7 +372,6 @@ void _symTableTraverseVariables(TreeNode *node, bool *result) {
     return;
 }
 
-
 // Function to check if all variables in the symbol table were accesed
 bool _symTableAllVariablesAccesed(SymTableNode *node) {
 
@@ -340,9 +389,7 @@ bool _symTableAllVariablesAccesed(SymTableNode *node) {
 enum ERR_CODES symTableExitScope(SymTable *table) {
 
     // check if the table is not NULL
-    if (table == NULL) {
-        return E_INTERNAL;
-    }
+    if (table == NULL) return E_INTERNAL;
 
     // need to remove the current scope
     SymTableNode *currentScope = table->currentScope;
@@ -369,7 +416,7 @@ enum ERR_CODES symTableExitScope(SymTable *table) {
 }
 
 // Function to insert a new
-SymVariable *symTableDeclareVariable(SymTable *table, char *name, enum DATA_TYPES type, bool mutable, int nullable) {
+SymVariable *symTableDeclareVariable(SymTable *table, char *name, enum DATA_TYPES type, bool mutable, bool nullable) {
     // Check if the table or current scope is invalid (if global scope declaration is disallowed)
     if (table == NULL || table->currentScope->type == SYM_GLOBAL) {
         return NULL;
@@ -513,8 +560,6 @@ bool symTableFree(SymTable **table) {
 
     SymTable *tTable = *table;
 
-    printf("current scope type: %d\n", tTable->currentScope->type);
-
     if (table == NULL)
         return false;
 
@@ -533,6 +578,7 @@ bool symTableFree(SymTable **table) {
     }
 
     removeList(&tTable->data);
+    bstFree(&(*table)->functionDefinitions);
     
     // free the table
     free(tTable);

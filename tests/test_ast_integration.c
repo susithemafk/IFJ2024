@@ -55,8 +55,8 @@ void run_tests(void) {
     LinkedList *returnAsts;
     TestInstancePtr test;
 
-    // ####################### TEST CASE 1 #######################
-     /*
+    // ####################### TEST CASE 1 - valid ASTs #######################
+    /*
     AST 1
 
     pub fn bar(param : []u8) []u8 {
@@ -88,7 +88,6 @@ void run_tests(void) {
         _ = bar(par);
     }
     */
-
     create_test_env(&table, &returnAsts, &test, "AST 3");
     return_asts_3(table, returnAsts, test);
     free_test_env(&table, &returnAsts, &test);

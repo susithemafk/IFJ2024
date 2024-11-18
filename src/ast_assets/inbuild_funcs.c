@@ -11,8 +11,6 @@
 #include <stdbool.h>
 #include <string.h>
 #include "ast_assets/inbuild_funcs.h"
-#include "semantical/abstract_syntax_tree.h"
-#include "semantical/sem_enums.h"
 #include "utility/enumerations.h"
 #include "semantical/symtable.h"
 
@@ -51,76 +49,86 @@ SymVariable s2 = {6, "s2", dTypeU8, false, false, true};
 SymVariable i = {7, "i", dTypeI32, false, false, true};
 SymVariable j = {8, "j", dTypeI32, false, false, true};
 
-
-void fillInBuildInFuncions(fnDefinitionsPtr validator) {
+void fillInBuildInFuncions(SymTable* table) {
 
     //pub fn ifj.readstr() ?[]u8;
-    readstr = ASTcreateNode(AST_NODE_FUNCTION);
-    err = ASTeditFunctionNode(readstr, "ifj.readstr", dTypeU8, 1, NULL);
-    addFunctionDefinition(validator, readstr);
+    readstr = symInitFuncDefinition();
+    symEditFuncDef(readstr, "ifj.readstr", dTypeU8, 1);
+    symTableAddFunction(table, readstr);
 
     //pub fn ifj.readi32() ?i32;
-    readi32 = ASTcreateNode(AST_NODE_FUNCTION);
-    err = ASTeditFunctionNode(readi32, "ifj.readi32", dTypeI32, 1, NULL);
-    addFunctionDefinition(validator, readi32);
-
+    readi32 = symInitFuncDefinition();
+    symEditFuncDef(readi32, "ifj.readi32", dTypeI32, 1);
+    symTableAddFunction(table, readi32);
+   
     //pub fn ifj.readf64() ?f64;
-    readf64 = ASTcreateNode(AST_NODE_FUNCTION);
-    err = ASTeditFunctionNode(readf64, "ifj.readf64", dTypeF64, 1, NULL);
-    addFunctionDefinition(validator, readf64);
+    readf64 = symInitFuncDefinition();
+    symEditFuncDef(readf64, "ifj.readf64", dTypeF64, 1);
+    symTableAddFunction(table, readf64);
 
     //pub fn ifj.write(term) void;
-    write = ASTcreateNode(AST_NODE_FUNCTION);
-    err = ASTeditFunctionNode(write, "ifj.write", dTypeVoid, 0, &write_var);
-
+    write = symInitFuncDefinition();
+    symEditFuncDef(write, "ifj.write", dTypeVoid, 0);
+    symAddParamToFunc(write, dTypeNone, false);
+    symTableAddFunction(table, write);
 
     //pub fn ifj.i2f(term: i32) f64;
-    i2f = ASTcreateNode(AST_NODE_FUNCTION);
-    err = ASTeditFunctionNode(i2f, "ifj.i2f", dTypeF64, 0, &term1);
-    addFunctionDefinition(validator, i2f);
+    i2f = symInitFuncDefinition();
+    symEditFuncDef(i2f, "ifj.i2f", dTypeF64, 0);
+    symAddParamToFunc(i2f, dTypeI32, false);
+    symTableAddFunction(table, i2f);
 
     //pub fn ifj.f2i(term: f64) i32;
-    f2i = ASTcreateNode(AST_NODE_FUNCTION);
-    err = ASTeditFunctionNode(f2i, "ifj.f2i", dTypeI32, 0, &term2);
-    addFunctionDefinition(validator, f2i);
-
+    f2i = symInitFuncDefinition();
+    symEditFuncDef(f2i, "ifj.f2i", dTypeI32, 0);
+    symAddParamToFunc(f2i, dTypeF64, false);
+    symTableAddFunction(table, f2i);
+   
     //pub fn ifj.string(term) []u8;
-    string = ASTcreateNode(AST_NODE_FUNCTION);
-    err = ASTeditFunctionNode(string, "ifj.string", dTypeU8, 0, &term3);
-    addFunctionDefinition(validator, string);
+    string = symInitFuncDefinition();
+    symEditFuncDef(string, "ifj.string", dTypeU8, 0);
+    symAddParamToFunc(string, dTypeNone, false);
+    symTableAddFunction(table, string);
 
     //pub fn ifj.length(s: []u8) i32;
-    length = ASTcreateNode(AST_NODE_FUNCTION);
-    err = ASTeditFunctionNode(length, "ifj.length", dTypeI32, 0, &s);
-    addFunctionDefinition(validator, length);
+    length = symInitFuncDefinition();
+    symEditFuncDef(length, "ifj.length", dTypeI32, 0);
+    symAddParamToFunc(length, dTypeU8, false);
+    symTableAddFunction(table, length);
 
     //pub fn ifj.concat(s1: []u8, s2: []u8) []u8;
-    concat = ASTcreateNode(AST_NODE_FUNCTION);
-    err = ASTeditFunctionNode(concat, "ifj.concat", dTypeU8, 0, &s1);
-    err = ASTeditFunctionNode(concat, NULL, dTypeUndefined, -1, &s2);
-    addFunctionDefinition(validator, concat);
-
+    concat = symInitFuncDefinition();
+    symEditFuncDef(concat, "ifj.concat", dTypeU8, 0);
+    symAddParamToFunc(concat, dTypeU8, false);
+    symAddParamToFunc(concat, dTypeU8, false);
+    symTableAddFunction(table, concat);
+   
     //pub fn ifj.substring(s: []u8, i: i32, j: i32) ?[]u8;
-    substring = ASTcreateNode(AST_NODE_FUNCTION);
-    err = ASTeditFunctionNode(substring, "ifj.substring", dTypeU8, 1, &s);
-    err = ASTeditFunctionNode(substring, NULL, dTypeUndefined, -1, &i);
-    err = ASTeditFunctionNode(substring, NULL, dTypeUndefined, -1, &j);
-    addFunctionDefinition(validator, substring);
-
+    substring = symInitFuncDefinition();
+    symEditFuncDef(substring, "ifj.substring", dTypeU8, 1);
+    symAddParamToFunc(substring, dTypeU8, false);
+    symAddParamToFunc(substring, dTypeI32, false);
+    symAddParamToFunc(substring, dTypeI32, false);
+    symTableAddFunction(table, substring);
+  
     //pub fn ifj.strcmp(s1: []u8, s2: []u8) i32;
-    Strcmp = ASTcreateNode(AST_NODE_FUNCTION);
-    err = ASTeditFunctionNode(Strcmp, "ifj.strcmp", dTypeI32, 0, &s1);
-    err = ASTeditFunctionNode(Strcmp, NULL, dTypeUndefined, -1, &s2);
-    addFunctionDefinition(validator, Strcmp);
+    Strcmp = symInitFuncDefinition();
+    symEditFuncDef(Strcmp, "ifj.strcmp", dTypeI32, 0);
+    symAddParamToFunc(Strcmp, dTypeU8, false);
+    symAddParamToFunc(Strcmp, dTypeU8, false);
+    symTableAddFunction(table, Strcmp);
 
     //pub fn ifj.ord(s: []u8, i: i32) i32;
-    ord = ASTcreateNode(AST_NODE_FUNCTION);
-    err = ASTeditFunctionNode(ord, "ifj.ord", dTypeI32, 0, &s);
-    err = ASTeditFunctionNode(ord, NULL, dTypeUndefined, -1, &i);
-    addFunctionDefinition(validator, ord);
-
+    ord = symInitFuncDefinition();
+    symEditFuncDef(ord, "ifj.ord", dTypeI32, 0);
+    symAddParamToFunc(ord, dTypeU8, false);
+    symAddParamToFunc(ord, dTypeI32, false);
+    symTableAddFunction(table, ord);
+   
     //pub fn ifj.chr(i: i32) []u8;
-    chr = ASTcreateNode(AST_NODE_FUNCTION);
-    err = ASTeditFunctionNode(chr, "ifj.chr", dTypeU8, 0, &i);
-    addFunctionDefinition(validator, chr);
+    chr = symInitFuncDefinition();
+    symEditFuncDef(chr, "ifj.chr", dTypeU8, 0);
+    symAddParamToFunc(chr, dTypeI32, false);
+    symTableAddFunction(table, chr);
+   
 }

@@ -156,12 +156,10 @@ enum ERR_CODES scanner_get_token(struct TOKEN *tokenPointer)
 				tokenPointer->type = TOKEN_SEMICOLON;
 				break;
 			case '<':
-				state = SCANNER_LESSTHAN;
-				tokenPointer->type = TOKEN_LESSTHAN;
+				state = SCANNER_LESS;
 				break;
 			case '>':
-				state = SCANNER_GREATERTHAN;
-				tokenPointer->type = TOKEN_GREATERTHAN;
+				state = SCANNER_GREATER;
 				break;
 			case ',':
 				state = SCANNER_COMMA;
@@ -338,28 +336,37 @@ enum ERR_CODES scanner_get_token(struct TOKEN *tokenPointer)
 		case SCANNER_EQUAL:
 			return scanner_end(input, &nextCharacter, tokenPointer, string_index);
 
-		case SCANNER_LESSTHAN:
+		case SCANNER_GREATER:
 			if (input == '=')
 			{
-
-				tokenPointer->type = TOKEN_LESSOREQUAL;
-				return scanner_end(input, &nextCharacter, tokenPointer, string_index);
-			}
-			else
-			{
-				return scanner_end(input, &nextCharacter, tokenPointer, string_index);
-			}
-
-		case SCANNER_GREATERTHAN:
-			if (input == '=')
-			{
+				state = SCANNER_GREATEROREQUAL;
 				tokenPointer->type = TOKEN_GREATEROREQUAL;
-				return scanner_end(input, &nextCharacter, tokenPointer, string_index);
 			}
 			else
 			{
+				tokenPointer->type = TOKEN_GREATERTHAN;
 				return scanner_end(input, &nextCharacter, tokenPointer, string_index);
 			}
+			break;
+
+		case SCANNER_GREATEROREQUAL:
+			return scanner_end(input, &nextCharacter, tokenPointer, string_index);
+
+		case SCANNER_LESS:
+			if (input == '=')
+			{
+				state = SCANNER_LESSOREQUAL;
+				tokenPointer->type = TOKEN_LESSOREQUAL;
+			}
+			else
+			{
+				tokenPointer->type = TOKEN_LESSTHAN;
+				return scanner_end(input, &nextCharacter, tokenPointer, string_index);
+			}
+			break;
+
+		case SCANNER_LESSOREQUAL:
+			return scanner_end(input, &nextCharacter, tokenPointer, string_index);
 
 		case SCANNER_EXCLAMATION:
 			if (input == '=')

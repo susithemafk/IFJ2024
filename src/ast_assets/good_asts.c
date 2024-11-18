@@ -17,7 +17,7 @@
 #include "utility/enumerations.h"
 
 
- /*
+/*
 AST 1
 
 pub fn bar(param : []u8) []u8 {
@@ -57,7 +57,7 @@ void return_asts_1(SymTable *table, LinkedList *returnASts, TestInstancePtr test
     }
 
     // declare the params of the function
-    SymVariable *param1 = symTableDeclareVariable(table, "param", dTypeU8, false, -1); // param : []u8
+    SymVariable *param1 = symTableDeclareVariable(table, "param", dTypeU8, false, false); // param : []u8
 
     if (test != NULL) {
         testCase(
@@ -99,7 +99,7 @@ void return_asts_1(SymTable *table, LinkedList *returnASts, TestInstancePtr test
         );
     }
 
-    SymVariable *r1 = symTableDeclareVariable(table, "r", dTypeNone, false, -1); // const r    
+    SymVariable *r1 = symTableDeclareVariable(table, "r", dTypeNone, false, false); // const r    
 
     if (test != NULL) {
         testCase(
@@ -253,7 +253,7 @@ void return_asts_2(SymTable *table, LinkedList *returnASts, TestInstancePtr test
         );
     }
 
-    SymVariable *par = symTableDeclareVariable(table, "par", dTypeU8, false, -1); // par : []u8
+    SymVariable *par = symTableDeclareVariable(table, "par", dTypeU8, false, false); // par : []u8
 
     if (test != NULL) {
         testCase(
@@ -304,7 +304,7 @@ void return_asts_2(SymTable *table, LinkedList *returnASts, TestInstancePtr test
         );
     }
 
-    SymVariable *ret = symTableDeclareVariable(table, "ret", dTypeU8, false, -1); // const ret
+    SymVariable *ret = symTableDeclareVariable(table, "ret", dTypeU8, false, false); // const ret
 
     if (test != NULL) {
         testCase(
@@ -442,38 +442,6 @@ pub fn main() void {
 */
 void return_asts_3(SymTable *table, LinkedList *returnASts, TestInstancePtr test) {
 
-    /*
-    Code of generating AST before adding tests can be seen bellow:
-
-      // pub fn main() void { ... }
-    symTableMoveScopeDown(table, SYM_FUNCTION); // enter function
-    ASTNodePtr function3 = ASTcreateNode(AST_NODE_FUNCTION);
-    ASTeditFunctionNode(function3, "main", dTypeVoid, 0, NULL); // pub fn main() void
-    insertNodeAtIndex(returnASts, (void *)function3, -1);
-
-    // const par = ifj.string("ahoj");
-    ASTNodePtr declare3 = ASTcreateNode(AST_NODE_DECLARE);
-    SymVariable *par3 = symTableDeclareVariable(table, "par", dTypeU8, false, -1); // const par
-    ASTeditDeclareNode(declare3, par3, NULL); // const par =
-    ASTNodePtr call3 = ASTcreateNode(AST_NODE_FUNC_CALL);
-    ASTeditFunctionCallNode(call3, "ifj.string", NULL, NULL); // ifj.string()
-    struct TOKEN valueToken3 = {.value = "ahoj", .type = dTypeU8};
-    ASTeditFunctionCallNode(call3, NULL, NULL, &valueToken3); // ifj.string("ahoj")
-    ASTeditDeclareNode(declare3, NULL, call3); // const par = ifj.string("ahoj")
-    insertNodeAtIndex(returnASts, (void *)declare3, -1);
-
-    // _ = bar(par);
-    ASTNodePtr assign3 = ASTcreateNode(AST_NODE_ASSIGN);
-    ASTeditAssignNode(assign3, symTableFindVariable(table, "_"), NULL); // _ =
-    ASTNodePtr call3_2 = ASTcreateNode(AST_NODE_FUNC_CALL);
-    SymVariable *var_par = symTableFindVariable(table, "par");
-    ASTeditFunctionCallNode(call3_2, "bar", var_par, NULL); // bar(par)
-    ASTeditAssignNode(assign3, NULL, call3_2); // _ = bar(par)
-    insertNodeAtIndex(returnASts, (void *)assign3, -1);
-
-    symTableExitScope(table); // exit function
-    */
-
     bool result;
     enum ERR_CODES err;
 
@@ -530,7 +498,7 @@ void return_asts_3(SymTable *table, LinkedList *returnASts, TestInstancePtr test
         );
     }
 
-    SymVariable *par3 = symTableDeclareVariable(table, "par", dTypeU8, false, -1); // const par
+    SymVariable *par3 = symTableDeclareVariable(table, "par", dTypeU8, false, false); // const par
 
     if (test != NULL) {
         testCase(
@@ -732,7 +700,7 @@ pub fn main() void {
 }
 */
 void return_asts_5(SymTable *table, LinkedList *returnASts, TestInstancePtr test) {
-    
+
 }
 
 /*

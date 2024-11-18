@@ -1,7 +1,7 @@
 /** AUTHOR
  * 
  * @author <247581> Martin Mendl
- * @file symbol_tree.c
+ * @file abstract_syntax_tree.c
  * @date 28.9. 2024
  * @brief Implementation of the symbol tree
  */
@@ -14,7 +14,6 @@
 #include "semantical/sem_enums.h"
 #include "utility/linked_list.h"
 #include "utility/enumerations.h"
-
 
 // Function to create a new AST Node
 ASTNodePtr ASTcreateNode(enum ASTNodeTypes type) {
@@ -56,6 +55,8 @@ ASTNodePtr ASTcreateNode(enum ASTNodeTypes type) {
                 free(node);
                 return NULL;
             }
+            node->data->assign->variable = NULL;
+            node->data->assign->value = NULL;
             break;
 
         case AST_NODE_TRUTH_EXPRESION:
@@ -65,6 +66,9 @@ ASTNodePtr ASTcreateNode(enum ASTNodeTypes type) {
                 free(node);
                 return NULL;
             }
+            node->data->truthExpresion->left = NULL;
+            node->data->truthExpresion->right = NULL;
+            node->data->truthExpresion->operator = TOKEN_NONE;
             break;
 
         case AST_NODE_EXPRESION:
@@ -94,6 +98,9 @@ ASTNodePtr ASTcreateNode(enum ASTNodeTypes type) {
                 free(node);
                 return NULL;
             }
+            node->data->ifElse->condition = NULL;
+            node->data->ifElse->truVar = NULL;
+            node->data->ifElse->nulVar = NULL;
             break;
 
         case AST_NODE_FUNC_CALL:
@@ -111,6 +118,7 @@ ASTNodePtr ASTcreateNode(enum ASTNodeTypes type) {
                 free(node);
                 return NULL;
             }
+            node->data->functionCall->functionName = NULL;
             break;
 
         case AST_NODE_FUNCTION:
@@ -128,6 +136,8 @@ ASTNodePtr ASTcreateNode(enum ASTNodeTypes type) {
                 free(node);
                 return NULL;
             }
+            node->data->function->functionName = NULL;
+            node->data->function->returnType = dTypeUndefined;
             break;
 
         case AST_NODE_WHILE:
@@ -137,6 +147,9 @@ ASTNodePtr ASTcreateNode(enum ASTNodeTypes type) {
                 free(node);
                 return NULL;
             }
+            node->data->whileLoop->condition = NULL;
+            node->data->whileLoop->nulVar = NULL;
+            node->data->whileLoop->truVar = NULL;
             break;
 
         case AST_NODE_VALUE:
@@ -146,6 +159,7 @@ ASTNodePtr ASTcreateNode(enum ASTNodeTypes type) {
                 free(node);
                 return NULL;
             }
+            node->data->value->value = NULL;
             break;
 
         case AST_NODE_VARIABLE:
@@ -238,10 +252,9 @@ bool ASTfreeNode(ASTNodePtr *nodePtr) {
             if (node->data->ifElse->condition != NULL) {
                 result = ASTfreeNode(&node->data->ifElse->condition);
             }
-
             free(node->data->ifElse);
             break;
-        case AST_NODE_FUNC_CALL: // need to fix free of symvariables
+        case AST_NODE_FUNC_CALL:
             free(node->data->functionCall->functionName);
             for (unsigned int i = 0; i < getSize(node->data->functionCall->arguments); i++) {
                 ASTNodePtr argument = (ASTNodePtr)getDataAtIndex(node->data->functionCall->arguments, i);
@@ -250,7 +263,7 @@ bool ASTfreeNode(ASTNodePtr *nodePtr) {
             result = removeList(&node->data->functionCall->arguments);
             free(node->data->functionCall);
             break;
-        case AST_NODE_FUNCTION: // need to fix free of symvariables
+        case AST_NODE_FUNCTION:
             free(node->data->function->functionName);
             for (unsigned int i = 0; i < getSize(node->data->function->arguments); i++) {
                 ASTNodePtr argument = (ASTNodePtr)getDataAtIndex(node->data->function->arguments, i);
@@ -432,7 +445,8 @@ enum ERR_CODES ASTaddNodeToExpresion(ASTNodePtr expresionRoot, SymVariable *vari
         ASTfreeNode(&expresionPart);
         return E_INTERNAL;
     }
-     // handle left parenthesis (push onto stack)
+    
+    // handle left parenthesis (push onto stack)
     if (operand->type == TOKEN_LPAR) {
         if (!insertNodeAtIndex(expresionRoot->data->expresion->operators, (void*)expresionPart, 0)) return E_INTERNAL;
         return SUCCESS;
@@ -482,12 +496,10 @@ enum ERR_CODES ASTfinishExpresion(ASTNodePtr expresionRoot) {
 
     removeList(&expresionRoot->data->expresion->operators);
     expresionRoot->data->expresion->operators = NULL;
+    expresionRoot->finished = true;
     
     return SUCCESS;
 }
-
-
-// Function to prepare the expresion node
 
 // Function to edit a function node
 enum ERR_CODES ASTeditFunctionNode(ASTNodePtr functionNode, char *functionName, enum DATA_TYPES returnType, int nullable, struct SymVariable *argument) {
@@ -544,6 +556,7 @@ enum ERR_CODES ASTeditFunctionNode(ASTNodePtr functionNode, char *functionName, 
 
 // Function to edit the function call node
 enum ERR_CODES ASTeditFunctionCallNode(ASTNodePtr functionCallNode, char *functionName, struct SymVariable *varArg, TOKEN_PTR valueArg) {
+
     //check call validity
     if (functionCallNode == NULL) return E_INTERNAL;
     bool editArg = (varArg != NULL) + (valueArg != NULL) == 1;
@@ -562,15 +575,12 @@ enum ERR_CODES ASTeditFunctionCallNode(ASTNodePtr functionCallNode, char *functi
         if (curFunc->functionName == NULL) return E_INTERNAL;
 
         strcpy(curFunc->functionName, functionName);
-        return SUCCESS;
     }
 
     if (!editArg) return SUCCESS; // skip this part, if we are not editing the argument
 
     // handeling var arguments
     if (varArg != NULL) {
-
-
         // create the variable node
         ASTNodePtr arg = ASTcreateNode(AST_NODE_VARIABLE);
         if (arg == NULL) return E_INTERNAL;
@@ -599,7 +609,6 @@ enum ERR_CODES ASTeditFunctionCallNode(ASTNodePtr functionCallNode, char *functi
     enum ERR_CODES err = ASTinitNodeValue(arg, valueArg);
 
     if (err != SUCCESS) {
-        printf("editing arg?\n");
         ASTfreeNode(&arg);
         return err;
     }

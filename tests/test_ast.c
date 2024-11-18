@@ -213,21 +213,21 @@ struct TOKEN opr3 = { .type = TOKEN_GREATERTHAN, .value = ">" };
 
 // variables
 // a
-struct SymVariable var1 = { .name = "a", .type = dTypeI32, .accesed = false, .mutable = true, .nullable = false};
+struct SymVariable var1 = {.id=1, .name = "a", .type = dTypeI32, .accesed = false, .mutable = true, .nullable = false};
 // b
-struct SymVariable var2 = { .name = "b", .type = dTypeI32, .accesed = false, .mutable = true, .nullable = false};
+struct SymVariable var2 = {.id=2, .name = "b", .type = dTypeI32, .accesed = false, .mutable = true, .nullable = false};
 // c
-struct SymVariable var3 = { .name = "c", .type = dTypeF64, .accesed = false, .mutable = true, .nullable = false};
+struct SymVariable var3 = {.id=3, .name = "c", .type = dTypeF64, .accesed = false, .mutable = true, .nullable = false};
 // d
-struct SymVariable var4 = { .name = "d", .type = dTypeF64, .accesed = false, .mutable = true, .nullable = false};
+struct SymVariable var4 = {.id=4, .name = "d", .type = dTypeF64, .accesed = false, .mutable = true, .nullable = false};
 // notMutableVar
 struct SymVariable varNotMutable = {.id=1, .name = "notMutableVar", .type = dTypeI32, .accesed = false, .mutable = false };
 
 // aCanBeNull
-struct SymVariable varACanBeNull = { .name = "aCanBeNull", .type = dTypeI32, .accesed = false, .mutable = true, .nullable = true };
+struct SymVariable varACanBeNull = {.id=5, .name = "aCanBeNull", .type = dTypeI32, .accesed = false, .mutable = true, .nullable = true };
 
 // aNotNullable 
-struct SymVariable varANotNullable = { .name = "aNotNullable", .type = dTypeI32, .accesed = false, .mutable = true, .nullable = false };
+struct SymVariable varANotNullable = {.id=6, .name = "aNotNullable", .type = dTypeI32, .accesed = false, .mutable = true, .nullable = false };
 
 // err code
 enum ERR_CODES err;
@@ -1008,6 +1008,14 @@ void test_case_11(TestInstancePtr testInstance) {
         "Function call node argument type is correct",
         "Function call node argument type is incorrect"
     );
+
+    testCase(
+        testInstance,
+        ASTfreeNode(&functionCallNode),
+        "ASTfreeNode",
+        "Function call node freed successfully",
+        "Failed to free function call node"
+    );
 }
 
 // AST for expresion node [a+b*6]
@@ -1612,7 +1620,6 @@ void test_case_16(TestInstancePtr testInstance) {
     );
 
     // test 133 test adding variable b to the while node condition
-    variableNode = ASTcreateNode(AST_NODE_VARIABLE);
     err = ASTeditWhileNode(whileNode, &var2, NULL, NULL, NULL, NULL);
 
     testCase(
