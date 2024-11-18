@@ -42,22 +42,21 @@ pub fn ifj.chr(i: i32) []u8;
 
 enum ERR_CODES err;
 
-ASTNodePtr readstr;
-ASTNodePtr readi32;
-ASTNodePtr readf64;
-ASTNodePtr write;
-ASTNodePtr i2f;
-ASTNodePtr f2i;
-ASTNodePtr string;
-ASTNodePtr length;
-ASTNodePtr concat;
-ASTNodePtr substring;
-ASTNodePtr Strcmp;
-ASTNodePtr ord;
-ASTNodePtr chr;
-ASTNodePtr var;
+SymFunctionPtr readstr;
+SymFunctionPtr readi32;
+SymFunctionPtr readf64;
+SymFunctionPtr write;
+SymFunctionPtr i2f;
+SymFunctionPtr f2i;
+SymFunctionPtr string;
+SymFunctionPtr length;
+SymFunctionPtr concat;
+SymFunctionPtr substring;
+SymFunctionPtr Strcmp;
+SymFunctionPtr ord;
+SymFunctionPtr chr;
+SymFunctionPtr var;
 
-
-void fillInBuildInFuncions(fnDefinitionsPtr validator);
+void fillInBuildInFuncions(SymTable *table);
 
 #endif // INBUILD_FUNCS_H

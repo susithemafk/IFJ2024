@@ -20,26 +20,26 @@
 // ####################### Semantic validation #######################
 
 // Function to validate the AST
-enum ERR_CODES validateAST(ASTNodePtr ast, fnDefinitionsPtr funcDefinitions, ASTNodePtr *currentFunc) {
+enum ERR_CODES validateAST(ASTNodePtr ast, SymTable *table, ASTNodePtr *currentFunc) {
 
     // check if the call is valid
-    if (ast == NULL || funcDefinitions == NULL) {
+    if (ast == NULL || table == NULL) {
         #ifdef DEBUG
         DEBUG_MSG("validateAST - invalid call");
         #endif
         return E_INTERNAL;
     }
 
-    ASTNodePtr funDef;
+    SymFunctionPtr funDef;
 
     // check the type of the AST
 
     // functions definitions should not be saved to the stack, it should be symttable -> function definitions
     switch (ast->type) {
         case AST_NODE_DECLARE:
-            return __validateDeclare(ast, funcDefinitions);
+            return __validateDeclare(ast, table);
         case AST_NODE_ASSIGN:
-            return __validateAssign(ast, funcDefinitions);
+            return __validateAssign(ast, table);
         case AST_NODE_IF_ELSE:
             return __validateIfElse(ast);
         case AST_NODE_WHILE:
@@ -52,9 +52,9 @@ enum ERR_CODES validateAST(ASTNodePtr ast, fnDefinitionsPtr funcDefinitions, AST
             return SUCCESS;
         case AST_NODE_FUNC_CALL:
             // if a function call is here, it needs to have a runn type of None, so the definitons should have the return type None
-            funDef = findFunctionDefinition(funcDefinitions, ast->data->functionCall->functionName);
+            funDef = symTableFindFunction(table, ast->data->functionCall->functionName);
             if (funDef == NULL) return E_SEMANTIC_UND_FUNC_OR_VAR;
-            if (funDef->data->function->returnType != dTypeVoid) return E_SEMANTIC_INCOMPATABLE_TYPES;
+            if (funDef->returnType != dTypeVoid) return E_SEMANTIC_INCOMPATABLE_TYPES;
             return __validateFuncCall(ast, funDef);
         default:
             return E_INTERNAL; // this should never happen, since that would mean bad syntax
@@ -87,7 +87,7 @@ bool ___nodeIsNullable(ASTNodePtr node) {
     }
 }
 
-
+// Function to change the type of a node
 enum ERR_CODES ___changeNodeToType(ASTNodePtr node, enum DATA_TYPES type) {
     if (node == NULL) return E_INTERNAL;
     if (type == dTypeUndefined || type == dTypeNone || type == dTypeU8) return E_INTERNAL;
@@ -345,7 +345,7 @@ enum ERR_CODES ___calculateExpresionType(ASTNodePtr expresion, enum DATA_TYPES *
 }
 
 // Function to find the return type of some AST (variable, value, expresion, func call)
-enum ERR_CODES __findASTreturnType(ASTNodePtr ast, fnDefinitionsPtr defs, enum DATA_TYPES *returnType, bool *nullable) {
+enum ERR_CODES __findASTreturnType(ASTNodePtr ast, SymTable *table, enum DATA_TYPES *returnType, bool *nullable) {
 
     if (ast == NULL) return E_INTERNAL;
 
@@ -365,9 +365,9 @@ enum ERR_CODES __findASTreturnType(ASTNodePtr ast, fnDefinitionsPtr defs, enum D
 
     // function call
     if (ast->type == AST_NODE_FUNC_CALL) {
-        ASTNodePtr funcDef = findFunctionDefinition(defs, ast->data->functionCall->functionName);
-        if (funcDef == NULL) return E_SEMANTIC_UND_FUNC_OR_VAR;
-        enum ERR_CODES err = __validateFuncCall(ast, funcDef);
+        SymFunctionPtr funDef = symTableFindFunction(table, ast->data->functionCall->functionName);
+        if (funDef == NULL) return E_SEMANTIC_UND_FUNC_OR_VAR;
+        enum ERR_CODES err = __validateFuncCall(ast, funDef);
         if (err != SUCCESS) {
             #ifdef DEBUG
             DEBUG_MSG("failed to validate function call paramaters");
@@ -375,8 +375,8 @@ enum ERR_CODES __findASTreturnType(ASTNodePtr ast, fnDefinitionsPtr defs, enum D
             return err;
         }
 
-        *returnType = funcDef->data->function->returnType;
-        *nullable = funcDef->data->function->nullable;
+        *returnType = funDef->returnType;
+        *nullable = funDef->nullableReturn;
         return SUCCESS;
     }
 
@@ -386,7 +386,7 @@ enum ERR_CODES __findASTreturnType(ASTNodePtr ast, fnDefinitionsPtr defs, enum D
 }
 
 // function to validate the declare node
-enum ERR_CODES __validateDeclare(ASTNodePtr ast, fnDefinitionsPtr defs) {
+enum ERR_CODES __validateDeclare(ASTNodePtr ast, SymTable *table) {
 
     // check if the value is null
     if (ast->type != AST_NODE_DECLARE) return E_INTERNAL;
@@ -397,7 +397,7 @@ enum ERR_CODES __validateDeclare(ASTNodePtr ast, fnDefinitionsPtr defs) {
     // now we need to find the return type of the value
     enum DATA_TYPES valueType;
     bool nullable;
-    enum ERR_CODES result = __findASTreturnType(ast->data->declare->value, defs, &valueType, &nullable);
+    enum ERR_CODES result = __findASTreturnType(ast->data->declare->value, table, &valueType, &nullable);
     if (result != SUCCESS) {
         #ifdef DEBUG
         DEBUG_MSG("failed to find return type of the value");
@@ -430,10 +430,10 @@ enum ERR_CODES __validateDeclare(ASTNodePtr ast, fnDefinitionsPtr defs) {
 }
 
 // function to validate the assign node
-enum ERR_CODES __validateAssign(ASTNodePtr ast, fnDefinitionsPtr funcDefinitions) {
+enum ERR_CODES __validateAssign(ASTNodePtr ast, SymTable *table) {
 
     // check if the call is valid
-    if (ast == NULL || funcDefinitions == NULL) return E_INTERNAL;
+    if (ast == NULL || table == NULL) return E_INTERNAL;
 
     // check for correct node type
     if (ast->type != AST_NODE_ASSIGN) return E_INTERNAL;
@@ -442,7 +442,7 @@ enum ERR_CODES __validateAssign(ASTNodePtr ast, fnDefinitionsPtr funcDefinitions
     bool nullable;
 
     // get the type of the value
-    enum ERR_CODES result = __findASTreturnType(ast->data->assign->value, funcDefinitions, &valueType, &nullable);
+    enum ERR_CODES result = __findASTreturnType(ast->data->assign->value, table, &valueType, &nullable);
     if (result != SUCCESS) {
         #ifdef DEBUG
         DEBUG_MSG("failed to find return type of the value");
@@ -654,16 +654,16 @@ enum ERR_CODES __validateWhile(ASTNodePtr ast) {
 }
 
 // function to validate the function call node
-enum ERR_CODES __validateFuncCall(ASTNodePtr call, ASTNodePtr funcDef) {
+enum ERR_CODES __validateFuncCall(ASTNodePtr call, SymFunctionPtr funcDef) {
 
     // check if the call is valid
     if (call == NULL || funcDef == NULL) return E_INTERNAL;
 
     // check for correct node type
-    if (call->type != AST_NODE_FUNC_CALL || funcDef->type != AST_NODE_FUNCTION) return E_INTERNAL;
+    if (call->type != AST_NODE_FUNC_CALL) return E_INTERNAL;
 
     // validate the arguments types
-    unsigned int defSize = getSize(funcDef->data->function->arguments);
+    unsigned int defSize = getSize(funcDef->paramaters);
 
     if (defSize != getSize(call->data->functionCall->arguments)) {
         #ifdef DEBUG
@@ -671,27 +671,29 @@ enum ERR_CODES __validateFuncCall(ASTNodePtr call, ASTNodePtr funcDef) {
         #endif
         return E_SEMANTIC_INVALID_FUN_PARAM;
     }
-
-    ASTNodePtr defArg, callArg;
+    SymFunctionParamPtr defArg;
+    ASTNodePtr callArg;
     enum DATA_TYPES defArgType, callArgType;
     bool defArgNullable, callArgNullable;
 
     // check if the types of the args are the same
     for (unsigned int i = 0; i < defSize; i++) {
-        defArg = (ASTNodePtr)getDataAtIndex(funcDef->data->function->arguments, i);
+        defArg = (SymFunctionParamPtr)getDataAtIndex(funcDef->paramaters, i);
         callArg = (ASTNodePtr)getDataAtIndex(call->data->functionCall->arguments, i);
 
         // get the types and the nullability of the args
-        defArgType = ___getOneNodeType(defArg);
+        defArgType = defArg->type;
         callArgType = ___getOneNodeType(callArg);
 
-        defArgNullable = ___nodeIsNullable(defArg);
+        defArgNullable = defArg->nullable;
         callArgNullable = ___nodeIsNullable(callArg);
 
         // if the argument is not nullable, and the call arg is nullable, we error out
         if (!defArgNullable && callArgNullable) {
             #ifdef DEBUG
             DEBUG_MSG("nullable value assigned to not nullable variable");
+            printf("call arg nullable: %d\n", callArgNullable);
+            printf("def arg nullable: %d\n", defArgNullable);
             #endif
             return E_SEMANTIC_INVALID_FUN_PARAM;
         }
@@ -703,7 +705,7 @@ enum ERR_CODES __validateFuncCall(ASTNodePtr call, ASTNodePtr funcDef) {
         if (defArgType == callArgType) continue;;
 
         // if both args are variables, we error out, since cannot convert variables
-        if (defArg->type == AST_NODE_VARIABLE && callArg->type == AST_NODE_VARIABLE) {
+        if (callArg->type == AST_NODE_VARIABLE) {
             #ifdef DEBUG
             DEBUG_MSG("cannot convert variables");
             #endif
