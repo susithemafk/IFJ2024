@@ -1,8 +1,19 @@
 var x: i32 = 42;
-
-var b = "Ahoj\n\"Sve'te \\\x22";
-
-"Novy radek zacina \\  \\\n"
-"Zde je tabulator:\\tTabulator konci zde."
-"Zde je zpetne lomitko: \\"
-"Pozor na neplatny znak: \\xZZ"
+//* These work
+// if (a == 5) { x = 5 - 6; } else { x = 6; }
+// while (a > b) { x = 5; }
+// while (a > b) {
+// 	x = 5;
+// 	var y: i32 = 6;
+// }
+// while (a > 5) {}
+// b = 5;
+// c = 5 + 5;
+// b = a();
+// a = b();
+// if (E < E) { };
+// if (E > E) { };
+if (E <= E) { };
+// if (E <= E) { };
+// if (E != E) { };
+// if (E == E) { };

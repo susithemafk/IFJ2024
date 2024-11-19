@@ -1,5 +1,5 @@
 /**
- * IFJ projeKt 2024
+ * IFJ projeKT 2024
  *
  * @author <xsucha18> Marek Sucharda
  * @author <xsvobov00> Veronika Svobodová
@@ -27,7 +27,7 @@ int main(void)
 	while (status == SUCCESS && token.type != TOKEN_EOF)
 	{
 		// printf("Token type: %d\n", token.type);
-		printf("Token \n -value: %s\n -type: %d\n\n", token.value, token.type);
+		// printf("Token \n -value: %s\n -type: %d\n\n", token.value, token.type);
 		status = scanner_get_token(&token);
 	}
 

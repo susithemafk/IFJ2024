@@ -139,6 +139,62 @@ StackItemPtr __createStackItem(enum StackItemType type, int enumType) {
     return item;
 }
 
+// Function to print the stack
+void printStack(LinkedList *stack) {
+    printf("Stack: [\n");
+    unsigned int size = getSize(stack);
+    for (unsigned int i = 0; i < size; i++) {
+        StackItemPtr item = (StackItemPtr)getDataAtIndex(stack, i);
+        switch(item->type) {
+            case STACK_ITEM_TOKEN:
+                if (item->content.operation == TOKEN_NONE) {
+                    printf(" %u: %s$%s\n", i, COLOR_WARN, COLOR_RESET);
+                    break;  
+                }
+                printf(" %u: ", i);
+                printTokenType(item->content.operation);
+                break;
+            case STACK_ITEM_OPERATION:
+                printf(" %u: ", i);
+                switch (item->content.rule) {
+                    case GREATER:
+                        printf("%s>%s\n", COLOR_FUNC, COLOR_RESET);
+                        break;
+                    case LESS:
+                        printf("%s<%s\n", COLOR_FUNC, COLOR_RESET);
+                        break;
+                    case EQUAL:
+                        printf("%s=%s\n", COLOR_FUNC, COLOR_RESET);
+                        break;
+                    case ERROR:
+                        printf("%sERROR%s\n", COLOR_FUNC, COLOR_RESET);
+                        break;
+                }
+                break;
+            case STACK_ITEM_EXPRESSION:
+                printf(" %u: ", i);
+                switch (item->content.stateExpression) {
+                    case STATE_EX_E:
+                        printf("%sE%s\n", COLOR_PASS, COLOR_RESET);
+                        break;
+                }
+                break;
+            case STACK_ITEM_TRUTH_EXPRESSION:
+                printf(" %u: ", i);
+                switch (item->content.stateTruthExpression) {
+                    case STATE_TEX_E:
+                        printf("%sE%s\n", COLOR_PASS, COLOR_RESET);
+                        break;
+                    case STATE_TEX_R:
+                        printf("%sR%s\n", COLOR_PASS, COLOR_RESET);
+                        break;
+                }
+                break;
+        }
+    }
+    printf("]\n");
+}
+
 // Function to start the precedent analysis (doExpresion is true, handeling expression, false -> truth expression)
 enum ERR_CODES startPrecedentAnalysis(LinkedList *buffer, unsigned int *startIdx, bool doExpresion) {
 
@@ -178,7 +234,8 @@ enum ERR_CODES startPrecedentAnalysis(LinkedList *buffer, unsigned int *startIdx
         if (token == NULL) break;
 
         #ifdef DEBUG
-        DEBUG_MSG("Cycle start\nstack:");
+        DEBUG_MSG("Cycle start\n");
+        printStack(stack);
         #endif
 
         // end detection check
@@ -247,6 +304,7 @@ enum ERR_CODES startPrecedentAnalysis(LinkedList *buffer, unsigned int *startIdx
 
                 #ifdef DEBUG
                 DEBUG_MSG("Shifting the < after the active element");
+                printStack(stack);
                 #endif
 
             }
@@ -269,6 +327,7 @@ enum ERR_CODES startPrecedentAnalysis(LinkedList *buffer, unsigned int *startIdx
             }
             #ifdef DEBUG
             DEBUG_MSG("Inserted the token to the stack");
+            printStack(stack);
             #endif
             continue;   
         }
@@ -305,6 +364,12 @@ enum ERR_CODES startPrecedentAnalysis(LinkedList *buffer, unsigned int *startIdx
                 removeList(&stack);
                 return err;
             }
+
+            #ifdef DEBUG
+            DEBUG_MSG("Redux done");
+            printStack(stack);
+            #endif
+
             skipEndCheck = true;
             // end condiion check;
             if (!end) continue;

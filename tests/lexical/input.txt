@@ -1,12 +1,7 @@
-var x: i32 = 42;
-// This is a single-line comment
-const y = "Hello, Zig!";
-fn add(a: i32, b: i32) i32 {
+pub fn add(a: i32, b: i32) i32 {
     return a + b;
 }
-abbb = "abc";
-
-pub fn build(x : u8, y : u8) u8 {
+pub fn build(x : []u8, y : []u8) []u8 {
 	const res = ifj. concat(x, y);
 	return res;
 }
@@ -16,6 +11,3 @@ pub fn main() void {
 	ct = build(a, ct);
 	ifj.write(ct);
 }
-
-123.0E+77
-123.0e+77
