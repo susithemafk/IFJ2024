@@ -23,6 +23,28 @@ enum ERR_CODES scanner_unget_token(struct TOKEN token)
 	return SUCCESS;
 }
 
+enum ERR_CODES scanner_peek_token(struct TOKEN *tokenPointer)
+{
+	if (nextToken.type != TOKEN_NONE)
+	{
+		*tokenPointer = nextToken;
+		return SUCCESS;
+	}
+
+	struct TOKEN tempToken;
+	enum ERR_CODES result = scanner_get_token(&tempToken);
+
+	if (result != SUCCESS)
+	{
+		return result;
+	}
+
+	nextToken = tempToken;
+	*tokenPointer = tempToken;
+
+	return SUCCESS;
+}
+
 enum ERR_CODES scanner_token_free(TOKEN_PTR tokenPointer)
 {
 	free(tokenPointer->value);
@@ -54,16 +76,21 @@ enum ERR_CODES scanner_end(char input, int *nextCharacter, struct TOKEN *tokenPo
 enum ERR_CODES scanner_get_token(struct TOKEN *tokenPointer)
 {
 	SCANNER_STATUS state = SCANNER_START;
-	unsigned string_index;
-	unsigned allocated_length = 0;
+	unsigned string_index = 0;
+	unsigned allocated_length = ALLOC_SIZE;
 	int input = 0;
 	bool assign_value = true;
 
-	// pokud je token uložený, vracim ho
+	tokenPointer->value = (char *)malloc(allocated_length);
+	if (tokenPointer->value == NULL)
+	{
+		return E_INTERNAL; // memory allocation failed
+	}
+
 	if (nextToken.type != TOKEN_NONE)
 	{
-		nextToken.type = TOKEN_NONE;
 		*tokenPointer = nextToken;
+		nextToken.type = TOKEN_NONE;
 		return SUCCESS;
 	}
 
@@ -129,12 +156,10 @@ enum ERR_CODES scanner_get_token(struct TOKEN *tokenPointer)
 				tokenPointer->type = TOKEN_SEMICOLON;
 				break;
 			case '<':
-				state = SCANNER_LESSTHAN;
-				tokenPointer->type = TOKEN_LESSTHAN;
+				state = SCANNER_LESS;
 				break;
 			case '>':
-				state = SCANNER_GREATERTHAN;
-				tokenPointer->type = TOKEN_GREATERTHAN;
+				state = SCANNER_GREATER;
 				break;
 			case ',':
 				state = SCANNER_COMMA;
@@ -311,28 +336,37 @@ enum ERR_CODES scanner_get_token(struct TOKEN *tokenPointer)
 		case SCANNER_EQUAL:
 			return scanner_end(input, &nextCharacter, tokenPointer, string_index);
 
-		case SCANNER_LESSTHAN:
+		case SCANNER_GREATER:
 			if (input == '=')
 			{
-
-				tokenPointer->type = TOKEN_LESSOREQUAL;
-				return scanner_end(input, &nextCharacter, tokenPointer, string_index);
-			}
-			else
-			{
-				return scanner_end(input, &nextCharacter, tokenPointer, string_index);
-			}
-
-		case SCANNER_GREATERTHAN:
-			if (input == '=')
-			{
+				state = SCANNER_GREATEROREQUAL;
 				tokenPointer->type = TOKEN_GREATEROREQUAL;
-				return scanner_end(input, &nextCharacter, tokenPointer, string_index);
 			}
 			else
 			{
+				tokenPointer->type = TOKEN_GREATERTHAN;
 				return scanner_end(input, &nextCharacter, tokenPointer, string_index);
 			}
+			break;
+
+		case SCANNER_GREATEROREQUAL:
+			return scanner_end(input, &nextCharacter, tokenPointer, string_index);
+
+		case SCANNER_LESS:
+			if (input == '=')
+			{
+				state = SCANNER_LESSOREQUAL;
+				tokenPointer->type = TOKEN_LESSOREQUAL;
+			}
+			else
+			{
+				tokenPointer->type = TOKEN_LESSTHAN;
+				return scanner_end(input, &nextCharacter, tokenPointer, string_index);
+			}
+			break;
+
+		case SCANNER_LESSOREQUAL:
+			return scanner_end(input, &nextCharacter, tokenPointer, string_index);
 
 		case SCANNER_EXCLAMATION:
 			if (input == '=')

@@ -5,3 +5,6 @@ lexical - víceřádkový string //
 		- neplatné znaky jako \xzz
 		- neplatné escape sekvence
 
+
+
+todo upravit testy na striny

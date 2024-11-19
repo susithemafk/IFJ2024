@@ -56,7 +56,7 @@ test_%: $(TEST_DIR)/test_%.c
 	@$(printCmd) "\033[1;36m==================================\033[0m"
 	@$(printCmd) "\033[1;32mBuild completed successfully!   \033[0m"
 	@$(printCmd) "\033[1;36m==================================\033[0m"
-	@if [ "$*" = "lex" ] || [ "$*" = "syntax_pass1" ]; then \
+	@if [ "$*" = "lex" ] || [ "$*" = "syntax_pass1" ] || [ "$*" = "parser" ]; then \
 		./$@ < ./tests/lexical/input.txt; \
 	else \
 		./$@; \
@@ -77,7 +77,7 @@ run_%:
 	@$(printCmd) "\033[1;36m==================================\033[0m"
 	@$(printCmd) "Running \033[1;33m $@...                   \033[0m"
 	@$(printCmd) "\033[1;36m==================================\033[0m"
-	@if [ "$*" = "lex" ] || [ "$*" = "syntax_pass1" ]; then \
+	@if [ "$*" = "lex" ] || [ "$*" = "syntax_pass1" ] || [ "$*" = "parser" ]; then \
 		./$@ < ./tests/lexical/input.txt; \
 	else \
 		./$@; \
@@ -97,7 +97,7 @@ valgrind_%:
 	@$(printCmd) "\033[1;36m==================================\033[0m"
 	@$(printCmd) "Running \033[1;33m$@\033[0m with memory checker ..."
 	@$(printCmd) "\033[1;36m==================================\033[0m"
-	@if [ "$*" = "lex" ] || [ "$*" = "syntax_pass1" ]; then \
+	@if [ "$*" = "lex" ] || [ "$*" = "syntax_pass1" ] || [ "$*" = "parser" ]; then \
 		if [ "$$(uname)" = "Darwin" ]; then \
 			$(printCmd) "\033[1;32mUsing leaks on macOS for lex test...\033[0m"; \
 			leaks --atExit --fullStacks -- ./valgrind_$* < ./tests/lexical/input.txt; \

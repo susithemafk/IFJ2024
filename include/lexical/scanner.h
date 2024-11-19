@@ -28,8 +28,10 @@ typedef enum
 	SCANNER_STRING_END,
 	SCANNER_ESCAPE_SEQ,
 
-	SCANNER_LESSTHAN,
-	SCANNER_GREATERTHAN,
+	SCANNER_LESS,
+	SCANNER_GREATER,
+	SCANNER_LESSOREQUAL,
+	SCANNER_GREATEROREQUAL,
 	SCANNER_EQUAL,
 	SCANNER_NOTEQUAL,
 	SCANNER_EXCLAMATION,
@@ -73,6 +75,7 @@ typedef enum
 enum ERR_CODES scanner_init(FILE *input);
 enum ERR_CODES scanner_get_token(struct TOKEN *tokenPointer);
 enum ERR_CODES scanner_unget_token(struct TOKEN token);
+enum ERR_CODES scanner_peek_token(struct TOKEN *tokenPointer);
 enum ERR_CODES scanner_token_free(TOKEN_PTR tokenPointer);
 enum ERR_CODES scanner_destroy(void);
 
