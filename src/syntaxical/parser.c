@@ -165,8 +165,8 @@ bool parse_function()
 	if (!match(TOKEN_LBRACE))
 		return false;
 
-	// if (!parse_func_body())
-	// 	return false;
+	if (!parse_func_body())
+		return false;
 
 	if (!match(TOKEN_RBRACE))
 		return false;
@@ -196,6 +196,7 @@ bool parse_params()
 {
 	printf("Parsing <params>\n");
 
+	// Handle empty params case
 	if (currentToken()->type == TOKEN_RPAR)
 	{
 		printf("Successfully parsed <params> (empty)\n");
@@ -203,13 +204,8 @@ bool parse_params()
 	}
 
 	if (!parse_parameter())
-		return false;
-
-	while (currentToken()->type == TOKEN_COMMA)
 	{
-		getNextToken();
-		if (!parse_parameter())
-			return false;
+		return false;
 	}
 
 	printf("Successfully parsed <params>\n");
@@ -220,18 +216,52 @@ bool parse_parameter()
 {
 	printf("Parsing <parameter>\n");
 
+	// Handle empty parameter case
 	if (currentToken()->type != TOKEN_IDENTIFIER)
-		return false;
+	{
+		printf("Successfully parsed <parameter> (empty)\n");
+		return true;
+	}
+
 	printf("Parameter name: %s\n", currentToken()->value);
-	getNextToken();
+	getNextToken(); // consume identifier
 
 	if (!match(TOKEN_COLON))
+	{
 		return false;
+	}
 
 	if (!parse_data_type())
+	{
 		return false;
+	}
+
+	if (!parse_parameter_next())
+	{
+		return false;
+	}
 
 	printf("Successfully parsed <parameter>\n");
+	return true;
+}
+
+bool parse_parameter_next()
+{
+	printf("Parsing <parameter_next>\n");
+
+	if (currentToken()->type != TOKEN_COMMA)
+	{
+		printf("Successfully parsed <parameter_next> (empty)\n");
+		return true;
+	}
+
+	getNextToken(); // consume comma
+	if (!parse_parameter())
+	{
+		return false;
+	}
+
+	printf("Successfully parsed <parameter_next>\n");
 	return true;
 }
 
@@ -252,5 +282,13 @@ bool parse_data_type()
 	getNextToken();
 
 	printf("Successfully parsed <data_type>\n");
+	return true;
+}
+
+bool parse_func_body()
+{
+	printf("Parsing <func_body>\n");
+
+	printf("Successfully parsed <func_body>\n");
 	return true;
 }

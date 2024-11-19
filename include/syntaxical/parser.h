@@ -18,4 +18,6 @@ bool parse_function();
 bool parse_next_function();
 bool parse_params();
 bool parse_parameter();
+bool parse_parameter_next();
 bool parse_data_type();
+bool parse_func_body();
