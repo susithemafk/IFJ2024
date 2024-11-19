@@ -47,7 +47,7 @@ run: main
 	@./main < src/input.txt
 
 # Build test target (build only, no execution)
-test_%: $(TEST_DIR)/test_%.c	
+test_%: $(TEST_DIR)/test_%.c
 	@$(printCmd) "\033[1;36m==================================\033[0m"
 	@$(printCmd) "Building with debug flag: \033[1;33m$@...                  \033[0m"
 	@$(printCmd) "\033[1;36m==================================\033[0m"
@@ -56,8 +56,10 @@ test_%: $(TEST_DIR)/test_%.c
 	@$(printCmd) "\033[1;36m==================================\033[0m"
 	@$(printCmd) "\033[1;32mBuild completed successfully!   \033[0m"
 	@$(printCmd) "\033[1;36m==================================\033[0m"
-	@if [ "$*" = "lex" ] || [ "$*" = "syntax_pass1" ] || [ "$*" = "parser" ]; then \
-		./$@ < ./tests/lexical/input.txt; \
+	@if [ "$*" = "lex" ] || [ "$*" = "syntax_pass1" ]; then \
+    ./$@ < ./tests/lexical/input.txt; \
+	elif [ "$*" = "parser" ]; then \
+		./$@ < ./tests/syntaxical/input.txt; \
 	else \
 		./$@; \
 	fi
