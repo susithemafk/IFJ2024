@@ -77,54 +77,51 @@ int main(void) {
         if (strcmp(token->value, "Expresion") == 0) doExpresion = true;
         else doExpresion = false;
 
-        if (expCount == 153) {
+        // here the current i should be the start of the expresion
+        enum ERR_CODES err = startPrecedentAnalysis(buffer, &i, doExpresion);
+        char message[100];
+        sprintf(message, "Validating expresion %d", expCount);
 
-            // here the current i should be the start of the expresion
-            enum ERR_CODES err = startPrecedentAnalysis(buffer, &i, doExpresion);
-            char message[100];
-            sprintf(message, "Validating expresion %d", expCount);
+        if (result_valid) {
+            testCase(
+                test,
+                err == SUCCESS,
+                message,
+                "Precedent analysis passed (expected)",
+                "Precedent analysis failed (unexpected)"
+            );
+        } else {
+            testCase(
+                test,
+                err == E_SYNTAX,
+                message,
+                "Precedent analysis failed (expected)",
+                "Precedent analysis passed (unexpected)"
+            );
+        }
 
-            if (result_valid) {
+        // check the token at the end, if it is ; or )
+        if (result_valid) {
+            token = (TOKEN_PTR)getDataAtIndex(buffer, i++);
+            if (doExpresion) {
                 testCase(
                     test,
-                    err == SUCCESS,
-                    message,
-                    "Precedent analysis passed (expected)",
-                    "Precedent analysis failed (unexpected)"
+                    token->type == TOKEN_SEMICOLON,
+                    "Validating end of expresion",
+                    "End of expresion is correct (expected)",
+                    "End of expresion is incorrect (unexpected)"
                 );
+
             } else {
                 testCase(
                     test,
-                    err == E_SYNTAX,
-                    message,
-                    "Precedent analysis failed (expected)",
-                    "Precedent analysis passed (unexpected)"
+                    token->type == TOKEN_RPAR,
+                    "Validating end of truth expresion",
+                    "End of truth expresion is correct (expected)",
+                    "End of truth expresion is incorrect (unexpected)"
                 );
             }
-
-            // check the token at the end, if it is ; or )
-            if (result_valid) {
-                token = (TOKEN_PTR)getDataAtIndex(buffer, i++);
-                if (doExpresion) {
-                    testCase(
-                        test,
-                        token->type == TOKEN_SEMICOLON,
-                        "Validating end of expresion",
-                        "End of expresion is correct (expected)",
-                        "End of expresion is incorrect (unexpected)"
-                    );
-
-                } else {
-                    testCase(
-                        test,
-                        token->type == TOKEN_RPAR,
-                        "Validating end of truth expresion",
-                        "End of truth expresion is correct (expected)",
-                        "End of truth expresion is incorrect (unexpected)"
-                    );
-                }
-            } 
-        }
+        } 
       
         // skip the test
         while (i < size) {
