@@ -91,10 +91,14 @@ bool parse_program()
 	if (!parse_functions())
 		return false;
 
-	puts("AHOJ");
-	printf("CUrrent token: %s\n", currentToken()->value);
+	if (!currentToken())
+	{
+		puts("Dosly tokeny, chybi EOF token");
+		return false;
+	}
 	if (!match(TOKEN_EOF))
 		return false;
+
 	printf("Successfully parsed <program>\n");
 	return true;
 }
