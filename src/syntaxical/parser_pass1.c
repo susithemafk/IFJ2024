@@ -16,7 +16,6 @@
 #include "utility/enumerations.h"
 #include "syntaxical/parser_pass1.h"
 
-static enum ERR_CODES status;
 static struct TOKEN token;
 
 void freeBuffer(LinkedList **buffer) {
@@ -43,14 +42,8 @@ bool saveNewToken(struct TOKEN token, LinkedList *buffer) {
     }
 
     newToken->type = token.type;    
-    newToken->value = malloc(sizeof(char) * (strlen(token.value) + 1));
-    if (newToken->value == NULL) {
-        free(newToken);
-        freeBuffer(&buffer);
-        return false;
-    }
-    strcpy(newToken->value, token.value);
-
+    newToken->value = token.value;
+    
     // save the token to the buffer
     if (!insertNodeAtIndex(buffer, (void *)newToken, -1)) {
         freeBuffer(&buffer);

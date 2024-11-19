@@ -260,10 +260,13 @@ enum ERR_CODES ___calculateExpresionType(ASTNodePtr expresion, enum DATA_TYPES *
         ASTNodePtr node = (ASTNodePtr)getDataAtIndex(postFixExpresion, 0);
         *nullable = ___nodeIsNullable(node);
         *retType = ___getOneNodeType(node);
+        return SUCCESS;
     }
 
     // go throught the expresion, 
     ASTNodePtr node, val1, val2;
+
+    bool nlbl = false;
     
     for (unsigned int i = 0; i < getSize(postFixExpresion); i++) {
         // read the node form left to right
@@ -272,6 +275,7 @@ enum ERR_CODES ___calculateExpresionType(ASTNodePtr expresion, enum DATA_TYPES *
         switch (node->type) {
             // if it is a value or a variable, we just push it to the stack
             case AST_NODE_VARIABLE:
+                if (node->data->variable->nullable == 1) nlbl = true;
             case AST_NODE_VALUE:
                 if (!insertNodeAtIndex(stack, (void *)node, 0)) {
                     removeList(&stack);
@@ -339,9 +343,9 @@ enum ERR_CODES ___calculateExpresionType(ASTNodePtr expresion, enum DATA_TYPES *
     }
 
     *retType = ___getOneNodeType(node);
-    *nullable = false; // exprsion with more than one value cannot be null
+    *nullable = false; // exprsion with more than one value cannot be null, but the caller handles this
     removeList(&stack);
-    return SUCCESS;
+    return (nlbl) ? E_SEMANTIC_INCOMPATABLE_TYPES : SUCCESS;
 }
 
 // Function to find the return type of some AST (variable, value, expresion, func call)
@@ -490,18 +494,20 @@ enum ERR_CODES __validateReturn(ASTNodePtr ast, ASTNodePtr currentFunc) {
         return E_SEMANTIC_INCOMPATABLE_TYPES;
     }
 
+    if (ast->data->returnNode->expression == NULL) return E_SEMANTIC_BAD_FUNC_RETURN;
+
     // if the function is not void, we should return something
     enum DATA_TYPES valueType;
     bool nullable;
     enum ERR_CODES err = __findASTreturnType(ast->data->returnNode->expression, NULL, &valueType, &nullable);
 
-    if (err != SUCCESS) return err;
+    if (err != SUCCESS) return E_SEMANTIC_BAD_FUNC_RETURN;
 
     // if the return type cant be null, and we have nullable return, we error out
-    if (!currentFunc->data->function->nullable && nullable) return E_SEMANTIC_INCOMPATABLE_TYPES;
+    if (!currentFunc->data->function->nullable && nullable) return E_SEMANTIC_BAD_FUNC_RETURN;
 
     // if the return type is not the same as the function return type, we error out
-    if (currentFunc->data->function->returnType != valueType) return E_SEMANTIC_INCOMPATABLE_TYPES;
+    if (currentFunc->data->function->returnType != valueType) return E_SEMANTIC_BAD_FUNC_RETURN;
 
     return SUCCESS;
 }

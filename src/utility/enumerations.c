@@ -136,7 +136,7 @@ enum DATA_TYPES covertTokneDataType(enum TOKEN_TYPE type) {
             return dTypeI32;
         case TOKEN_F64:
             return dTypeF64;
-        case TOKEN_U8:
+        case TOKEN_STRING:
             return dTypeU8;
         default:
             return dTypeNone;

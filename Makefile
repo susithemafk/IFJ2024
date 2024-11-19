@@ -110,10 +110,10 @@ valgrind_%:
 	else \
 		if [ "$$(uname)" = "Darwin" ]; then \
 			$(printCmd) "\033[1;32mUsing leaks on macOS...\033[0m"; \
-			leaks --atExit --fullStacks -- /valgrind_$*; \
+			leaks --atExit --fullStacks -- ./valgrind_$*; \
 		else \
 			$(printCmd) "\033[1;32mUsing valgrind on non-macOS system...\033[0m"; \
-			valgrind -s --leak-check=full --track-origins=yes --dsymutil=yes --show-leak-kinds=all /valgrind_$*; \
+			valgrind -s --leak-check=full --track-origins=yes --dsymutil=yes --show-leak-kinds=all ./valgrind_$*; \
 		fi; \
 	fi
 	@$(printCmd) "\033[1;36m==================================\033[0m"

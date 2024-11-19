@@ -49,6 +49,8 @@ int main(void) {
         printf("-- teset start\n");
         // get the first token, shold be the number of the test
         TOKEN_PTR token = (TOKEN_PTR)getDataAtIndex(buffer, i++);
+
+        if (token->type == TOKEN_EOF) break;
         if (token->type != TOKEN_I32) {
             printf("invalid test!\n");
             return 1;
@@ -139,6 +141,6 @@ int main(void) {
 
     }
     freeBuffer(&buffer);
-    finishTestInstance(test);
     symTableFree(&table);
+    finishTestInstance(test);
 }

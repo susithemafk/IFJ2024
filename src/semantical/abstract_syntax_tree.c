@@ -403,7 +403,6 @@ enum ERR_CODES ASTaddNodeToExpresion(ASTNodePtr expresionRoot, SymVariable *vari
         // create a new value node
         ASTNodePtr valueNode = ASTcreateNode(AST_NODE_VALUE);
         if (valueNode == NULL) return E_INTERNAL;
-
         // init the value node
         if (ASTinitNodeValue(valueNode, value) != SUCCESS) {
             ASTfreeNode(&valueNode);

@@ -8,16 +8,16 @@
 #include "utility/enumerations.h"
 #include "syntaxical/parser_pass1.h"
 
-enum ERR_CODES parser_parse();
+enum ERR_CODES parser_parse(void);
 
 bool match(enum TOKEN_TYPE tokenType);
-bool parse_program();
-bool parse_prolog();
-bool parse_functions();
-bool parse_function();
-bool parse_next_function();
-bool parse_params();
-bool parse_parameter();
-bool parse_parameter_next();
-bool parse_data_type();
-bool parse_func_body();
+bool parse_program(void);
+bool parse_prolog(void);
+bool parse_functions(void);
+bool parse_function(void);
+bool parse_next_function(void);
+bool parse_params(void);
+bool parse_parameter(void);
+bool parse_parameter_next(void);
+bool parse_data_type(void);
+bool parse_func_body(void);

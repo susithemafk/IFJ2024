@@ -1726,7 +1726,9 @@ void return_asts_6(SymTable *table, LinkedList *returnASts, TestInstancePtr test
     }
     
     struct TOKEN valueToken6_6 = {.value = "1.0", .type = TOKEN_F64};
-    err = ASTeditDeclareNode(declare6_3, NULL, &valueToken6_6); // var vysl: f64 = 1.0
+    declare6_3 = ASTcreateNode(AST_NODE_DECLARE);
+    ASTinitNodeValue(declare6_3, &valueToken6_6);
+    err = ASTeditDeclareNode(declare6_3, NULL, declare6_3); // var vysl: f64 = 1.0
     
     if(test != NULL) {
         testCase(
@@ -2533,7 +2535,10 @@ void return_asts_9(SymTable *table, LinkedList *returnASts, TestInstancePtr test
     SymVariable *var_result = symTableFindVariable(table, "result");
     err = ASTeditAssignNode(assign9, var_result, NULL); // result =
     struct TOKEN val1 = {.type = TOKEN_I32, .value = "1"};
-    err = ASTeditAssignNode(assign9, NULL, &val1); // result = 1
+    ASTNodePtr value = ASTcreateNode(AST_NODE_VALUE);
+    err = ASTinitNodeValue(value, &val1); // 1
+
+    err = ASTeditAssignNode(assign9, NULL, value); // result = 1
     insertNodeAtIndex(returnASts, (void *)assign9, -1);
 
     err = symTableExitScope(table); // exit if
@@ -2549,7 +2554,7 @@ void return_asts_9(SymTable *table, LinkedList *returnASts, TestInstancePtr test
     SymVariable *var2_n = symTableFindVariable(table, "n");
     err = ASTeditFunctionCallNode(fnCall9, NULL, var2_n, NULL); // decrement(n)
     struct TOKEN val2 = {.type = TOKEN_I32, .value = "1"};
-    err = ASTeditFunctionCallNode(fnCall9, NULL, &val2, NULL); // decrement(n, 1)
+    err = ASTeditFunctionCallNode(fnCall9, NULL, NULL, &val2); // decrement(n, 1)
     err = ASTeditDeclareNode(declare9_2, NULL, fnCall9); // const decremented_n = decrement(n, 1)
     insertNodeAtIndex(returnASts, (void *)declare9_2, -1);
 
@@ -2569,7 +2574,7 @@ void return_asts_9(SymTable *table, LinkedList *returnASts, TestInstancePtr test
     SymVariable *var2_result = symTableFindVariable(table, "result");
     err = ASTeditAssignNode(assign9_2, var2_result, NULL); // result =
     ASTNodePtr expr1 = ASTcreateNode(AST_NODE_EXPRESION);
-    SymVariable *var2_n = symTableFindVariable(table, "n");
+    var2_n = symTableFindVariable(table, "n");
     err = ASTaddNodeToExpresion(expr1, var2_n, NULL, NULL); // n
     struct TOKEN opr1 = {.type = TOKEN_MULTIPLY, .value = "*"};
     err = ASTaddNodeToExpresion(expr1, NULL, NULL, &opr1); // n *

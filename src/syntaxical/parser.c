@@ -4,22 +4,22 @@ static int tokenIndex = 0;
 static LinkedList *buffer = NULL;
 static SymTable *table = NULL;
 
-TOKEN_PTR currentToken()
+TOKEN_PTR currentToken(void)
 {
-	if (tokenIndex >= getSize(buffer))
+	if ((unsigned int)tokenIndex >= getSize(buffer))
 		return NULL;
 	return (TOKEN_PTR)getDataAtIndex(buffer, tokenIndex);
 }
 
-TOKEN_PTR getNextToken()
+TOKEN_PTR getNextToken(void)
 {
 	tokenIndex++;
-	if (tokenIndex >= getSize(buffer))
+	if ((unsigned int)tokenIndex >= getSize(buffer))
 		return NULL;
 	return (TOKEN_PTR)getDataAtIndex(buffer, tokenIndex);
 }
 
-enum ERR_CODES parser_init()
+enum ERR_CODES parser_init(void)
 {
 	puts("parser_init");
 
@@ -29,7 +29,7 @@ enum ERR_CODES parser_init()
 	return parser_parse();
 }
 
-enum ERR_CODES parser_parse()
+enum ERR_CODES parser_parse(void)
 {
 	puts("parser_parse");
 
@@ -87,7 +87,7 @@ bool match(enum TOKEN_TYPE tokenType)
 	return true;
 }
 
-bool parse_program()
+bool parse_program(void)
 {
 #ifdef DEBUG
 	printf("Parsing <program>\n");
@@ -105,7 +105,7 @@ bool parse_program()
 	return true;
 }
 
-bool parse_prolog()
+bool parse_prolog(void)
 {
 #ifdef DEBUG
 	printf("Parsing <prolog>\n");
@@ -125,7 +125,7 @@ bool parse_prolog()
 	return true;
 }
 
-bool parse_functions()
+bool parse_functions(void)
 {
 #ifdef DEBUG
 	printf("Parsing <functions>\n");
@@ -145,7 +145,7 @@ bool parse_functions()
 #endif
 	return true;
 }
-bool parse_function()
+bool parse_function(void)
 {
 #ifdef DEBUG
 	printf("Parsing <function>\n");
@@ -191,7 +191,7 @@ bool parse_function()
 	return true;
 }
 
-bool parse_next_function()
+bool parse_next_function(void)
 {
 #ifdef DEBUG
 	printf("Parsing <next_function>\n");
@@ -214,7 +214,7 @@ bool parse_next_function()
 	return false;
 }
 
-bool parse_params()
+bool parse_params(void)
 {
 #ifdef DEBUG
 	printf("Parsing <params>\n");
@@ -240,7 +240,7 @@ bool parse_params()
 	return true;
 }
 
-bool parse_parameter()
+bool parse_parameter(void)
 {
 #ifdef DEBUG
 	printf("Parsing <parameter>\n");
@@ -281,7 +281,7 @@ bool parse_parameter()
 	return true;
 }
 
-bool parse_parameter_next()
+bool parse_parameter_next(void)
 {
 #ifdef DEBUG
 	printf("Parsing <parameter_next>\n");
@@ -307,7 +307,7 @@ bool parse_parameter_next()
 	return true;
 }
 
-bool parse_data_type()
+bool parse_data_type(void)
 {
 #ifdef DEBUG
 	printf("Parsing <data_type>\n");
@@ -335,7 +335,7 @@ bool parse_data_type()
 	return true;
 }
 
-bool parse_func_body()
+bool parse_func_body(void)
 {
 #ifdef DEBUG
 	printf("Parsing <func_body>\n");
