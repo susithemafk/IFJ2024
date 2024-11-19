@@ -1,5 +1,5 @@
 /** AUTHOR
- * 
+ *
  * @author  <247581> Martin Mendl  <xsvobov00> Veronika Svobodová
  * @file parser.c
  * @date 17.11. 2024
@@ -70,7 +70,7 @@ int main(void) {
         "First pass",
         "First pass completed successfully",
         "First pass failed"
-    );  
+    );
     if (err != SUCCESS) {
         printErrCode(err);
     }
@@ -153,7 +153,7 @@ int main(void) {
 
     LinkedList *args = func->paramaters;
     SymFunctionParamPtr var;
-    
+
     var = (SymFunctionParamPtr)getDataAtIndex(args, 0);
 
     testCase(

@@ -26,5 +26,6 @@
         "__hash_table": "c",
         "variant": "c",
         "precident.h": "c"
+        "parser.h": "c"
     }
 }
