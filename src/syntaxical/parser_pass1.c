@@ -168,7 +168,10 @@ enum ERR_CODES firstPass(SymTable *table, FILE *input, LinkedList *buffer) {
         // get the token
         status = scanner_get_token(&token);
         if (status != SUCCESS) return E_INTERNAL;
-        if (token.type == TOKEN_EOF) break;
+        if (token.type == TOKEN_EOF) {
+            if (!saveNewToken(token, buffer)) return E_INTERNAL;
+            break;
+        }
         // save the token
         if (!saveNewToken(token, buffer)) return E_INTERNAL;
 
