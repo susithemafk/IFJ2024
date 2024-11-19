@@ -92,6 +92,32 @@ void run_tests(void) {
     return_asts_3(table, returnAsts, test);
     free_test_env(&table, &returnAsts, &test);
 
+    /*
+    AST 4
+
+    pub fn build(x : []u8, y : []u8) []u8 {
+        const res = ifj. concat(x, y);
+        return res;
+    }
+    */ 
+    create_test_env(&table, &returnAsts, &test, "AST 4");
+    return_asts_4(table, returnAsts, test);
+    free_test_env(&table, &returnAsts, &test);
+
+    /*
+    AST 5
+
+    pub fn main() void {
+        const a = ifj.string("ahoj ");
+        var ct : []u8= ifj.string("svete");
+        ct = build(a, ct);
+        ifj.write(ct);
+    }
+    */
+    create_test_env(&table, &returnAsts, &test, "AST 5");
+    return_asts_5(table, returnAsts, test);
+    free_test_env(&table, &returnAsts, &test);
+
     // continue later with other tests
 }
 
