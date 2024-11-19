@@ -21,12 +21,11 @@ void compareToknes(FILE *expectedFile, LinkedList *buffer) {
     TestInstancePtr test = initTestInstance("First pass toknes saving test");
 
     unsigned int size = getSize(buffer);
-    TOKEN_PTR token;
     char expected_token[MAX_TOKEN_LEN];
 
     for (unsigned int i = 0; i < size; i++) {
 
-        token = (TOKEN_PTR)getDataAtIndex(buffer, i);
+        TOKEN_PTR token = (TOKEN_PTR)getDataAtIndex(buffer, i);
         if (fgets(expected_token, MAX_TOKEN_LEN, expectedFile) != NULL) {
             size_t len = strlen(expected_token);
             if (len > 0 && expected_token[len - 1] == '\n') {

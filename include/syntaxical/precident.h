@@ -119,6 +119,7 @@ enum ERR_CODES startPrecedentAnalysis(LinkedList *buffer, unsigned int *startIdx
 */
 enum ERR_CODES _applyRulesExpresion(LinkedList *stack, unsigned int ruleStartIdx);
 
+void printStack(LinkedList *stack);
 
 /**
  * Function to apply the rules for the truth expression

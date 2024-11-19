@@ -181,7 +181,7 @@ enum ERR_CODES firstPass(SymTable *table, FILE *input, LinkedList *buffer) {
 
     // check, if we have the main function
     if (getSize(buffer) == 0) return E_SYNTAX;
-    if (!symTableFindFunction(table, "main")) return E_SEMANTIC_OTHER;
+    if (!symTableFindFunction(table, "main")) return E_SEMANTIC_UND_FUNC_OR_VAR; // missing main
     return SUCCESS;
 }
 
