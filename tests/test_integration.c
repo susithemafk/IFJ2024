@@ -12,6 +12,7 @@
 #include <string.h>
 #include <dirent.h>  // For directory operations
 #include <sys/stat.h> // For file type checks
+#include <ctype.h>
 #include "utility/enumerations.h"
 #include "syntaxical/parser.h"
 #include "syntaxical/parser_pass1.h"
@@ -106,7 +107,39 @@ void processFile(const char *filePath, const char *fileName, TestInstancePtr tes
     fclose(file);
 }
 
-// main function, which will go through all the files in the directory, if the name is not input.txt, it will process the file
+#define MAX_FILES 1024  // Maximum number of files to process
+
+// Helper function to extract the test number from the file name
+int extractTestNumber(const char *fileName) {
+    const char *prefix = "test_";
+    const char *ptr = strstr(fileName, prefix);
+    if (!ptr) {
+        return -1; // Return an invalid number if the prefix is not found
+    }
+    ptr += strlen(prefix); // Move past "test_"
+    
+    // Extract the numeric part
+    int testNumber = 0;
+    while (isdigit(*ptr)) {
+        testNumber = testNumber * 10 + (*ptr - '0');
+        ptr++;
+    }
+    return testNumber;
+}
+
+// Comparison function for sorting by test number
+int compareFileNames(const void *a, const void *b) {
+    const char *fileA = *(const char **)a;
+    const char *fileB = *(const char **)b;
+
+    int numA = extractTestNumber(fileA);
+    int numB = extractTestNumber(fileB);
+
+    // Compare based on extracted test numbers
+    return numA - numB;
+}
+
+// Main function
 int main(void) {
     const char *directoryPath = "./tests/syntaxical/";  // Set the directory path
     const char *excludeFileName = "input.txt";
@@ -118,6 +151,10 @@ int main(void) {
     }
 
     TestInstancePtr test = initTestInstance("Lexical, syntax and semantic analysis tests");
+
+    // Collect file names
+    char *fileNames[MAX_FILES];
+    size_t fileCount = 0;
 
     struct dirent *entry;
     while ((entry = readdir(dir)) != NULL) {
@@ -133,11 +170,37 @@ int main(void) {
         // Check if it is a regular file
         struct stat pathStat;
         if (stat(filePath, &pathStat) == 0 && S_ISREG(pathStat.st_mode)) {
-            processFile(filePath, entry->d_name, test);
+            // Allocate memory for the file name and store it
+            fileNames[fileCount] = strdup(entry->d_name);
+            if (!fileNames[fileCount]) {
+                perror("Error allocating memory");
+                closedir(dir);
+                return EXIT_FAILURE;
+            }
+            fileCount++;
         }
+
+        if (fileCount >= MAX_FILES) {
+            fprintf(stderr, "Error: Too many files in directory.\n");
+            closedir(dir);
+            return EXIT_FAILURE;
+        }
+    }
+    closedir(dir);
+
+    // Sort file names alphabetically
+    qsort(fileNames, fileCount, sizeof(char *), compareFileNames);
+
+    // Process each file in sorted order
+    for (size_t i = 0; i < fileCount; i++) {
+        char filePath[512];
+        snprintf(filePath, sizeof(filePath), "%s/%s", directoryPath, fileNames[i]);
+        processFile(filePath, fileNames[i], test);
+
+        // Free the allocated memory for the file name
+        free(fileNames[i]);
     }
 
     finishTestInstance(test);
-    closedir(dir);
     return EXIT_SUCCESS;
 }
