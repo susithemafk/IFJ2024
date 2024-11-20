@@ -9,7 +9,7 @@ static enum ERR_CODES err;
 
 // vnoreny funkce resi first pass
 // udelat parser dle good_asts.c
-// todo return bez leve zavorky ve funkci
+// vracet error kody
 
 TOKEN_PTR currentToken(void)
 {
@@ -342,7 +342,6 @@ bool parse_parameter_next(void)
 }
 
 // Tam může jít i32 f64 []u8 nebo identifier nebo taky nic nebo string
-// TODO: pridat do LL gramatiky a podle ni pak upravit
 bool parse_arguments(void)
 {
 #ifdef DEBUG
@@ -543,22 +542,27 @@ bool parse_body_content(void)
 	case TOKEN_WHILE:
 		return parse_while();
 	case TOKEN_RETURN:
-		getNextToken(); // Consume 'return'
-		if (!parse_ret_value())
-			return false;
-		return match(TOKEN_SEMICOLON);
-
+		return parse_ret_value();
+	case TOKEN_IFJ:
+		return parse_native_func_call();
 	case TOKEN_IDENTIFIER:
-		// case TOKEN_IFJ: // TODO: lexical
-		if (token->type == TOKEN_IDENTIFIER)
+		TOKEN_PTR token = currentToken();
+		TOKEN_PTR nextToken = getDataAtIndex(buffer, tokenIndex + 1);
+
+		if (nextToken->type == TOKEN_LPAR)
 		{
-			TOKEN_PTR nextToken = getDataAtIndex(buffer, tokenIndex + 1);
-			if (nextToken->type == TOKEN_ASSIGN)
-				return parse_var_assign();
+			return parse_func_call();
 		}
-		return parse_func_call();
-	// case TOKEN_UNDERSCORE: // TODO: lexical
-	// 	return parse_var_assign();
+		else if (nextToken->type == TOKEN_ASSIGN)
+		{
+			return parse_var_assign();
+		}
+		else
+			return false;
+
+	case TOKEN_UNDERSCORE:
+		return parse_var_assign();
+
 	default:
 		printf("Syntax error: unexpected token %s\n, expected: const, var, if, while, return, identifier, ifj, _", token->value);
 		return false;
@@ -645,6 +649,15 @@ bool parse_var_def(void)
 		{
 			return false;
 		}
+	}
+	else if (token->type == TOKEN_IFJ && nextToken->type == TOKEN_CONCATENATE)
+	{
+		tokenIndex--;
+		if (!parse_native_func_call())
+		{
+			return false;
+		}
+		return true;
 	}
 	else
 	{
@@ -739,7 +752,7 @@ bool parse_while(void)
 		return false;
 	if (!match(TOKEN_LPAR))
 		return false;
-	if (!parse_no_truth_expr())
+	if (!parse_no_truth_expr() && !parse_truth_expr()) // TODO: pipa pouze když se jedná o no truth expr
 		return false;
 	if (!match(TOKEN_RPAR))
 		return false;
@@ -761,17 +774,22 @@ bool parse_ret_value(void)
 #ifdef DEBUG
 	printf("Parsing <ret_value>\n");
 #endif
+	getNextToken();
 
-	// Check for empty return
+	// empty return
 	if (currentToken()->type == TOKEN_SEMICOLON)
 	{
 #ifdef DEBUG
 		printf("Empty return value\n");
 #endif
+		getNextToken();
 		return true;
 	}
 
 	if (!parse_no_truth_expr())
+		return false;
+
+	if (!match(TOKEN_SEMICOLON))
 		return false;
 
 #ifdef DEBUG
@@ -786,8 +804,7 @@ bool parse_func_call(void)
 	printf("Parsing <func_call>\n");
 #endif
 
-	// if (currentToken()->type == TOKEN_IFJ) // TODO
-	if (false)
+	if (currentToken()->type == TOKEN_IFJ)
 	{
 		if (!parse_native_func_call())
 			return false;
@@ -804,26 +821,26 @@ bool parse_func_call(void)
 	return true;
 }
 
-bool parse_native_func_call(void) // TODO
+bool parse_native_func_call(void)
 {
 #ifdef DEBUG
 	printf("Parsing <native_func_call>\n");
 #endif
 
-	// if (!match(TOKEN_IFJ))
-	// 	return false;
-	// if (!match(TOKEN_DOT))
-	// 	return false;
-	// if (!match(TOKEN_IDENTIFIER))
-	// 	return false;
-	// if (!match(TOKEN_LPAR))
-	// 	return false;
-	// if (!parse_params())
-	// 	return false;
-	// if (!match(TOKEN_RPAR))
-	// 	return false;
-	// if (!match(TOKEN_SEMICOLON))
-	// 	return false;
+	if (!match(TOKEN_IFJ))
+		return false;
+	if (!match(TOKEN_CONCATENATE))
+		return false;
+	if (!match(TOKEN_IDENTIFIER))
+		return false;
+	if (!match(TOKEN_LPAR))
+		return false;
+	if (!parse_arguments())
+		return false;
+	if (!match(TOKEN_RPAR))
+		return false;
+	if (!match(TOKEN_SEMICOLON))
+		return false;
 
 #ifdef DEBUG
 	printf("Successfully parsed <native_func_call>\n");
@@ -856,13 +873,51 @@ bool parse_user_func_call(void)
 
 bool parse_var_assign(void)
 {
+#ifdef DEBUG
 	printf("Parsing <var_assign>\n");
+#endif
+
+	getNextToken();
+
+	if (!match(TOKEN_ASSIGN))
+		return false;
+
+	TOKEN_PTR token = currentToken();
+	TOKEN_PTR nextToken = getDataAtIndex(buffer, tokenIndex + 1);
+
+	if (token->type == TOKEN_IDENTIFIER && nextToken->type == TOKEN_LPAR)
+	{
+		if (!parse_func_call())
+			return false;
+	}
+	else
+	{
+		if (!parse_no_truth_expr())
+			return false;
+		if (!match(TOKEN_SEMICOLON))
+			return false;
+	}
+
+#ifdef DEBUG
+	printf("Successfully parsed <var_assign>\n");
+#endif
 	return true;
 }
 
 bool parse_no_truth_expr(void)
 {
 	printf("Parsing <no_truth_expr>\n");
+
+	TOKEN_PTR token = currentToken();
+	TOKEN_PTR nextToken = getDataAtIndex(buffer, tokenIndex + 1);
+
+	// pokud jde o literal a za nim je strednik, tak si ho zparsuju sam
+	if ((token->type == TOKEN_STRING || token->type == TOKEN_I32 || token->type == TOKEN_F64 || token->type == TOKEN_U8) && nextToken->type == TOKEN_SEMICOLON)
+	{
+		puts("AAA");
+		getNextToken();
+		return true;
+	}
 
 	err = startPrecedentAnalysis(buffer, (unsigned int *)&tokenIndex, true);
 	if (err != SUCCESS)

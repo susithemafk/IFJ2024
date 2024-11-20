@@ -28,6 +28,7 @@ bool parse_body_content(void);
 bool parse_body_content_next(void);
 bool parse_var_def(void);
 bool parse_no_truth_expr(void);
+bool parse_truth_expr(void);
 bool parse_func_call(void);
 bool parse_var_assign(void);
 bool parse_if(void);
