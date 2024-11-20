@@ -87,15 +87,12 @@ enum ERR_CODES pubfn(LinkedList *buffer, SymTable *table) {
     if (!saveNewToken(token, buffer)) return E_INTERNAL;
     if (token.type != TOKEN_LPAR) return E_SYNTAX;
 
-    bool first = true;
-
     while (1) {
         
         // ) or Identifier
         status = scanner_get_token(&token);
         if (!saveNewToken(token, buffer)) return E_INTERNAL;
-        if (token.type == TOKEN_RPAR && first) break;
-        first = false;
+        if (token.type == TOKEN_RPAR) break;
         if (token.type != TOKEN_IDENTIFIER) return E_SYNTAX;
 
         // :
