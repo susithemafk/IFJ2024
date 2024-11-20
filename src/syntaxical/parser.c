@@ -12,6 +12,9 @@ static enum ERR_CODES err;
 // vracet error kody
 // todo question mark
 
+// VAR A = NECO NEMUSI BYT TYP
+// argumenty funkce musi mit otypovany argumenty
+
 TOKEN_PTR currentToken(void)
 {
 	return (TOKEN_PTR)getDataAtIndex(buffer, tokenIndex);
@@ -247,7 +250,7 @@ bool parse_next_function(void)
 	return false;
 }
 
-bool parse_params(void)
+bool parse_params()
 {
 #ifdef DEBUG
 	printf("Parsing <params>\n");
@@ -548,6 +551,7 @@ bool parse_body_content(void)
 #endif
 
 	TOKEN_PTR token = currentToken();
+	TOKEN_PTR nextToken;
 
 	printf("Deciding on token: \t%s\n", token->value);
 
@@ -565,8 +569,8 @@ bool parse_body_content(void)
 	case TOKEN_IFJ:
 		return parse_native_func_call();
 	case TOKEN_IDENTIFIER:
-		TOKEN_PTR token = currentToken();
-		TOKEN_PTR nextToken = getDataAtIndex(buffer, tokenIndex + 1);
+		token = currentToken();
+		nextToken = getDataAtIndex(buffer, tokenIndex + 1);
 
 		if (nextToken->type == TOKEN_LPAR)
 		{
@@ -623,20 +627,19 @@ bool parse_var_def(void)
 	printf("Parsing <var_def>\n");
 #endif
 
-	// Check if it starts with 'const' or 'var'
 	if (currentToken()->type != TOKEN_CONST && currentToken()->type != TOKEN_VAR)
 		return false;
 	getNextToken();
 
-	// Variable identifier
 	if (!match(TOKEN_IDENTIFIER))
 		return false;
 
-	if (!match(TOKEN_COLON))
-		return false;
-
-	if (!parse_data_type())
-		return false;
+	if (currentToken()->type == TOKEN_COLON)
+	{
+		getNextToken();
+		if (!parse_data_type())
+			return false;
+	}
 
 	if (!match(TOKEN_ASSIGN))
 		return false;
@@ -664,10 +667,12 @@ bool parse_var_def(void)
 	else if (token->type == TOKEN_IDENTIFIER && nextToken->type == TOKEN_LPAR)
 	{
 		tokenIndex--;
+		puts("________________________________________________________________AA");
 		if (!parse_func_call())
 		{
 			return false;
 		}
+		return true;
 	}
 	else if (token->type == TOKEN_IFJ && nextToken->type == TOKEN_CONCATENATE)
 	{
@@ -929,6 +934,13 @@ bool parse_var_assign(void)
 
 	TOKEN_PTR token = currentToken();
 	TOKEN_PTR nextToken = getDataAtIndex(buffer, tokenIndex + 1);
+
+	// todo asi
+	// if (token->type == TOKEN_IFJ && nextToken->type == TOKEN_CONCATENATE)
+	// {
+	// 	if (!parse_native_func_call())
+	// 		return false;
+	// }
 
 	if (token->type == TOKEN_IDENTIFIER && nextToken->type == TOKEN_LPAR)
 	{
