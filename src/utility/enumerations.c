@@ -1,5 +1,5 @@
 /** AUTHOR
- * 
+ *
  * @author <247581> Martin Mendl
  * @file enumerations.c
  * @date 28.9. 2024
@@ -100,7 +100,7 @@ void printErrCode(enum ERR_CODES errCode) {
 
 // Function to print out a debug message
 void printDebug(const char *file_name, const char *function_name, const char *message) {
-    printf("%sDEBUG:%s %sFILE: %s%s \n%sFUNC: %s%s \n%smsg: %s %s\n", 
+    printf("%sDEBUG:%s %sFILE: %s%s \n%sFUNC: %s%s \n%smsg: %s %s\n",
             COLOR_INFO,       // Color for DEBUG label
             COLOR_RESET,      // Reset color after DEBUG label
             COLOR_FILE,       // Color for FILE label
@@ -254,7 +254,7 @@ void printTokenType(enum TOKEN_TYPE token) {
         case TOKEN_WHILE:
             printf("Token -> %sWHILE%s\n", COLOR_WARN, COLOR_RESET);
             break;
-        case TOKEN_DELETE_VALUE:
+        case TOKEN_UNDERSCORE:
             printf("Token -> %sDELETE_VALUE%s\n", COLOR_WARN, COLOR_RESET);
             break;
         default:
