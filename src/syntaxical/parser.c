@@ -1,4 +1,5 @@
 #include "syntaxical/parser.h"
+#include "syntaxical/precident.h"
 
 static int tokenIndex = 0;
 static LinkedList *buffer = NULL;
@@ -10,7 +11,7 @@ static enum ERR_CODES err;
 // udelat parser dle good_asts.c
 // todo return bez leve zavorky ve funkci
 
-TOKEN_PTR currentToken()
+TOKEN_PTR currentToken(void)
 {
 	return (TOKEN_PTR)getDataAtIndex(buffer, tokenIndex);
 }
@@ -395,6 +396,7 @@ bool parse_argument(void)
 #ifdef DEBUG
 	printf("Successfully parsed <argument>\n");
 #endif
+	return true;
 }
 
 bool parse_argument_next(void)
@@ -853,7 +855,7 @@ bool parse_no_truth_expr(void)
 {
 	printf("Parsing <no_truth_expr>\n");
 
-	err = startPrecedentAnalysis(buffer, &tokenIndex, true);
+	err = startPrecedentAnalysis(buffer, (unsigned int *)&tokenIndex, true);
 	if (err != SUCCESS)
 	{
 		return false;
@@ -866,7 +868,7 @@ bool parse_truth_expr(void)
 {
 	printf("Parsing <truth_expr>\n");
 
-	err = startPrecedentAnalysis(buffer, &tokenIndex, false);
+	err = startPrecedentAnalysis(buffer, (unsigned int *)&tokenIndex, false);
 	if (err != SUCCESS)
 	{
 		return false;

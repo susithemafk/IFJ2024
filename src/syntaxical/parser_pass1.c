@@ -175,18 +175,39 @@ enum ERR_CODES firstPass(SymTable *table, FILE *input, LinkedList *buffer) {
     while (status == SUCCESS) {
         // get the token
         status = scanner_get_token(&token);
-        if (status != SUCCESS) return E_INTERNAL;
+        if (status != SUCCESS) {
+            #ifdef DEBUG
+            DEBUG_MSG("Failed to get the token 1");
+            printf("status: %d\n", status);
+            #endif
+            return status;
+        }
         if (token.type == TOKEN_EOF) {
-            if (!saveNewToken(token, buffer)) return E_INTERNAL;
+            if (!saveNewToken(token, buffer)) {
+                #ifdef DEBUG
+                DEBUG_MSG("Failed to save the token 2");
+                #endif
+                return E_INTERNAL;
+            }
             break;
         }
         // save the token
-        if (!saveNewToken(token, buffer)) return E_INTERNAL;
+        if (!saveNewToken(token, buffer)) {
+            #ifdef DEBUG
+            DEBUG_MSG("Failed to save the token 3");
+            #endif
+            return E_INTERNAL;
+        }
 
         // detect, if we have perhaps found a function definition
         if (token.type == TOKEN_PUB) {
             enum ERR_CODES err = pubfn(buffer, table);
-            if (err != SUCCESS) return err;
+            if (err != SUCCESS) {
+                #ifdef DEBUG
+                DEBUG_MSG("Failed to parse the function definition");
+                #endif
+                return err;
+            }
         }
     }
 

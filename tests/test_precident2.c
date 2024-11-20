@@ -46,7 +46,6 @@ int main(void) {
     unsigned int size = getSize(buffer);
     for (unsigned int i = 0; i < size; i++) {
 
-        printf("-- teset start\n");
         // get the first token, shold be the number of the test
         TOKEN_PTR token = (TOKEN_PTR)getDataAtIndex(buffer, i++);
 
@@ -137,8 +136,6 @@ int main(void) {
             }
             i++;
         }
-        printf("-- test end3\n");
-
     }
     freeBuffer(&buffer);
     symTableFree(&table);

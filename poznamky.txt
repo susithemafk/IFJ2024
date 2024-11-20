@@ -1,7 +1,9 @@
 Používejte Linux nebo WSL pro překlad.
 
-Semantika
-- pořešit že z funcke musí být return (s vanes?)
-- pořešit jestli ve func def nemáme dva parametry se stejným jménem
-- check when adding fuction definitions, weather we dont allready have this function
+Syntax for susi 
+- mian can have no arguments
+- ? token
+- ifj token
+
+
 
