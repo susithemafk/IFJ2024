@@ -120,15 +120,24 @@ bool parse_prolog(void)
 #ifdef DEBUG
 	printf("Parsing <prolog>\n");
 #endif
-// if (!match(TOKEN_CONST)) return false;
-// if (!match(TOKEN_IFJ)) return false;
-// if (!match(TOKEN_ASSIGN)) return false;
-// if (!match(TOKEN_AT)) return false;
-// if (!match(TOKEN_IMPORT)) return false;
-// if (!match(TOKEN_LPAR)) return false;
-// if (!match(TOKEN_STRING)) return false;
-// if (!match(TOKEN_RPAR)) return false;
-// if (!match(TOKEN_SEMICOLON)) return false;
+	if (!match(TOKEN_CONST))
+		return false;
+	if (!match(TOKEN_IFJ))
+		return false;
+	if (!match(TOKEN_ASSIGN))
+		return false;
+	if (!match(TOKEN_AT))
+		return false;
+	if (!match(TOKEN_IMPORT))
+		return false;
+	if (!match(TOKEN_LPAR))
+		return false;
+	if (!match(TOKEN_STRING))
+		return false;
+	if (!match(TOKEN_RPAR))
+		return false;
+	if (!match(TOKEN_SEMICOLON))
+		return false;
 #ifdef DEBUG
 	printf("Successfully parsed <prolog>\n");
 #endif
@@ -701,7 +710,7 @@ bool parse_else(void)
 	if (currentToken()->type != TOKEN_ELSE)
 	{
 #ifdef DEBUG
-		printf("No else clause found\n");
+		printf("No else clause found\n"); // TODO: chyba, musí existovat ELSE vždycky
 #endif
 		return true;
 	}
