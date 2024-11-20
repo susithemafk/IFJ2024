@@ -2,38 +2,43 @@
 
 static int tokenIndex = 0;
 static LinkedList *buffer = NULL;
-static SymTable *table = NULL;
+static SymTable *table = NULL; // TODO: vhodit do mainu table, pak parser, pak v mainu free
+static LinkedList *astList = NULL;
+static enum ERR_CODES err;
 
-TOKEN_PTR currentToken(void)
+TOKEN_PTR currentToken()
 {
-	if ((unsigned int)tokenIndex >= getSize(buffer))
-		return NULL;
 	return (TOKEN_PTR)getDataAtIndex(buffer, tokenIndex);
 }
 
 TOKEN_PTR getNextToken(void)
 {
 	tokenIndex++;
-	if ((unsigned int)tokenIndex >= getSize(buffer))
-		return NULL;
 	return (TOKEN_PTR)getDataAtIndex(buffer, tokenIndex);
 }
 
-enum ERR_CODES parser_init(void)
+enum ERR_CODES parser_init(FILE *input)
 {
 	puts("parser_init");
 
 	table = symTableInit();
 	buffer = initLinkedList(false);
+	astList = initLinkedList(false);
 
-	return parser_parse();
+	if (!table || !buffer || !astList)
+	{
+		puts("Error in parser init");
+		return E_INTERNAL;
+	}
+
+	return parser_parse(input);
 }
 
-enum ERR_CODES parser_parse(void)
+enum ERR_CODES parser_parse(FILE *input)
 {
 	puts("parser_parse");
 
-	enum ERR_CODES err = firstPass(table, stdin, buffer);
+	enum ERR_CODES err = firstPass(table, input, buffer);
 	if (err != SUCCESS)
 	{
 		puts("Error in first pass");
