@@ -33,3 +33,5 @@ int main(void)
 
 	return 0;
 }
+
+// todo realloc muze delat na lexikalce memory leak
