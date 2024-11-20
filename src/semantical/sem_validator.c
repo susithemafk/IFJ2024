@@ -48,6 +48,7 @@ enum ERR_CODES validateAST(ASTNodePtr ast, SymTable *table, ASTNodePtr *currentF
             return __validateReturn(ast, *currentFunc);
         case AST_NODE_FUNCTION:
             // if we are entering a function, set the current function
+            //if (*currentFunc != NULL) ASTfreeNode(currentFunc);
             *currentFunc = ast;
             return SUCCESS;
         case AST_NODE_FUNC_CALL:
@@ -260,6 +261,7 @@ enum ERR_CODES ___calculateExpresionType(ASTNodePtr expresion, enum DATA_TYPES *
         ASTNodePtr node = (ASTNodePtr)getDataAtIndex(postFixExpresion, 0);
         *nullable = ___nodeIsNullable(node);
         *retType = ___getOneNodeType(node);
+        removeList(&stack);
         return SUCCESS;
     }
 
@@ -276,6 +278,12 @@ enum ERR_CODES ___calculateExpresionType(ASTNodePtr expresion, enum DATA_TYPES *
             // if it is a value or a variable, we just push it to the stack
             case AST_NODE_VARIABLE:
                 if (node->data->variable->nullable == 1) nlbl = true;
+                if (!insertNodeAtIndex(stack, (void *)node, 0)) {
+                    removeList(&stack);
+                    return E_INTERNAL;
+                }
+                break;
+
             case AST_NODE_VALUE:
                 if (!insertNodeAtIndex(stack, (void *)node, 0)) {
                     removeList(&stack);
@@ -423,12 +431,26 @@ enum ERR_CODES __validateDeclare(ASTNodePtr ast, SymTable *table) {
         return SUCCESS;
     }
 
-    // if the types are not the same, we error out
-    if (ast->data->declare->variable->type != valueType) {
-        #ifdef DEBUG
-        DEBUG_MSG("types are not the same");
-        #endif
-        return E_SEMANTIC_INCOMPATABLE_TYPES;
+    switch(ast->data->declare->value->type) {
+        case AST_NODE_VALUE:
+            if (ast->data->declare->variable->type != valueType) return ___changeNodeToType(ast->data->declare->value, ast->data->declare->variable->type);
+            return SUCCESS;
+        case AST_NODE_VARIABLE:
+            if (ast->data->declare->variable->type != valueType) return E_SEMANTIC_INCOMPATABLE_TYPES;
+            return SUCCESS;
+        case AST_NODE_EXPRESION:
+            if (getSize(ast->data->declare->value->data->expresion->output) == 1 && valueType != ast->data->declare->variable->type) {
+                ASTNodePtr node = (ASTNodePtr)getDataAtIndex(ast->data->declare->value->data->expresion->output, 0);
+                return ___changeNodeToType(node, ast->data->declare->variable->type);
+            }
+            if (ast->data->declare->variable->type != valueType) return E_SEMANTIC_INCOMPATABLE_TYPES;
+            return SUCCESS;
+
+        case AST_NODE_FUNC_CALL:
+            if (ast->data->declare->variable->type != valueType) return E_SEMANTIC_INCOMPATABLE_TYPES;
+            return SUCCESS;
+        default:
+            return E_INTERNAL;
     }
     return SUCCESS;
 }
@@ -468,13 +490,27 @@ enum ERR_CODES __validateAssign(ASTNodePtr ast, SymTable *table) {
         return SUCCESS;
     }
 
-    // if the types are not the same, we error out
-    if (ast->data->assign->variable->type != valueType) {
-        #ifdef DEBUG
-        DEBUG_MSG("types are not the same");
-        #endif
-        return E_SEMANTIC_INCOMPATABLE_TYPES;
+    switch(ast->data->assign->value->type) {
+        case AST_NODE_VALUE:
+            if (ast->data->assign->variable->type != valueType) return ___changeNodeToType(ast->data->assign->value, ast->data->assign->variable->type);
+            return SUCCESS;
+        case AST_NODE_VARIABLE:
+            if (ast->data->assign->variable->type != valueType) return E_SEMANTIC_INCOMPATABLE_TYPES;
+            return SUCCESS;
+        case AST_NODE_EXPRESION:
+            if (getSize(ast->data->assign->value->data->expresion->output) == 1 && valueType != ast->data->assign->variable->type) {
+                ASTNodePtr node = (ASTNodePtr)getDataAtIndex(ast->data->assign->value->data->expresion->output, 0);
+                return ___changeNodeToType(node, ast->data->assign->variable->type);
+            }
+            if (ast->data->assign->variable->type != valueType) return E_SEMANTIC_INCOMPATABLE_TYPES;
+            return SUCCESS;
+        case AST_NODE_FUNC_CALL:
+            if (ast->data->assign->variable->type != valueType) return E_SEMANTIC_INCOMPATABLE_TYPES;
+            return SUCCESS;
+        default:
+            return E_INTERNAL;
     }
+    
     return SUCCESS;
 }
 
@@ -505,6 +541,13 @@ enum ERR_CODES __validateReturn(ASTNodePtr ast, ASTNodePtr currentFunc) {
 
     // if the return type cant be null, and we have nullable return, we error out
     if (!currentFunc->data->function->nullable && nullable) return E_SEMANTIC_BAD_FUNC_RETURN;
+
+    // changing literals and shit
+    if (getSize(ast->data->returnNode->expression->data->expresion->output) == 1 && valueType != currentFunc->data->function->returnType) {
+        ASTNodePtr node = (ASTNodePtr)getDataAtIndex(ast->data->returnNode->expression->data->expresion->output, 0);
+        if (___changeNodeToType(node, currentFunc->data->function->returnType) != SUCCESS) return E_SEMANTIC_BAD_FUNC_RETURN;
+        return SUCCESS;
+    }
 
     // if the return type is not the same as the function return type, we error out
     if (currentFunc->data->function->returnType != valueType) return E_SEMANTIC_BAD_FUNC_RETURN;

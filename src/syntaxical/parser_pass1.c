@@ -149,6 +149,21 @@ enum ERR_CODES pubfn(LinkedList *buffer, SymTable *table) {
         return E_SYNTAX;
     }
 
+    // now we shoudl have the { init counter to 1, if ew find } do count -1 else count +1, if count == 0, we are done
+    status = scanner_get_token(&token);
+    if (!saveNewToken(token, buffer)) return E_INTERNAL;
+    if (token.type != TOKEN_LBRACE) return E_SYNTAX;
+    int count = 1;
+
+    while(1) {
+        status = scanner_get_token(&token);
+        if (!saveNewToken(token, buffer)) return E_INTERNAL;
+        if (token.type == TOKEN_PUB) return E_SYNTAX; // we do not support nested functions
+        if (token.type == TOKEN_LBRACE) count++;
+        if (token.type == TOKEN_RBRACE) count--;
+        if (count == 0) break;
+    }
+
     return SUCCESS;
 }
 

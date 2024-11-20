@@ -2351,8 +2351,29 @@ void return_asts_7(SymTable *table, LinkedList *returnASts, TestInstancePtr test
     // pub fn main() void { ... }
     result = symTableMoveScopeDown(table, SYM_FUNCTION); // enter function
 
+    if (test != NULL) {
+        testCase(
+            test,
+            result,
+            "AST 7 - symtbale enter function",
+            "Symtable entered function",
+            "Symtable failed to enter function"
+        );
+    }
+
     ASTNodePtr func7 = ASTcreateNode(AST_NODE_FUNCTION);
     err = ASTeditFunctionNode(func7, "main", dTypeVoid, 0, NULL); // pub fn main() void
+
+    if (test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 7 - ASTeditFunctionNode",
+            "ASTeditFunctionNode edited",
+            "ASTeditFunctionNode failed to edit"
+        );
+    }
+
     insertNodeAtIndex(returnASts, (void *)func7, -1);
 
     // ifj.write("Zadejte cislo pro vypocet faktorialu: ");
@@ -2460,8 +2481,29 @@ void return_asts_8(SymTable *table, LinkedList *returnASts, TestInstancePtr test
     // pub fn decrement(n: i32, m: i32) i32 { ... }
     result = symTableMoveScopeDown(table, SYM_FUNCTION); // enter function
 
+    if (test != NULL) {
+        testCase(
+            test,
+            result,
+            "AST 8 - symTableMoveScopeDown",
+            "Symtable entered function",
+            "Symtable failed to enter function"
+        );
+    }
+
     ASTNodePtr func8 = ASTcreateNode(AST_NODE_FUNCTION);
     err = ASTeditFunctionNode(func8, "decrement", dTypeI32, 0, NULL); // pub fn decrement() i32
+
+    if (test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 8 - ASTeditFunctionNode",
+            "ASTeditFunctionNode edited",
+            "ASTeditFunctionNode failed to edit"
+        );
+    }
+
     SymVariable *n = symTableDeclareVariable(table, "n", dTypeI32, false, false); // n : i32
     err = ASTeditFunctionNode(func8, NULL, dTypeUndefined, -1, n);
     SymVariable *m = symTableDeclareVariable(table, "m", dTypeI32, false, false); // m : i32
@@ -2508,8 +2550,29 @@ void return_asts_9(SymTable *table, LinkedList *returnASts, TestInstancePtr test
     // pub fn factorial(n: i32) i32 { ... }
     result = symTableMoveScopeDown(table, SYM_FUNCTION); // enter function
 
+    if (test != NULL) {
+        testCase(
+            test,
+            result,
+            "AST 9 - symTableMoveScopeDown",
+            "Symtable entered function",
+            "Symtable failed to enter function"
+        );
+    }
+
     ASTNodePtr func9 = ASTcreateNode(AST_NODE_FUNCTION);
     err = ASTeditFunctionNode(func9, "factorial", dTypeI32, 0, NULL); // pub fn factorial() i32
+
+    if (test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 9 - ASTeditFunctionNode",
+            "ASTeditFunctionNode edited",
+            "ASTeditFunctionNode failed to edit"
+        );
+    }
+
     SymVariable *n = symTableDeclareVariable(table, "n", dTypeI32, false, false); // n : i32
     err = ASTeditFunctionNode(func9, NULL, dTypeUndefined, -1, n);
     insertNodeAtIndex(returnASts, (void *)func9, -1); // pub fn factorial(n: i32) i32
@@ -2631,8 +2694,29 @@ void return_asts_10(SymTable *table, LinkedList *returnASts, TestInstancePtr tes
     // pub fn main() void { ... }
     result = symTableMoveScopeDown(table, SYM_FUNCTION); // enter function
 
+    if (test != NULL) {
+        testCase(
+            test,
+            result,
+            "AST 10 - symTableMoveScopeDown",
+            "Symtable entered function",
+            "Symtable failed to enter function"
+        );
+    }
+
     ASTNodePtr func10 = ASTcreateNode(AST_NODE_FUNCTION);
-    err = ASTeditFunctionNode(func10, "main", dTypeVoid, 0, NULL); // pub fn main() void
+    err = ASTeditFunctionNode(func10, "main", dTypeVoid, 0, NULL); // pub fn main() void    
+
+    if (test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 10 - ASTeditFunctionNode",
+            "ASTeditFunctionNode edited",
+            "ASTeditFunctionNode failed to edit"
+        );
+    }
+
     insertNodeAtIndex(returnASts, (void *)func10, -1);
 
     // const str1 = ifj.string("Toto je text v programu jazyka IFJ24");
