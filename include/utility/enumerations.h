@@ -108,21 +108,24 @@ enum TOKEN_TYPE
 	/**
 	 * Keywords: const, else, fn, if, i32, f64, null, pub, return, u8, var, void, while
 	 */
-	TOKEN_CONST,  // 23. const
-	TOKEN_ELSE,	  // 24. else
-	TOKEN_FN,	  // 25. fn
-	TOKEN_IF,	  // 26. if
-	TOKEN_I32,	  // 27. i32
-	TOKEN_F64,	  // 28. f64
-	TOKEN_NULL,	  // 29. null
-	TOKEN_PUB,	  // 30. pub
-	TOKEN_RETURN, // 31. return
-	TOKEN_U8,	  // 32. u8
-	TOKEN_VAR,	  // 33. var
-	TOKEN_VOID,	  // 34. void
-	TOKEN_WHILE,  // 35. while
-    TOKEN_DELETE_VALUE, // 36 delte value ('_')
-    TOKEN_QUESTION_MARK, // 37 question mark ('?')
+	TOKEN_CONST,            // 23. const
+	TOKEN_ELSE,	            // 24. else
+	TOKEN_FN,	            // 25. fn
+	TOKEN_IF,	            // 26. if
+	TOKEN_I32,	            // 27. i32
+	TOKEN_F64,	            // 28. f64
+	TOKEN_NULL,	            // 29. null
+	TOKEN_PUB,	            // 30. pub
+	TOKEN_RETURN,           // 31. return
+	TOKEN_U8,	            // 32. u8
+	TOKEN_VAR,	            // 33. var
+	TOKEN_VOID,	            // 34. void
+	TOKEN_WHILE,            // 35. while
+    TOKEN_UNDERSCORE,       // 36 delte value ('_')
+    TOKEN_QUESTION_MARK,    // 37 question mark ('?')
+    TOKEN_AT,               // 38 at ('@')
+    TOKEN_IFJ,              // 39 ifj
+    TOKEN_IMPORT            // 40 import
 };
 
 typedef struct TOKEN {
@@ -143,7 +146,7 @@ enum DATA_TYPES {
 
 /**
  * Function to negate a comparason operand
- * 
+ *
  * @param operand - token type to negate
  * @return The negated token type
 */
@@ -151,7 +154,7 @@ enum TOKEN_TYPE negateOperand(enum TOKEN_TYPE operand);
 
 /**
  * Function to convert a token type to a data type
- * 
+ *
  * @param type The token type to convert
  * @return The converted data type
 */
@@ -162,7 +165,7 @@ enum DATA_TYPES covertTokneDataType(enum TOKEN_TYPE type);
 
 /**
  * Function to print out a debug message
- * 
+ *
  * @param file_name The name of the file
  * @param message The message to print
  * @return void
@@ -213,7 +216,7 @@ void testCase(TestInstancePtr testInstance, bool testResult, char *testName, cha
 
 /**
  * Function to print the error code
- * 
+ *
  * @param errCode The error code to print
  * @return void
  */
@@ -221,7 +224,7 @@ void printErrCode(enum ERR_CODES errCode);
 
 /**
  * Function to print the token type
- * 
+ *
  * @param token The token to print
  * @return void
  */
