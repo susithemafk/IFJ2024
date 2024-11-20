@@ -1,3 +1,11 @@
+/** AUTHOR
+ *
+ * @author  <xsucha18> Marek Sucharda
+ * @file parser.c
+ * @date 16.11.2024
+ * @brief main src file parsing
+ */
+
 #include "syntaxical/parser.h"
 #include "syntaxical/precident.h"
 
@@ -10,10 +18,6 @@ static enum ERR_CODES err;
 // vnoreny funkce resi first pass
 // udelat parser dle good_asts.c
 // vracet error kody
-// todo question mark
-
-// VAR A = NECO NEMUSI BYT TYP
-// argumenty funkce musi mit otypovany argumenty
 
 TOKEN_PTR currentToken(void)
 {
@@ -28,7 +32,9 @@ TOKEN_PTR getNextToken(void)
 
 enum ERR_CODES parser_init(FILE *input)
 {
+#ifdef DEBUG
 	puts("parser_init");
+#endif
 
 	table = symTableInit();
 	buffer = initLinkedList(false);
@@ -36,7 +42,9 @@ enum ERR_CODES parser_init(FILE *input)
 
 	if (!table || !buffer || !astList)
 	{
+#ifdef DEBUG
 		puts("Error in parser init");
+#endif
 		return E_INTERNAL;
 	}
 
@@ -45,16 +53,22 @@ enum ERR_CODES parser_init(FILE *input)
 
 enum ERR_CODES parser_parse(FILE *input)
 {
+#ifdef DEBUG
 	puts("parser_parse");
+#endif
 
 	enum ERR_CODES err = firstPass(table, input, buffer);
 	if (err != SUCCESS)
 	{
+#ifdef DEBUG
 		puts("Error in first pass");
+#endif
 		return err;
 	}
 
+#ifdef DEBUG
 	puts("parser_second_pass");
+#endif
 
 #ifdef DEBUG
 	printf("Current token: %s\n", currentToken()->value);
@@ -62,13 +76,18 @@ enum ERR_CODES parser_parse(FILE *input)
 
 	if (!parse_program())
 	{
+#ifdef DEBUG
 		puts("Error in second pass");
+#endif
 		return E_SYNTAX;
 	}
 
 	freeBuffer(&buffer);
 	symTableFree(&table);
 
+// #ifdef DEBUG
+	printf("Successfully parsed program, error code: %d\n", err);
+// #endif
 	return SUCCESS;
 }
 
@@ -309,7 +328,7 @@ bool parse_parameter(void)
 #endif
 		getNextToken(); // consume identifier
 
-		if (!match(TOKEN_COLON)) // todo nepovinny, nejspis staci jen vnorit parse_data_type nez hned returnovat false
+		if (!match(TOKEN_COLON))
 		{
 			return false;
 		}
@@ -466,41 +485,40 @@ bool parse_data_type(void)
 	printf("Parsing <data_type>\n");
 #endif
 
-	bool isNullable = false;
-	enum DATA_TYPES dataType = dTypeUndefined;
+	// bool isNullable = false;
+	// enum DATA_TYPES dataType = dTypeUndefined;
 
 	if (currentToken()->type == TOKEN_QUESTION_MARK)
 	{
-		isNullable = true;
+		// isNullable = true;
 		getNextToken();
 	}
 
-	switch (currentToken()->type)
-	{
-	case TOKEN_I32:
-		dataType = dTypeI32;
-		break;
-	case TOKEN_F64:
-		dataType = dTypeF64;
-		break;
-	case TOKEN_U8:
-		dataType = dTypeU8;
-		break;
-	case TOKEN_VOID:
-		dataType = dTypeVoid;
-		break;
-	default:
-#ifdef DEBUG
-		printf("Expected data type but got: %s\n", currentToken()->value);
-#endif
-		return false;
-	}
+	// switch (currentToken()->type)
+	// {
+	// case TOKEN_I32:
+	// 	dataType = dTypeI32;
+	// 	break;
+	// case TOKEN_F64:
+	// 	dataType = dTypeF64;
+	// 	break;
+	// case TOKEN_U8:
+	// 	dataType = dTypeU8;
+	// 	break;
+	// case TOKEN_VOID:
+	// 	dataType = dTypeVoid;
+	// 	break;
+	// default:
+	// 	printf("Expected data type but got: %s\n", currentToken()->value);
+	// 	printf("Data type: %d\n", dataType);
+	// 	return false;
+	// }
 
 	getNextToken();
 
-#ifdef DEBUG
-	printf("Successfully parsed <data_type>: %d\n", dataType);
-#endif
+// #ifdef DEBUG
+	// printf("Successfully parsed <data_type>: %d\n", dataType);
+// #endif
 	return true;
 }
 
@@ -553,7 +571,9 @@ bool parse_body_content(void)
 	TOKEN_PTR token = currentToken();
 	TOKEN_PTR nextToken;
 
+#ifdef DEBUG
 	printf("Deciding on token: \t%s\n", token->value);
+#endif
 
 	switch (token->type)
 	{
@@ -667,7 +687,6 @@ bool parse_var_def(void)
 	else if (token->type == TOKEN_IDENTIFIER && nextToken->type == TOKEN_LPAR)
 	{
 		tokenIndex--;
-		puts("________________________________________________________________AA");
 		if (!parse_func_call())
 		{
 			return false;
@@ -963,7 +982,9 @@ bool parse_var_assign(void)
 
 bool parse_no_truth_expr(void)
 {
+#ifdef DEBUG
 	printf("Parsing <no_truth_expr>\n");
+#endif
 
 	TOKEN_PTR token = currentToken();
 	TOKEN_PTR nextToken = getDataAtIndex(buffer, tokenIndex + 1);

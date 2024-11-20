@@ -79,8 +79,10 @@ run_%:
 	@$(printCmd) "\033[1;36m==================================\033[0m"
 	@$(printCmd) "Running \033[1;33m $@...                   \033[0m"
 	@$(printCmd) "\033[1;36m==================================\033[0m"
-	@if [ "$*" = "lex" ] || [ "$*" = "syntax_pass1" ] || [ "$*" = "parser" ]; then \
+	@if [ "$*" = "lex" ] || [ "$*" = "syntax_pass1" ]; then \
 		./$@ < ./tests/lexical/input.txt; \
+	elif [ "$*" = "parser" ]; then \
+		./$@ < ./tests/syntaxical/input.txt; \
 	else \
 		./$@; \
 	fi
