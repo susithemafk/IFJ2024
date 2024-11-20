@@ -7,7 +7,7 @@ Syntaxe programu:
 <next_function> -> ε
 <next_function> -> <function>
 
-<function> -> pub fn <func_id> ( <params> ) <data_type> { <func_body> }
+<function> -> pub fn <func_id> ( <params> ) <data_type> { <body> }
 
 <params> -> <parameter> <parameter_next>
 <params> -> ε
@@ -18,8 +18,12 @@ Syntaxe programu:
 
 <var_def> -> const <var_id> : <data_type> = <no_truth_expr>;
 <var_def> -> const <var_id> : <data_type> = <func_call>;
+<var_def> -> const <var_id> = <no_truth_expr>;
+<var_def> -> const <var_id> = <func_call>;
 <var_def> -> var <var_id> : <data_type> = <no_truth_expr>;
 <var_def> -> var <var_id> : <data_type> = <func_call>;
+<var_def> -> var <var_id> = <no_truth_expr>;
+<var_def> -> var <var_id> = <func_call>;
 <var_assign> -> <var_id> = <no_truth_expr>;
 <var_assign> -> <var_id> = <func_call>
 <var_assign> -> _ = <func_call>

@@ -546,7 +546,7 @@ void return_asts_3(SymTable *table, LinkedList *returnASts, TestInstancePtr test
         );
     }
 
-    struct TOKEN valueToken3 = {.value = "ahoj", .type = TOKEN_U8};
+    struct TOKEN valueToken3 = {.value = "ahoj", .type = TOKEN_STRING};
     err = ASTeditFunctionCallNode(call3, NULL, NULL, &valueToken3); // ifj.string("ahoj")
 
     if (test != NULL) {
@@ -991,7 +991,7 @@ void return_asts_5(SymTable *table, LinkedList *returnASts, TestInstancePtr test
         );
     }
     
-    struct TOKEN valueToken5 = {.value= "ahoj ", .type = TOKEN_U8};
+    struct TOKEN valueToken5 = {.value= "ahoj ", .type = TOKEN_STRING};
 
     err = ASTeditFunctionCallNode(fnCall5, NULL, NULL, &valueToken5); // ifj.string("ahoj ")
     
@@ -1058,7 +1058,7 @@ void return_asts_5(SymTable *table, LinkedList *returnASts, TestInstancePtr test
         );
     }
     
-    struct TOKEN valueToken5_2 = {.value= "svete", .type= TOKEN_U8};
+    struct TOKEN valueToken5_2 = {.value= "svete", .type= TOKEN_STRING};
     err = ASTeditFunctionCallNode(fnCall5_2, NULL, NULL, &valueToken5_2); // ifj.string("svete")
     
     if(test != NULL) {
@@ -1279,7 +1279,7 @@ void return_asts_6(SymTable *table, LinkedList *returnASts, TestInstancePtr test
         );
     }
     
-    struct TOKEN valueToken6 = {.value = "Zadejte cislo pro vypocet faktorialu\n", .type = TOKEN_U8};
+    struct TOKEN valueToken6 = {.value = "Zadejte cislo pro vypocet faktorialu\n", .type = TOKEN_STRING};
     err = ASTeditFunctionCallNode(fnCall6, NULL, NULL, &valueToken6); // ifj.write("Zadejte cislo pro vypocet faktorialu\n")
 
     if(test != NULL) {
@@ -1490,7 +1490,7 @@ void return_asts_6(SymTable *table, LinkedList *returnASts, TestInstancePtr test
         );
     }
     
-    struct TOKEN valueToken6_3 = {.value = "Faktorial ", .type = TOKEN_U8};
+    struct TOKEN valueToken6_3 = {.value = "Faktorial ", .type = TOKEN_STRING};
     err = ASTeditFunctionCallNode(fnCall6_3, NULL, NULL, &valueToken6_3); // ifj.write("Faktorial ")
     
     if(test != NULL) {
@@ -1570,7 +1570,7 @@ void return_asts_6(SymTable *table, LinkedList *returnASts, TestInstancePtr test
         );
     }
     
-    struct TOKEN valueToken6_5 = {.value = " nelze spocitat\n", .type = TOKEN_U8};
+    struct TOKEN valueToken6_5 = {.value = " nelze spocitat\n", .type = TOKEN_STRING};
     err = ASTeditFunctionCallNode(fnCall6_5, NULL, NULL, &valueToken6_5); // ifj.write(" nelze spocitat\n")
     
     if(test != NULL) {
@@ -1724,10 +1724,22 @@ void return_asts_6(SymTable *table, LinkedList *returnASts, TestInstancePtr test
             "ASTeditDeclareNode failed to edit"
         );
     }
+    //---------------------------------------------------------------------------------------------
     
     struct TOKEN valueToken6_6 = {.value = "1.0", .type = TOKEN_F64};
-    declare6_3 = ASTcreateNode(AST_NODE_DECLARE);
-    ASTinitNodeValue(declare6_3, &valueToken6_6);
+    ASTNodePtr valueNode6_1 = ASTcreateNode(AST_NODE_VALUE);
+    err = ASTinitNodeValue(valueNode6_1, &valueToken6_6);
+
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 6 - ASTinitNodeValue",
+            "ASTinitNodeValue edited",
+            "ASTinitNodeValue failed to edit"
+        );
+    }
+
     err = ASTeditDeclareNode(declare6_3, NULL, declare6_3); // var vysl: f64 = 1.0
     
     if(test != NULL) {
@@ -2002,7 +2014,7 @@ void return_asts_6(SymTable *table, LinkedList *returnASts, TestInstancePtr test
         );
     }
     
-    struct TOKEN valueToken6_7 = {.value = "Vysledek: ", .type = TOKEN_U8};
+    struct TOKEN valueToken6_7 = {.value = "Vysledek: ", .type = TOKEN_STRING};
     err = ASTeditFunctionCallNode(fnCall6_7, NULL, NULL, &valueToken6_7); // ifj.write("Vysledek: ")
     
     if(test != NULL) {
@@ -2071,7 +2083,7 @@ void return_asts_6(SymTable *table, LinkedList *returnASts, TestInstancePtr test
         );
     }
     
-    struct TOKEN valueToken6_9 = {.value = " = ", .type = TOKEN_U8};
+    struct TOKEN valueToken6_9 = {.value = " = ", .type = TOKEN_STRING};
     err = ASTeditFunctionCallNode(fnCall6_9, NULL, NULL, &valueToken6_9); // ifj.write(" = ")
     
     if(test != NULL) {
@@ -2217,7 +2229,7 @@ void return_asts_6(SymTable *table, LinkedList *returnASts, TestInstancePtr test
         );
     }
     
-    struct TOKEN valueToken6_12 = {.value = "\n", .type = TOKEN_U8};
+    struct TOKEN valueToken6_12 = {.value = "\n", .type = TOKEN_STRING};
     err = ASTeditFunctionCallNode(fnCall6_12, NULL, NULL, &valueToken6_12); // ifj.write("\n")
     
     if(test != NULL) {
@@ -2283,7 +2295,7 @@ void return_asts_6(SymTable *table, LinkedList *returnASts, TestInstancePtr test
         );
     }
     
-    struct TOKEN valueToken6_13 = {.value = "Faktorial pro null nelze spocitat\n", .type = TOKEN_U8};
+    struct TOKEN valueToken6_13 = {.value = "Faktorial pro null nelze spocitat\n", .type = TOKEN_STRING};
     err = ASTeditFunctionCallNode(fnCall6_13, NULL, NULL, &valueToken6_13); // ifj.write("Faktorial pro null nelze spocitat\n")
     
     if(test != NULL) {
@@ -2379,90 +2391,497 @@ void return_asts_7(SymTable *table, LinkedList *returnASts, TestInstancePtr test
     // ifj.write("Zadejte cislo pro vypocet faktorialu: ");
     ASTNodePtr fnCall7 = ASTcreateNode(AST_NODE_FUNC_CALL);
     err = ASTeditFunctionCallNode(fnCall7, "ifj.write", NULL, NULL); // ifj.write()
-    struct TOKEN valueToken7 = {.value = "Zadejte cislo pro vypocet faktorialu:", .type = TOKEN_U8};
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 7 - ASTeditFunctionCallNode",
+            "ASTeditFunctionCallNode edited",
+            "ASTeditFunctionCallNode failed to edit"
+        );
+    }
+    
+    struct TOKEN valueToken7 = {.value = "Zadejte cislo pro vypocet faktorialu:", .type = TOKEN_STRING};
     err = ASTeditFunctionCallNode(fnCall7, NULL, NULL, &valueToken7); // ifj.write("Zadejte cislo pro vypocet faktorialu:")
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 7 - ASTeditFunctionCallNode",
+            "ASTeditFunctionCallNode edited",
+            "ASTeditFunctionCallNode failed to edit"
+        );
+    }
+    
     insertNodeAtIndex(returnASts, (void *)fnCall7, -1);
 
     // const inp = ifj.readi32();
     ASTNodePtr declare7 = ASTcreateNode(AST_NODE_DECLARE);
     SymVariable *inp = symTableDeclareVariable(table, "inp", dTypeI32, false, false); // const inp
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            inp != NULL,
+            "AST 7 - symtbale declare inp",
+            "Symtable declared inp",
+            "Symtable failed to declare inp"
+        );
+    }
+    
     err = ASTeditDeclareNode(declare7, inp, NULL); // const inp =
+
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 7 - ASTeditDeclareNode",
+            "ASTeditDeclareNode edited",
+            "ASTeditDeclareNode failed to edit"
+        );
+    }
+
 
     ASTNodePtr fnCall7_2 = ASTcreateNode(AST_NODE_FUNC_CALL);
     err = ASTeditFunctionCallNode(fnCall7_2, "ifj.readi32", NULL, NULL); // ifj.readi32()
 
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 7 - ASTeditFunctionCallNode",
+            "ASTeditFunctionCallNode edited",
+            "ASTeditFunctionCallNode failed to edit"
+        );
+    }
+
+
     err = ASTeditDeclareNode(declare7, NULL, fnCall7_2); // const inp = ifj.readi32()
+
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 7 - ASTeditDeclareNode",
+            "ASTeditDeclareNode edited",
+            "ASTeditDeclareNode failed to edit"
+        );
+    }
+
 
     insertNodeAtIndex(returnASts, (void *)declare7, -1);
 
     // if (inp) |INP| { ... }
     result = symTableMoveScopeDown(table, SYM_IF); // enter if
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            result,
+            "AST 7 - symtbale enter if",
+            "Symtable entered if",
+            "Symtable failed to enter if"
+        );
+    }
+    
     ASTNodePtr if7 = ASTcreateNode(AST_NODE_IF_ELSE);
     SymVariable *var_inp = symTableFindVariable(table, "inp");
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            var_inp != NULL,
+            "AST 7 - symtbale find inp",
+            "Symtable found inp",
+            "Symtable failed to find inp"
+        );
+    }
+    
     SymVariable *INP = symTableDeclareVariable(table, "INP", var_inp->type, var_inp->mutable, false); // |INP|
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            INP != NULL,
+            "AST 7 - symtbale declare INP",
+            "Symtable declared INP",
+            "Symtable failed to declare INP"
+        );
+    }
+    
     err = ASTeditIfNode(if7, NULL, NULL, NULL, var_inp, INP); // if (inp) |INP| {
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 7 - ASTeditIfNode",
+            "ASTeditIfNode edited",
+            "ASTeditIfNode failed to edit"
+        );
+    }
+    
     insertNodeAtIndex(returnASts, (void *)if7, -1);
 
     // if (INP < 0) { ... }
     result = symTableMoveScopeDown(table, SYM_IF); // enter if
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            result,
+            "AST 7 - symtbale enter if",
+            "Symtable entered if",
+            "Symtable failed to enter if"
+        );
+    }
+    
     ASTNodePtr if7_2 = ASTcreateNode(AST_NODE_IF_ELSE); //if
     SymVariable *var_INP = symTableFindVariable(table, "INP");
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            var_INP != NULL,
+            "AST 7 - symtbale find INP",
+            "Symtable found INP",
+            "Symtable failed to find INP"
+        );
+    }
+    
     err = ASTeditIfNode(if7_2, var_INP, NULL, NULL, NULL, NULL); // if (INP) {
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 7 - ASTeditIfNode",
+            "ASTeditIfNode edited",
+            "ASTeditIfNode failed to edit"
+        );
+    }
+    
     struct TOKEN opr = {.type = TOKEN_LESSTHAN, .value = "<"};
     err = ASTeditIfNode(if7_2, NULL, NULL, &opr, NULL, NULL); // if (INP <) {
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 7 - ASTeditIfNode",
+            "ASTeditIfNode edited",
+            "ASTeditIfNode failed to edit"
+        );
+    }
+    
     struct TOKEN val = {.type = TOKEN_I32, .value = "0"};
     err = ASTeditIfNode(if7_2, NULL, &val, NULL, NULL, NULL); // if (INP < 0) {
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 7 - ASTeditIfNode",
+            "ASTeditIfNode edited",
+            "ASTeditIfNode failed to edit"
+        );
+    }
+    
     insertNodeAtIndex(returnASts, (void *)if7_2, -1);
 
     // ifj.write("Faktorial nelze spocitat!\n");
     ASTNodePtr fnCall7_3 = ASTcreateNode(AST_NODE_FUNC_CALL);
     err = ASTeditFunctionCallNode(fnCall7_3, "ifj.write", NULL, NULL); // ifj.write()
-    struct TOKEN valueToken7_3 = {.value = "Faktorial nelze spocitat!\n", .type = TOKEN_U8};
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 7 - ASTeditFunctionCallNode",
+            "ASTeditFunctionCallNode edited",
+            "ASTeditFunctionCallNode failed to edit"
+        );
+    }
+    
+    struct TOKEN valueToken7_3 = {.value = "Faktorial nelze spocitat!\n", .type = TOKEN_STRING};
     err = ASTeditFunctionCallNode(fnCall7_3, NULL, NULL, &valueToken7_3); // ifj.write("Faktorial nelze spocitat!\n")
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 7 - ASTeditFunctionCallNode",
+            "ASTeditFunctionCallNode edited",
+            "ASTeditFunctionCallNode failed to edit"
+        );
+    }
+    
     insertNodeAtIndex(returnASts, (void *)fnCall7_3, -1);
 
     err = symTableExitScope(table); // exit if
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 7 - symTableExitScope",
+            "Symtable exited if",
+            "Symtable failed to exit if"
+        );
+    }
+    
     // else { ... }
     result = symTableMoveScopeDown(table, SYM_IF); // enter else
+
+    if(test != NULL) {
+        testCase(
+            test,
+            result,
+            "AST 7 - symtbale enter else",
+            "Symtable entered else",
+            "Symtable failed to enter else"
+        );
+    }
+
 
     // const vysl = factorial(INP);
     ASTNodePtr declare7_2 = ASTcreateNode(AST_NODE_DECLARE);
     SymVariable *vysl = symTableDeclareVariable(table, "vysl", dTypeI32, false, false); // const vysl
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            vysl != NULL,
+            "AST 7 - symtbale declare vysl",
+            "Symtable declared vysl",
+            "Symtable failed to declare vysl"
+        );
+    }
+    
     err = ASTeditDeclareNode(declare7_2, vysl, NULL); // const vysl =
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 7 - ASTeditDeclareNode",
+            "ASTeditDeclareNode edited",
+            "ASTeditDeclareNode failed to edit"
+        );
+    }
+    
     ASTNodePtr fnCall7_4 = ASTcreateNode(AST_NODE_FUNC_CALL);
     err = ASTeditFunctionCallNode(fnCall7_4, "factorial", NULL, NULL); // factorial()
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 7 - ASTeditFunctionCallNode",
+            "ASTeditFunctionCallNode edited",
+            "ASTeditFunctionCallNode failed to edit"
+        );
+    }
+    
     SymVariable *var2_INP = symTableFindVariable(table, "INP");
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            var2_INP != NULL,
+            "AST 7 - symtbale find INP",
+            "Symtable found INP",
+            "Symtable failed to find INP"
+        );
+    }
+    
     err = ASTeditFunctionCallNode(fnCall7_4, NULL, var2_INP, NULL); // factorial(INP)
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 7 - ASTeditFunctionCallNode",
+            "ASTeditFunctionCallNode edited",
+            "ASTeditFunctionCallNode failed to edit"
+        );
+    }
+    
     err = ASTeditDeclareNode(declare7_2, NULL, fnCall7_4); // const vysl = factorial(INP)
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 7 - ASTeditDeclareNode",
+            "ASTeditDeclareNode edited",
+            "ASTeditDeclareNode failed to edit"
+        );
+    }
+    
     insertNodeAtIndex(returnASts, (void *)declare7_2, -1);
 
     // ifj.write("Vysledek: ");
     ASTNodePtr fnCall7_5 = ASTcreateNode(AST_NODE_FUNC_CALL);
     err = ASTeditFunctionCallNode(fnCall7_5, "ifj.write", NULL, NULL); // ifj.write()
-    struct TOKEN valueToken7_5 = {.value = "Vysledek: ", .type = TOKEN_U8};
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 7 - ASTeditFunctionCallNode",
+            "ASTeditFunctionCallNode edited",
+            "ASTeditFunctionCallNode failed to edit"
+        );
+    }
+    
+    struct TOKEN valueToken7_5 = {.value = "Vysledek: ", .type = TOKEN_STRING};
     err = ASTeditFunctionCallNode(fnCall7_5, NULL, NULL, &valueToken7_5); // ifj.write("Vysledek: ")
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 7 - ASTeditFunctionCallNode",
+            "ASTeditFunctionCallNode edited",
+            "ASTeditFunctionCallNode failed to edit"
+        );
+    }
+    
     insertNodeAtIndex(returnASts, (void *)fnCall7_5, -1);
 
     // ifj.write(vysl);
     ASTNodePtr fnCall7_6 = ASTcreateNode(AST_NODE_FUNC_CALL);
     err = ASTeditFunctionCallNode(fnCall7_6, "ifj.write", NULL, NULL); // ifj.write()
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 7 - ASTeditFunctionCallNode",
+            "ASTeditFunctionCallNode edited",
+            "ASTeditFunctionCallNode failed to edit"
+        );
+    }
+    
     SymVariable *var3_vysl = symTableFindVariable(table, "vysl");   
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            var3_vysl != NULL,
+            "AST 7 - symtbale find vysl",
+            "Symtable found vysl",
+            "Symtable failed to find vysl"
+        );
+    }
+    
     err = ASTeditFunctionCallNode(fnCall7_6, NULL, var3_vysl, NULL); // ifj.write(vysl)
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 7 - ASTeditFunctionCallNode",
+            "ASTeditFunctionCallNode edited",
+            "ASTeditFunctionCallNode failed to edit"
+        );
+    }
+    
     insertNodeAtIndex(returnASts, (void *)fnCall7_6, -1);
 
     err = symTableExitScope(table); // exit else
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 7 - symTableExitScope",
+            "Symtable exited else",
+            "Symtable failed to exit else"
+        );
+    }
+    
     err = symTableExitScope(table); // exit if
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 7 - symTableExitScope",
+            "Symtable exited if",
+            "Symtable failed to exit if"
+        );
+    }
+    
     result = symTableMoveScopeDown(table, SYM_IF); // enter else
+
+    if(test != NULL) {
+        testCase(
+            test,
+            result,
+            "AST 7 - symtbale enter else",
+            "Symtable entered else",
+            "Symtable failed to enter else"
+        );
+    }
+
 
     // ifj.write("Chyba pri nacitani celeho cisla!\n");
     ASTNodePtr fnCall7_7 = ASTcreateNode(AST_NODE_FUNC_CALL);
     err = ASTeditFunctionCallNode(fnCall7_7, "ifj.write", NULL, NULL); // ifj.write()
-    struct TOKEN valueToken7_7 = {.value = "Chyba pri nacitani celeho cisla!\n", .type = TOKEN_U8};
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 7 - ASTeditFunctionCallNode",
+            "ASTeditFunctionCallNode edited",
+            "ASTeditFunctionCallNode failed to edit"
+        );
+    }
+    
+    struct TOKEN valueToken7_7 = {.value = "Chyba pri nacitani celeho cisla!\n", .type = TOKEN_STRING};
     err = ASTeditFunctionCallNode(fnCall7_7, NULL, NULL, &valueToken7_7); // ifj.write("Chyba pri nacitani celeho cisla")
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 7 - ASTeditFunctionCallNode",
+            "ASTeditFunctionCallNode edited",
+            "ASTeditFunctionCallNode failed to edit"
+        );
+    }
+    
     insertNodeAtIndex(returnASts, (void *)fnCall7_7, -1);
 
     err = symTableExitScope(table); // exit else
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 7 - symTableExitScope",
+            "Symtable exited else",
+            "Symtable failed to exit else"
+        );
+    }
+    
     err = symTableExitScope(table); // exit function
+
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 7 - symTableExitScope",
+            "Symtable exited function",
+            "Symtable failed to exit function"
+        );
+    }
+
 
 }
 
@@ -2505,24 +2924,132 @@ void return_asts_8(SymTable *table, LinkedList *returnASts, TestInstancePtr test
     }
 
     SymVariable *n = symTableDeclareVariable(table, "n", dTypeI32, false, false); // n : i32
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            n != NULL,
+            "AST 8 - symtbale declare n",
+            "Symtable declared n",
+            "Symtable failed to declare n"
+        );
+    }
+    
     err = ASTeditFunctionNode(func8, NULL, dTypeUndefined, -1, n);
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 8 - ASTeditFunctionNode",
+            "ASTeditFunctionNode edited",
+            "ASTeditFunctionNode failed to edit"
+        );
+    }
+    
     SymVariable *m = symTableDeclareVariable(table, "m", dTypeI32, false, false); // m : i32
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            m != NULL,
+            "AST 8 - symtbale declare m",
+            "Symtable declared m",
+            "Symtable failed to declare m"
+        );
+    }
+    
     err = ASTeditFunctionNode(func8, NULL, dTypeUndefined, -1, m);
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 8 - ASTeditFunctionNode",
+            "ASTeditFunctionNode edited",
+            "ASTeditFunctionNode failed to edit"
+        );
+    }
+    
     insertNodeAtIndex(returnASts, (void *)func8, -1); // pub fn decrement(n: i32, m: i32) i32
 
     // return n - m;
     ASTNodePtr return8 = ASTcreateNode(AST_NODE_RETURN);
 
     SymVariable *var_n = symTableFindVariable(table, "n");
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            var_n != NULL,
+            "AST 8 - symtbale find n",
+            "Symtable found n",
+            "Symtable failed to find n"
+        );
+    }
+    
     SymVariable *var_m = symTableFindVariable(table, "m");
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            var_m != NULL,
+            "AST 8 - symtbale find m",
+            "Symtable found m",
+            "Symtable failed to find m"
+        );
+    }
+    
     err = ASTeditReturnNode(return8, var_n, NULL, NULL); // return n
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 8 - ASTeditReturnNode",
+            "ASTeditReturnNode edited",
+            "ASTeditReturnNode failed to edit"
+        );
+    }
+    
     struct TOKEN opr = {.type = TOKEN_MINUS, .value = "-"};
     err = ASTeditReturnNode(return8, NULL, NULL, &opr); // return n -
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 8 - ASTeditReturnNode",
+            "ASTeditReturnNode edited",
+            "ASTeditReturnNode failed to edit"
+        );
+    }
+
     err = ASTeditReturnNode(return8, var_m, NULL, NULL); // return n - m
+
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 8 - ASTeditReturnNode",
+            "ASTeditReturnNode edited",
+            "ASTeditReturnNode failed to edit"
+        );
+    }
 
     insertNodeAtIndex(returnASts, (void *)return8, -1);
 
     err = symTableExitScope(table); // exit function
+
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 8 - symTableExitScope",
+            "Symtable exited function",
+            "Symtable failed to exit function"
+        );
+    }
 
 }
 
@@ -2574,88 +3101,525 @@ void return_asts_9(SymTable *table, LinkedList *returnASts, TestInstancePtr test
     }
 
     SymVariable *n = symTableDeclareVariable(table, "n", dTypeI32, false, false); // n : i32
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            n != NULL,
+            "AST 9 - symtbale declare n",
+            "Symtable declared n",
+            "Symtable failed to declare n"
+        );
+    }
+    
     err = ASTeditFunctionNode(func9, NULL, dTypeUndefined, -1, n);
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 9 - ASTeditFunctionNode",
+            "ASTeditFunctionNode edited",
+            "ASTeditFunctionNode failed to edit"
+        );
+    }
+    
     insertNodeAtIndex(returnASts, (void *)func9, -1); // pub fn factorial(n: i32) i32
 
     // var result: i32 = 0 - 1;
     ASTNodePtr declare9 = ASTcreateNode(AST_NODE_DECLARE);
     SymVariable *result1 = symTableDeclareVariable(table, "result", dTypeI32, true, false); // var result : i32
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            result1 != NULL,
+            "AST 9 - symtbale declare result",
+            "Symtable declared result",
+            "Symtable failed to declare result"
+        );
+    }
+    
     err = ASTeditDeclareNode(declare9, result1, NULL); // var result : i32 =
+
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 9 - ASTeditDeclareNode",
+            "ASTeditDeclareNode edited",
+            "ASTeditDeclareNode failed to edit"
+        );
+    }
 
     //if (n < 2) { ... }
     result = symTableMoveScopeDown(table, SYM_IF); // enter if
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            result,
+            "AST 9 - symtbale enter if",
+            "Symtable entered if",
+            "Symtable failed to enter if"
+        );
+    }
+    
     ASTNodePtr if9 = ASTcreateNode(AST_NODE_IF_ELSE);
     SymVariable *var_n = symTableFindVariable(table, "n");
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            var_n != NULL,
+            "AST 9 - symtbale find n",
+            "Symtable found n",
+            "Symtable failed to find n"
+        );
+    }
+    
     err = ASTeditIfNode(if9, var_n, NULL, NULL, NULL, NULL); // if (n) {
-    struct TOKEN opr = {.type = TOKEN_LESSTHAN, .value = "<"};
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 9 - ASTeditIfNode",
+            "ASTeditIfNode edited",
+            "ASTeditIfNode failed to edit"
+        );
+    }
+    
+    struct TOKEN opr = {.type = TOKEN_LESSTHAN, .value = "<"};    
     err = ASTeditIfNode(if9, NULL, NULL, &opr, NULL, NULL); // if (n <) {
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 9 - ASTeditIfNode",
+            "ASTeditIfNode edited",
+            "ASTeditIfNode failed to edit"
+        );
+    }
+    
     struct TOKEN val = {.type = TOKEN_I32, .value = "2"};
     err = ASTeditIfNode(if9, NULL, &val, NULL, NULL, NULL); // if (n < 2) {
+
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 9 - ASTeditIfNode",
+            "ASTeditIfNode edited",
+            "ASTeditIfNode failed to edit"
+        );
+    }
+
     insertNodeAtIndex(returnASts, (void *)if9, -1);
 
     // result = 1;
     ASTNodePtr assign9 = ASTcreateNode(AST_NODE_ASSIGN);
     SymVariable *var_result = symTableFindVariable(table, "result");
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            var_result != NULL,
+            "AST 9 - symtbale find result",
+            "Symtable found result",
+            "Symtable failed to find result"
+        );
+    }
+    
     err = ASTeditAssignNode(assign9, var_result, NULL); // result =
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 9 - ASTeditAssignNode",
+            "ASTeditAssignNode edited",
+            "ASTeditAssignNode failed to edit"
+        );
+    }
+    
     struct TOKEN val1 = {.type = TOKEN_I32, .value = "1"};
     ASTNodePtr value = ASTcreateNode(AST_NODE_VALUE);
     err = ASTinitNodeValue(value, &val1); // 1
 
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 9 - ASTinitNodeValue",
+            "ASTinitNodeValue edited",
+            "ASTinitNodeValue failed to edit"
+        );
+    }
+
     err = ASTeditAssignNode(assign9, NULL, value); // result = 1
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 9 - ASTeditAssignNode",
+            "ASTeditAssignNode edited",
+            "ASTeditAssignNode failed to edit"
+        );
+    }
+    
     insertNodeAtIndex(returnASts, (void *)assign9, -1);
 
     err = symTableExitScope(table); // exit if
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 9 - symTableExitScope",
+            "Symtable exited if",
+            "Symtable failed to exit if"
+        );
+    }
+    
     // else { ... }
     result = symTableMoveScopeDown(table, SYM_IF); // enter else
+
+    if(test != NULL) {
+        testCase(
+            test,
+            result,
+            "AST 9 - symtbale enter else",
+            "Symtable entered else",
+            "Symtable failed to enter else"
+        );
+    }
+
 
     // const decremented_n = decrement(n, 1);
     ASTNodePtr declare9_2 = ASTcreateNode(AST_NODE_DECLARE);
     SymVariable *decremented_n = symTableDeclareVariable(table, "decremented_n", dTypeI32, false, false); // const decremented_n
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            decremented_n != NULL,
+            "AST 9 - symtbale declare decremented_n",
+            "Symtable declared decremented_n",
+            "Symtable failed to declare decremented_n"
+        );
+    }
+    
     err = ASTeditDeclareNode(declare9_2, decremented_n, NULL); // const decremented_n =
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 9 - ASTeditDeclareNode",
+            "ASTeditDeclareNode edited",
+            "ASTeditDeclareNode failed to edit"
+        );
+    }
+    
     ASTNodePtr fnCall9 = ASTcreateNode(AST_NODE_FUNC_CALL);
     err = ASTeditFunctionCallNode(fnCall9, "decrement", NULL, NULL); // decrement()
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 9 - ASTeditFunctionCallNode",
+            "ASTeditFunctionCallNode edited",
+            "ASTeditFunctionCallNode failed to edit"
+        );
+    }
+    
     SymVariable *var2_n = symTableFindVariable(table, "n");
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            var2_n != NULL,
+            "AST 9 - symtbale find n",
+            "Symtable found n",
+            "Symtable failed to find n"
+        );
+    }
+    
     err = ASTeditFunctionCallNode(fnCall9, NULL, var2_n, NULL); // decrement(n)
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 9 - ASTeditFunctionCallNode",
+            "ASTeditFunctionCallNode edited",
+            "ASTeditFunctionCallNode failed to edit"
+        );
+    }
+    
     struct TOKEN val2 = {.type = TOKEN_I32, .value = "1"};
     err = ASTeditFunctionCallNode(fnCall9, NULL, NULL, &val2); // decrement(n, 1)
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 9 - ASTeditFunctionCallNode",
+            "ASTeditFunctionCallNode edited",
+            "ASTeditFunctionCallNode failed to edit"
+        );
+    }
+    
     err = ASTeditDeclareNode(declare9_2, NULL, fnCall9); // const decremented_n = decrement(n, 1)
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 9 - ASTeditDeclareNode",
+            "ASTeditDeclareNode edited",
+            "ASTeditDeclareNode failed to edit"
+        );
+    }
+    
     insertNodeAtIndex(returnASts, (void *)declare9_2, -1);
 
     // const temp_result = factorial(decremented_n);
     ASTNodePtr declare9_3 = ASTcreateNode(AST_NODE_DECLARE);
     SymVariable *temp_result = symTableDeclareVariable(table, "temp_result", dTypeI32, false, false); // const temp_result
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            temp_result != NULL,
+            "AST 9 - symtbale declare temp_result",
+            "Symtable declared temp_result",
+            "Symtable failed to declare temp_result"
+        );
+    }
+    
     err = ASTeditDeclareNode(declare9_3, temp_result, NULL); // const temp_result =
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 9 - ASTeditDeclareNode",
+            "ASTeditDeclareNode edited",
+            "ASTeditDeclareNode failed to edit"
+        );
+    }
+    
     ASTNodePtr fnCall9_2 = ASTcreateNode(AST_NODE_FUNC_CALL);
     err = ASTeditFunctionCallNode(fnCall9_2, "factorial", NULL, NULL); // factorial()
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 9 - ASTeditFunctionCallNode",
+            "ASTeditFunctionCallNode edited",
+            "ASTeditFunctionCallNode failed to edit"
+        );
+    }
+    
     SymVariable *var3_decremented_n = symTableFindVariable(table, "decremented_n");
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            var3_decremented_n != NULL,
+            "AST 9 - symtbale find decremented_n",
+            "Symtable found decremented_n",
+            "Symtable failed to find decremented_n"
+        );
+    }
+    
     err = ASTeditFunctionCallNode(fnCall9_2, NULL, var3_decremented_n, NULL); // factorial(decremented_n)
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 9 - ASTeditFunctionCallNode",
+            "ASTeditFunctionCallNode edited",
+            "ASTeditFunctionCallNode failed to edit"
+        );
+    }
+    
     err = ASTeditDeclareNode(declare9_3, NULL, fnCall9_2); // const temp_result = factorial(decremented_n)
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 9 - ASTeditDeclareNode",
+            "ASTeditDeclareNode edited",
+            "ASTeditDeclareNode failed to edit"
+        );
+    }
+    
     insertNodeAtIndex(returnASts, (void *)declare9_3, -1);
 
     // result = n * temp_result;
     ASTNodePtr assign9_2 = ASTcreateNode(AST_NODE_ASSIGN);
     SymVariable *var2_result = symTableFindVariable(table, "result");
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            var2_result != NULL,
+            "AST 9 - symtbale find result",
+            "Symtable found result",
+            "Symtable failed to find result"
+        );
+    }
+    
     err = ASTeditAssignNode(assign9_2, var2_result, NULL); // result =
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 9 - ASTeditAssignNode",
+            "ASTeditAssignNode edited",
+            "ASTeditAssignNode failed to edit"
+        );
+    }
+    
     ASTNodePtr expr1 = ASTcreateNode(AST_NODE_EXPRESION);
     var2_n = symTableFindVariable(table, "n");
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            var2_n != NULL,
+            "AST 9 - symtbale find n",
+            "Symtable found n",
+            "Symtable failed to find n"
+        );
+    }
+    
     err = ASTaddNodeToExpresion(expr1, var2_n, NULL, NULL); // n
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 9 - ASTaddNodeToExpresion",
+            "ASTaddNodeToExpresion edited",
+            "ASTaddNodeToExpresion failed to edit"
+        );
+    }
+    
     struct TOKEN opr1 = {.type = TOKEN_MULTIPLY, .value = "*"};
     err = ASTaddNodeToExpresion(expr1, NULL, NULL, &opr1); // n *
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 9 - ASTaddNodeToExpresion",
+            "ASTaddNodeToExpresion edited",
+            "ASTaddNodeToExpresion failed to edit"
+        );
+    }
+    
     SymVariable *var_temp_result = symTableFindVariable(table, "temp_result");
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            var_temp_result != NULL,
+            "AST 9 - symtbale find temp_result",
+            "Symtable found temp_result",
+            "Symtable failed to find temp_result"
+        );
+    }
+    
     err = ASTaddNodeToExpresion(expr1, var_temp_result, NULL, NULL); // n * temp_result
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 9 - ASTaddNodeToExpresion",
+            "ASTaddNodeToExpresion edited",
+            "ASTaddNodeToExpresion failed to edit"
+        );
+    }
+    
     err = ASTeditAssignNode(assign9_2, NULL, expr1); // result = n * temp_result
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 9 - ASTeditAssignNode",
+            "ASTeditAssignNode edited",
+            "ASTeditAssignNode failed to edit"
+        );
+    }
+    
     insertNodeAtIndex(returnASts, (void *)assign9_2, -1);
 
     err = symTableExitScope(table); // exit else
 
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 9 - symTableExitScope",
+            "Symtable exited else",
+            "Symtable failed to exit else"
+        );
+    }
+
+
     // return result;
     ASTNodePtr return9 = ASTcreateNode(AST_NODE_RETURN);
     SymVariable *var3_result = symTableFindVariable(table, "result");
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            var3_result != NULL,
+            "AST 9 - symtbale find result",
+            "Symtable found result",
+            "Symtable failed to find result"
+        );
+    }
+    
     err = ASTeditReturnNode(return9, var3_result, NULL, NULL); // return result
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 9 - ASTeditReturnNode",
+            "ASTeditReturnNode edited",
+            "ASTeditReturnNode failed to edit"
+        );
+    }
+    
     insertNodeAtIndex(returnASts, (void *)return9, -1);
 
     err = symTableExitScope(table); // exit function
     
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 9 - symTableExitScope",
+            "Symtable exited function",
+            "Symtable failed to exit function"
+        );
+    }
+
 }
 
 /*
@@ -2663,8 +3627,7 @@ AST 10
 
 pub fn main() void {
     const str1 = ifj.string("Toto je text v programu jazyka IFJ24");
-    var str2 = ifj.string("
-    , ktery jeste trochu obohatime");
+    var str2 = ifj.string(", ktery jeste trochu obohatime");
     str2 = ifj.concat(str1, str2);
     ifj. write(str1); 
     ifj . write("\n");
@@ -2722,10 +3685,1204 @@ void return_asts_10(SymTable *table, LinkedList *returnASts, TestInstancePtr tes
     // const str1 = ifj.string("Toto je text v programu jazyka IFJ24");
     ASTNodePtr declare10 = ASTcreateNode(AST_NODE_DECLARE);
     SymVariable *str1 = symTableDeclareVariable(table, "str1", dTypeNone, false, false); // const str1
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            str1 != NULL,
+            "AST 10 - symtbale declare str1",
+            "Symtable declared str1",
+            "Symtable failed to declare str1"
+        );
+    }
+    
     err = ASTeditDeclareNode(declare10, str1, NULL); // const str1 =
+
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 10 - ASTeditDeclareNode",
+            "ASTeditDeclareNode edited",
+            "ASTeditDeclareNode failed to edit"
+        );
+    }
 
     ASTNodePtr fnCall10 = ASTcreateNode(AST_NODE_FUNC_CALL);
     err = ASTeditFunctionCallNode(fnCall10, "ifj.string", NULL, NULL); // ifj.string()
-    struct TOKEN valueToken10 = {.value = "Toto je text v programu jazyka IFJ24", .type = TOKEN_U8};
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 10 - ASTeditFunctionCallNode",
+            "ASTeditFunctionCallNode edited",
+            "ASTeditFunctionCallNode failed to edit"
+        );
+    }
+    
+    struct TOKEN valueToken10 = {.value = "Toto je text v programu jazyka IFJ24", .type = TOKEN_STRING};
     err = ASTeditFunctionCallNode(fnCall10, NULL, NULL, &valueToken10); // ifj.string("Toto je text v programu jazyka IFJ24")
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 10 - ASTeditFunctionCallNode",
+            "ASTeditFunctionCallNode edited",
+            "ASTeditFunctionCallNode failed to edit"
+        );
+    }
+    
+    err = ASTeditDeclareNode(declare10, NULL, fnCall10); // const str1 = ifj.string("Toto je text v programu jazyka IFJ24")
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 10 - ASTeditDeclareNode",
+            "ASTeditDeclareNode edited",
+            "ASTeditDeclareNode failed to edit"
+        );
+    }
+    
+    insertNodeAtIndex(returnASts, (void *)declare10, -1);
+
+    // var str2 = ifj.string(", ktery jeste trochu obohatime");
+    ASTNodePtr declare10_2 = ASTcreateNode(AST_NODE_DECLARE);
+    SymVariable *str2 = symTableDeclareVariable(table, "str2", dTypeNone, true, false); // var str2
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            str2 != NULL,
+            "AST 10 - symtbale declare str2",
+            "Symtable declared str2",
+            "Symtable failed to declare str2"
+        );
+    }
+    
+    err = ASTeditDeclareNode(declare10_2, str2, NULL); // var str2 =
+
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 10 - ASTeditDeclareNode",
+            "ASTeditDeclareNode edited",
+            "ASTeditDeclareNode failed to edit"
+        );
+    }
+
+    ASTNodePtr fnCall10_2 = ASTcreateNode(AST_NODE_FUNC_CALL);
+    err = ASTeditFunctionCallNode(fnCall10_2, "ifj.string", NULL, NULL); // ifj.string()
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 10 - ASTeditFunctionCallNode",
+            "ASTeditFunctionCallNode edited",
+            "ASTeditFunctionCallNode failed to edit"
+        );
+    }
+    
+    struct TOKEN valueToken10_2 = {.value = ", ktery jeste trochu obohatime", .type = TOKEN_STRING};
+    err = ASTeditFunctionCallNode(fnCall10_2, NULL, NULL, &valueToken10_2); // ifj.string(", ktery jeste trochu obohatime")
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 10 - ASTeditFunctionCallNode",
+            "ASTeditFunctionCallNode edited",
+            "ASTeditFunctionCallNode failed to edit"
+        );
+    }
+    
+    err = ASTeditDeclareNode(declare10_2, NULL, fnCall10_2); // var str2 = ifj.string(", ktery jeste trochu obohatime")
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 10 - ASTeditDeclareNode",
+            "ASTeditDeclareNode edited",
+            "ASTeditDeclareNode failed to edit"
+        );
+    }
+    
+    insertNodeAtIndex(returnASts, (void *)declare10_2, -1);
+
+    // str2 = ifj.concat(str1, str2);
+    ASTNodePtr assign10 = ASTcreateNode(AST_NODE_ASSIGN); 
+    SymVariable *var_str2 = symTableFindVariable(table, "str2");
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            var_str2 != NULL,
+            "AST 10 - symtbale find str2",
+            "Symtable found str2",
+            "Symtable failed to find str2"
+        );
+    }
+    
+    err = ASTeditAssignNode(assign10, var_str2, NULL); // str2 =
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 10 - ASTeditAssignNode",
+            "ASTeditAssignNode edited",
+            "ASTeditAssignNode failed to edit"
+        );
+    }
+    
+    ASTNodePtr fnCall10_3 = ASTcreateNode(AST_NODE_FUNC_CALL);
+    err = ASTeditFunctionCallNode(fnCall10_3, "ifj.concat", NULL, NULL); // ifj.concat()
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 10 - ASTeditFunctionCallNode",
+            "ASTeditFunctionCallNode edited",
+            "ASTeditFunctionCallNode failed to edit"
+        );
+    }
+    
+    SymVariable *var_str1 = symTableFindVariable(table, "str1");
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            var_str1 != NULL,
+            "AST 10 - symtbale find str1",
+            "Symtable found str1",
+            "Symtable failed to find str1"
+        );
+    }
+    
+    err = ASTeditFunctionCallNode(fnCall10_3, NULL, var_str1, NULL); // ifj.concat(str1)
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 10 - ASTeditFunctionCallNode",
+            "ASTeditFunctionCallNode edited",
+            "ASTeditFunctionCallNode failed to edit"
+        );
+    }
+    
+    SymVariable *var2_str2 = symTableFindVariable(table, "str2");
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            var2_str2 != NULL,
+            "AST 10 - symtbale find str2",
+            "Symtable found str2",
+            "Symtable failed to find str2"
+        );
+    }
+    
+    err = ASTeditFunctionCallNode(fnCall10_3, NULL, var_str2, NULL); // ifj.concat(str1, str2)
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 10 - ASTeditFunctionCallNode",
+            "ASTeditFunctionCallNode edited",
+            "ASTeditFunctionCallNode failed to edit"
+        );
+    }
+    
+    err = ASTeditAssignNode(assign10, NULL, fnCall10_3); // str2 = ifj.concat(str1, str2)
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 10 - ASTeditAssignNode",
+            "ASTeditAssignNode edited",
+            "ASTeditAssignNode failed to edit"
+        );
+    }
+    
+    insertNodeAtIndex(returnASts, (void *)assign10, -1);
+
+    // ifj.write(str1);
+    ASTNodePtr fnCall10_4 = ASTcreateNode(AST_NODE_FUNC_CALL);
+    err = ASTeditFunctionCallNode(fnCall10_4, "ifj.write", NULL, NULL); // ifj.write()
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 10 - ASTeditFunctionCallNode",
+            "ASTeditFunctionCallNode edited",
+            "ASTeditFunctionCallNode failed to edit"
+        );
+    }
+    
+    SymVariable *var2_str1 = symTableFindVariable(table, "str1");
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            var2_str1 != NULL,
+            "AST 10 - symtbale find str1",
+            "Symtable found str1",
+            "Symtable failed to find str1"
+        );
+    }
+    
+    err = ASTeditFunctionCallNode(fnCall10_4, NULL, var_str1, NULL); // ifj.write(str1)
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 10 - ASTeditFunctionCallNode",
+            "ASTeditFunctionCallNode edited",
+            "ASTeditFunctionCallNode failed to edit"
+        );
+    }
+    
+    insertNodeAtIndex(returnASts, (void *)fnCall10_4, -1);
+
+    // ifj.write("\n");
+    ASTNodePtr fnCall10_5 = ASTcreateNode(AST_NODE_FUNC_CALL);
+    err = ASTeditFunctionCallNode(fnCall10_5, "ifj.write", NULL, NULL); // ifj.write()
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 10 - ASTeditFunctionCallNode",
+            "ASTeditFunctionCallNode edited",
+            "ASTeditFunctionCallNode failed to edit"
+        );
+    }
+    
+    struct TOKEN valueToken10_5 = {.value = "\n", .type = TOKEN_STRING};
+    err = ASTeditFunctionCallNode(fnCall10_5, NULL, NULL, &valueToken10_5); // ifj.write("\n")
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 10 - ASTeditFunctionCallNode",
+            "ASTeditFunctionCallNode edited",
+            "ASTeditFunctionCallNode failed to edit"
+        );
+    }
+    
+    insertNodeAtIndex(returnASts, (void *)fnCall10_5, -1);
+
+    // ifj.write(str2);
+    ASTNodePtr fnCall10_6 = ASTcreateNode(AST_NODE_FUNC_CALL);
+    err = ASTeditFunctionCallNode(fnCall10_6, "ifj.write", NULL, NULL); // ifj.write()
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 10 - ASTeditFunctionCallNode",
+            "ASTeditFunctionCallNode edited",
+            "ASTeditFunctionCallNode failed to edit"
+        );
+    }
+    
+    SymVariable *var3_str2 = symTableFindVariable(table, "str2");
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            var3_str2 != NULL,
+            "AST 10 - symtbale find str2",
+            "Symtable found str2",
+            "Symtable failed to find str2"
+        );
+    }
+    
+    err = ASTeditFunctionCallNode(fnCall10_6, NULL, var3_str2, NULL); // ifj.write(str2)
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 10 - ASTeditFunctionCallNode",
+            "ASTeditFunctionCallNode edited",
+            "ASTeditFunctionCallNode failed to edit"
+        );
+    }
+    
+    insertNodeAtIndex(returnASts, (void *)fnCall10_6, -1);
+
+    // ifj.write("\n");
+    ASTNodePtr fnCall10_7 = ASTcreateNode(AST_NODE_FUNC_CALL);
+    err = ASTeditFunctionCallNode(fnCall10_7, "ifj.write", NULL, NULL); // ifj.write()
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 10 - ASTeditFunctionCallNode",
+            "ASTeditFunctionCallNode edited",
+            "ASTeditFunctionCallNode failed to edit"
+        );
+    }
+    
+    struct TOKEN valueToken10_7 = {.value = "\n", .type = TOKEN_STRING};
+    err = ASTeditFunctionCallNode(fnCall10_7, NULL, NULL, &valueToken10_7); // ifj.write("\n")
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 10 - ASTeditFunctionCallNode",
+            "ASTeditFunctionCallNode edited",
+            "ASTeditFunctionCallNode failed to edit"
+        );
+    }
+    
+    insertNodeAtIndex(returnASts, (void *)fnCall10_7, -1);
+
+    // ifj.write("Zadejte serazenou posloupnost malych pismen a-h:\n");
+    ASTNodePtr fnCall10_8 = ASTcreateNode(AST_NODE_FUNC_CALL);
+    err = ASTeditFunctionCallNode(fnCall10_8, "ifj.write", NULL, NULL); // ifj.write()
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 10 - ASTeditFunctionCallNode",
+            "ASTeditFunctionCallNode edited",
+            "ASTeditFunctionCallNode failed to edit"
+        );
+    }
+    
+    struct TOKEN valueToken10_8 = {.value = "Zadejte serazenou posloupnost malych pismen a-h:\n", .type = TOKEN_STRING};
+    err = ASTeditFunctionCallNode(fnCall10_8, NULL, NULL, &valueToken10_8); // ifj.write("Zadejte serazenou posloupnost malych pismen a-h:\n")
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 10 - ASTeditFunctionCallNode",
+            "ASTeditFunctionCallNode edited",
+            "ASTeditFunctionCallNode failed to edit"
+        );
+    }
+    
+    insertNodeAtIndex(returnASts, (void *)fnCall10_8, -1);
+
+    // var newInput = ifj.readstr();
+    ASTNodePtr declare10_3 = ASTcreateNode(AST_NODE_DECLARE);
+    SymVariable *newInput = symTableDeclareVariable(table, "newInput", dTypeNone, true, false); // var newInput
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            newInput != NULL,
+            "AST 10 - symtbale declare newInput",
+            "Symtable declared newInput",
+            "Symtable failed to declare newInput"
+        );
+    }
+    
+    err = ASTeditDeclareNode(declare10_3, newInput, NULL); // var newInput =
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 10 - ASTeditDeclareNode",
+            "ASTeditDeclareNode edited",
+            "ASTeditDeclareNode failed to edit"
+        );
+    }
+    
+    ASTNodePtr fnCall10_9 = ASTcreateNode(AST_NODE_FUNC_CALL);
+    err = ASTeditFunctionCallNode(fnCall10_9, "ifj.readstr", NULL, NULL); // ifj.readstr()
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 10 - ASTeditFunctionCallNode",
+            "ASTeditFunctionCallNode edited",
+            "ASTeditFunctionCallNode failed to edit"
+        );
+    }
+    
+    err = ASTeditDeclareNode(declare10_3, NULL, fnCall10_9); // var newInput = ifj.readstr()
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 10 - ASTeditDeclareNode",
+            "ASTeditDeclareNode edited",
+            "ASTeditDeclareNode failed to edit"
+        );
+    }
+    
+    insertNodeAtIndex(returnASts, (void *)declare10_3, -1);
+
+    // var all: []u8= ifj.string("");
+    ASTNodePtr declare10_4 = ASTcreateNode(AST_NODE_DECLARE);
+    SymVariable *all = symTableDeclareVariable(table, "all", dTypeU8, true, false); // var all: []u8
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            all != NULL,
+            "AST 10 - symtbale declare all",
+            "Symtable declared all",
+            "Symtable failed to declare all"
+        );
+    }
+    
+    err = ASTeditDeclareNode(declare10_4, all, NULL); // var all: []u8 =
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 10 - ASTeditDeclareNode",
+            "ASTeditDeclareNode edited",
+            "ASTeditDeclareNode failed to edit"
+        );
+    }
+    
+    ASTNodePtr fnCall10_10 = ASTcreateNode(AST_NODE_FUNC_CALL);
+    err = ASTeditFunctionCallNode(fnCall10_10, "ifj.string", NULL, NULL); // ifj.string()
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 10 - ASTeditFunctionCallNode",
+            "ASTeditFunctionCallNode edited",
+            "ASTeditFunctionCallNode failed to edit"
+        );
+    }
+    
+    struct TOKEN valueToken10_10 = {.value= "", .type = TOKEN_STRING};
+    err = ASTeditFunctionCallNode(fnCall10_10, NULL, NULL, &valueToken10_10); // ifj.string("")
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 10 - ASTeditFunctionCallNode",
+            "ASTeditFunctionCallNode edited",
+            "ASTeditFunctionCallNode failed to edit"
+        );
+    }
+    
+    err = ASTeditDeclareNode(declare10_4, NULL, fnCall10_10); // var all: []u8 = ifj.string("")
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 10 - ASTeditDeclareNode",
+            "ASTeditDeclareNode edited",
+            "ASTeditDeclareNode failed to edit"
+        );
+    }
+    
+    insertNodeAtIndex(returnASts, (void *)declare10_4, -1);
+
+    // while (newInput) |inpOK| { ... }
+    result = symTableMoveScopeDown(table, SYM_WHILE); // enter while
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            result,
+            "AST 10 - symTableMoveScopeDown",
+            "Symtable entered while",
+            "Symtable failed to enter while"
+        );
+    }
+    
+    ASTNodePtr while10 = ASTcreateNode(AST_NODE_WHILE);
+    SymVariable *var_newInput = symTableFindVariable(table, "newInput");
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            var_newInput != NULL,
+            "AST 10 - symtbale find newInput",
+            "Symtable found newInput",
+            "Symtable failed to find newInput"
+        );
+    }
+    
+    SymVariable *inpOK = symTableDeclareVariable(table, "inpOK", var_newInput->type, var_newInput->mutable, false); // |inpOK|
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            inpOK != NULL,
+            "AST 10 - symtbale declare inpOK",
+            "Symtable declared inpOK",
+            "Symtable failed to declare inpOK"
+        );
+    }
+    
+    err = ASTeditWhileNode(while10, NULL, NULL, NULL, var_newInput, inpOK); // while (newInput) |inpOK| {
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 10 - ASTeditWhileNode",
+            "ASTeditWhileNode edited",
+            "ASTeditWhileNode failed to edit"
+        );
+    }
+    
+    insertNodeAtIndex(returnASts, (void *)while10, -1);
+
+    // const abcdefgh = ifj.string("abcdefgh");
+    ASTNodePtr declare10_5 = ASTcreateNode(AST_NODE_DECLARE);
+    SymVariable *abcdefgh = symTableDeclareVariable(table, "abcdefgh", dTypeNone, false, false); // const abcdefgh
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            abcdefgh != NULL,
+            "AST 10 - symtbale declare abcdefgh",
+            "Symtable declared abcdefgh",
+            "Symtable failed to declare abcdefgh"
+        );
+    }
+    
+    err = ASTeditDeclareNode(declare10_5, abcdefgh, NULL); // const abcdefgh =
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 10 - ASTeditDeclareNode",
+            "ASTeditDeclareNode edited",
+            "ASTeditDeclareNode failed to edit"
+        );
+    }
+    
+    ASTNodePtr fnCall10_11 = ASTcreateNode(AST_NODE_FUNC_CALL);
+    err = ASTeditFunctionCallNode(fnCall10_11, "ifj.string", NULL, NULL); // ifj.string()
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 10 - ASTeditFunctionCallNode",
+            "ASTeditFunctionCallNode edited",
+            "ASTeditFunctionCallNode failed to edit"
+        );
+    }
+    
+    struct TOKEN valueToken10_11 = {.value= "abcdefgh", .type = TOKEN_STRING};
+    err = ASTeditFunctionCallNode(fnCall10_11, NULL, NULL, &valueToken10_11); // ifj.string("abcdefgh")
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 10 - ASTeditFunctionCallNode",
+            "ASTeditFunctionCallNode edited",
+            "ASTeditFunctionCallNode failed to edit"
+        );
+    }
+    
+    err = ASTeditDeclareNode(declare10_5, NULL, fnCall10_11); // const abcdefgh = ifj.string("abcdefgh")
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 10 - ASTeditDeclareNode",
+            "ASTeditDeclareNode edited",
+            "ASTeditDeclareNode failed to edit"
+        );
+    }
+    
+    insertNodeAtIndex(returnASts, (void *)declare10_5, -1);
+
+    // const strcmpResult = ifj.strcmp(inpOK, abcdefgh);
+    ASTNodePtr declare10_6 = ASTcreateNode(AST_NODE_DECLARE);
+    SymVariable *strcmpResult = symTableDeclareVariable(table, "strcmpResult", dTypeNone, false, false); // const strcmpResult
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            strcmpResult != NULL,
+            "AST 10 - symtbale declare strcmpResult",
+            "Symtable declared strcmpResult",
+            "Symtable failed to declare strcmpResult"
+        );
+    }
+    
+    err = ASTeditDeclareNode(declare10_6, strcmpResult, NULL); // const strcmpResult =
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 10 - ASTeditDeclareNode",
+            "ASTeditDeclareNode edited",
+            "ASTeditDeclareNode failed to edit"
+        );
+    }
+    
+    ASTNodePtr fnCall10_12 = ASTcreateNode(AST_NODE_FUNC_CALL);
+    err = ASTeditFunctionCallNode(fnCall10_12, "ifj.strcmp", NULL, NULL); // ifj.strcmp()
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 10 - ASTeditFunctionCallNode",
+            "ASTeditFunctionCallNode edited",
+            "ASTeditFunctionCallNode failed to edit"
+        );
+    }
+    
+    SymVariable *var_inpOK = symTableFindVariable(table, "inpOK");
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            var_inpOK != NULL,
+            "AST 10 - symtbale find inpOK",
+            "Symtable found inpOK",
+            "Symtable failed to find inpOK"
+        );
+    }
+    
+    err = ASTeditFunctionCallNode(fnCall10_12, NULL, var_inpOK, NULL); // ifj.strcmp(inpOK)
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 10 - ASTeditFunctionCallNode",
+            "ASTeditFunctionCallNode edited",
+            "ASTeditFunctionCallNode failed to edit"
+        );
+    }
+    
+    SymVariable *var_abcdefgh = symTableFindVariable(table, "abcdefgh");
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            var_abcdefgh != NULL,
+            "AST 10 - symtbale find abcdefgh",
+            "Symtable found abcdefgh",
+            "Symtable failed to find abcdefgh"
+        );
+    }
+    
+    err = ASTeditFunctionCallNode(fnCall10_12, NULL, var_abcdefgh, NULL); // ifj.strcmp(inpOK, abcdefgh)
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 10 - ASTeditFunctionCallNode",
+            "ASTeditFunctionCallNode edited",
+            "ASTeditFunctionCallNode failed to edit"
+        );
+    }
+    
+    err = ASTeditDeclareNode(declare10_6, NULL, fnCall10_12); // const strcmpResult = ifj.strcmp(inpOK, abcdefgh)
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 10 - ASTeditDeclareNode",
+            "ASTeditDeclareNode edited",
+            "ASTeditDeclareNode failed to edit"
+        );
+    }
+    
+    insertNodeAtIndex(returnASts, (void *)declare10_6, -1);
+
+    // if (strcmpResult == 0) { ... }
+    result = symTableMoveScopeDown(table, SYM_IF); // enter if
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            result,
+            "AST 10 - symTableMoveScopeDown",
+            "Symtable entered if",
+            "Symtable failed to enter if"
+        );
+    }
+    
+    ASTNodePtr if10 = ASTcreateNode(AST_NODE_IF_ELSE);
+    SymVariable *var_strcmpResult = symTableFindVariable(table, "strcmpResult");
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            var_strcmpResult != NULL,
+            "AST 10 - symtbale find strcmpResult",
+            "Symtable found strcmpResult",
+            "Symtable failed to find strcmpResult"
+        );
+    }
+    
+    err = ASTeditIfNode(if10, var_strcmpResult, NULL, NULL, NULL, NULL); // if (strcmpResult) {
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 10 - ASTeditIfNode",
+            "ASTeditIfNode edited",
+            "ASTeditIfNode failed to edit"
+        );
+    }
+    
+    struct TOKEN opr10 = {.type = TOKEN_EQUALS, .value = "=="};
+    err = ASTeditIfNode(if10, NULL, NULL, &opr10, NULL, NULL); // if (strcmpResult ==) {
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 10 - ASTeditIfNode",
+            "ASTeditIfNode edited",
+            "ASTeditIfNode failed to edit"
+        );
+    }
+    
+    struct TOKEN val10 = {.type = TOKEN_I32, .value = "0"};
+    err = ASTeditIfNode(if10, NULL, &val10, NULL, NULL, NULL); // if (strcmpResult == 0) {
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 10 - ASTeditIfNode",
+            "ASTeditIfNode edited",
+            "ASTeditIfNode failed to edit"
+        );
+    }
+    
+    insertNodeAtIndex(returnASts, (void *)if10, -1);
+
+    // ifj.write("Spravne zadano!\n");
+    ASTNodePtr fnCall10_13 = ASTcreateNode(AST_NODE_FUNC_CALL);
+    err = ASTeditFunctionCallNode(fnCall10_13, "ifj.write", NULL, NULL); // ifj.write()
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 10 - ASTeditFunctionCallNode",
+            "ASTeditFunctionCallNode edited",
+            "ASTeditFunctionCallNode failed to edit"
+        );
+    }
+    
+    struct TOKEN valueToken10_13 = {.value= "Spravne zadano!\n", .type = TOKEN_STRING};
+    err = ASTeditFunctionCallNode(fnCall10_13, NULL, NULL, &valueToken10_13); // ifj.write("Spravne zadano!\n")
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 10 - ASTeditFunctionCallNode",
+            "ASTeditFunctionCallNode edited",
+            "ASTeditFunctionCallNode failed to edit"
+        );
+    }
+    
+    insertNodeAtIndex(returnASts, (void *)fnCall10_13, -1);
+
+    // ifj.write(all);
+    ASTNodePtr fnCall10_14 = ASTcreateNode(AST_NODE_FUNC_CALL);
+    err = ASTeditFunctionCallNode(fnCall10_14, "ifj.write", NULL, NULL); // ifj.write()
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 10 - ASTeditFunctionCallNode",
+            "ASTeditFunctionCallNode edited",
+            "ASTeditFunctionCallNode failed to edit"
+        );
+    }
+    
+    SymVariable *var_all = symTableFindVariable(table, "all");
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            var_all != NULL,
+            "AST 10 - symtbale find all",
+            "Symtable found all",
+            "Symtable failed to find all"
+        );
+    }
+    
+    err = ASTeditFunctionCallNode(fnCall10_14, NULL, var_all, NULL); // ifj.write(all)
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 10 - ASTeditFunctionCallNode",
+            "ASTeditFunctionCallNode edited",
+            "ASTeditFunctionCallNode failed to edit"
+        );
+    }
+    
+    insertNodeAtIndex(returnASts, (void *)fnCall10_14, -1);
+
+    // newInput = null;
+    ASTNodePtr assign10_2 = ASTcreateNode(AST_NODE_ASSIGN);
+    SymVariable *var2_newInput = symTableFindVariable(table, "newInput");
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            var2_newInput != NULL,
+            "AST 10 - symtbale find newInput",
+            "Symtable found newInput",
+            "Symtable failed to find newInput"
+        );
+    }
+    
+    err = ASTeditAssignNode(assign10_2, var2_newInput, NULL); // newInput =
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 10 - ASTeditAssignNode",
+            "ASTeditAssignNode edited",
+            "ASTeditAssignNode failed to edit"
+        );
+    }
+    
+    struct TOKEN val10_2 = {.type = TOKEN_NULL, .value = "null"};
+    ASTNodePtr expr10_2 = ASTcreateNode(AST_NODE_EXPRESION);
+
+    if(test != NULL) {
+        testCase(
+            test,
+            expr10_2 != NULL,
+            "AST 10 - ASTcreateNode",
+            "ASTcreateNode created",
+            "ASTcreateNode failed to create"
+        );
+    }
+
+    err = ASTaddNodeToExpresion(expr10_2, NULL, &val10_2, NULL); // null
+
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 10 - ASTaddNodeToExpresion",
+            "ASTaddNodeToExpresion added",
+            "ASTaddNodeToExpresion failed to add null node"
+        );
+    }
+    
+    err = ASTeditAssignNode(assign10_2, NULL, expr10_2); // newInput = null
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 10 - ASTeditAssignNode",
+            "ASTeditAssignNode edited",
+            "ASTeditAssignNode failed to edit"
+        );
+    }
+    
+    insertNodeAtIndex(returnASts, (void *)assign10_2, -1);
+
+    err = symTableExitScope(table); // exit if
+
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 10 - symTableExitScope",
+            "Symtable exited if",
+            "Symtable failed to exit if"
+        );
+    }
+
+
+    // else { ... }
+    result = symTableMoveScopeDown(table, SYM_IF); // enter else
+
+    if(test != NULL) {
+        testCase(
+            test,
+            result,
+            "AST 10 - symTableMoveScopeDown",
+            "Symtable entered else",
+            "Symtable failed to enter else"
+        );
+    }
+
+    // ifj.write("Spatne zadana posloupnost, zkuste znovu:\n");
+    ASTNodePtr fnCall10_15 = ASTcreateNode(AST_NODE_FUNC_CALL);
+    if(test != NULL) {
+        testCase(
+            test,
+            fnCall10_15 != NULL,
+            "AST 10 - ASTcreateNode",
+            "ASTcreateNode created",
+            "ASTcreateNode failed to create"
+        );
+    }
+    err = ASTeditFunctionCallNode(fnCall10_15, "ifj.write", NULL, NULL); // ifj.write()
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 10 - ASTeditFunctionCallNode",
+            "ASTeditFunctionCallNode edited",
+            "ASTeditFunctionCallNode failed to edit"
+        );
+    }
+    
+    struct TOKEN valueToken10_15 = {.value="Spatne zadana posloupnost, zkuste znovu:\n", .type = TOKEN_STRING};
+    err = ASTeditFunctionCallNode(fnCall10_15, NULL, NULL, &valueToken10_15); // ifj.write("Spatne zadana posloupnost, zkuste znovu:\n")
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 10 - ASTeditFunctionCallNode",
+            "ASTeditFunctionCallNode edited",
+            "ASTeditFunctionCallNode failed to edit"
+        );
+    }
+    
+    insertNodeAtIndex(returnASts, (void *)fnCall10_15, -1);
+
+    // all = ifj.concat(all, inpOK);
+    ASTNodePtr assign10_3 = ASTcreateNode(AST_NODE_ASSIGN);
+    SymVariable *var3_all = symTableFindVariable(table, "all");
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            var3_all != NULL,
+            "AST 10 - symtbale find all",
+            "Symtable found all",
+            "Symtable failed to find all"
+        );
+    }
+    
+    err = ASTeditAssignNode(assign10_3, var3_all, NULL); // all =
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 10 - ASTeditAssignNode",
+            "ASTeditAssignNode edited",
+            "ASTeditAssignNode failed to edit"
+        );
+    }
+    
+    ASTNodePtr fnCall10_16 = ASTcreateNode(AST_NODE_FUNC_CALL);
+    err = ASTeditFunctionCallNode(fnCall10_16, "ifj.concat", NULL, NULL); // ifj.concat()
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 10 - ASTeditFunctionCallNode",
+            "ASTeditFunctionCallNode edited",
+            "ASTeditFunctionCallNode failed to edit"
+        );
+    }
+    
+    SymVariable *var4_all = symTableFindVariable(table, "all");
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            var4_all != NULL,
+            "AST 10 - symtbale find all",
+            "Symtable found all",
+            "Symtable failed to find all"
+        );
+    }
+    
+    err = ASTeditFunctionCallNode(fnCall10_16, NULL, var4_all, NULL); // ifj.concat(all)
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 10 - ASTeditFunctionCallNode",
+            "ASTeditFunctionCallNode edited",
+            "ASTeditFunctionCallNode failed to edit"
+        );
+    }
+    
+    SymVariable *var2_inpOK = symTableFindVariable(table, "inpOK");
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            var2_inpOK != NULL,
+            "AST 10 - symtbale find inpOK",
+            "Symtable found inpOK",
+            "Symtable failed to find inpOK"
+        );
+    }
+    
+    err = ASTeditFunctionCallNode(fnCall10_16, NULL, var2_inpOK, NULL); // ifj.concat(all, inpOK)
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 10 - ASTeditFunctionCallNode",
+            "ASTeditFunctionCallNode edited",
+            "ASTeditFunctionCallNode failed to edit"
+        );
+    }
+    
+    err = ASTeditAssignNode(assign10_3, NULL, fnCall10_16); // all = ifj.concat(all, inpOK)
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 10 - ASTeditAssignNode",
+            "ASTeditAssignNode edited",
+            "ASTeditAssignNode failed to edit"
+        );
+    }
+    
+    insertNodeAtIndex(returnASts, (void *)assign10_3, -1);
+
+    // newInput = ifj.readstr();
+    ASTNodePtr assign10_4 = ASTcreateNode(AST_NODE_ASSIGN);
+    SymVariable *var5_newInput = symTableFindVariable(table, "newInput");
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            var5_newInput != NULL,
+            "AST 10 - symtbale find newInput",
+            "Symtable found newInput",
+            "Symtable failed to find newInput"
+        );
+    }
+    
+    err = ASTeditAssignNode(assign10_4, var5_newInput, NULL); // newInput =
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 10 - ASTeditAssignNode",
+            "ASTeditAssignNode edited",
+            "ASTeditAssignNode failed to edit"
+        );
+    }
+    
+    ASTNodePtr fnCall10_17 = ASTcreateNode(AST_NODE_FUNC_CALL);
+    err = ASTeditFunctionCallNode(fnCall10_17, "ifj.readstr", NULL, NULL); // ifj.readstr()
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 10 - ASTeditFunctionCallNode",
+            "ASTeditFunctionCallNode edited",
+            "ASTeditFunctionCallNode failed to edit"
+        );
+    }
+    
+    err = ASTeditAssignNode(assign10_4, NULL, fnCall10_17); // newInput = ifj.readstr()
+    
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 10 - ASTeditAssignNode",
+            "ASTeditAssignNode edited",
+            "ASTeditAssignNode failed to edit"
+        );
+    }
+    
+    insertNodeAtIndex(returnASts, (void *)assign10_4, -1);
+
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 10 - symTableExitScope",
+            "Symtable exited else",
+            "Symtable failed to exit else"
+        );
+    }
+
+
+    err = symTableExitScope(table); // exit else
+
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 10 - symTableExitScope",
+            "Symtable exited else",
+            "Symtable failed to exit else"
+        );
+    }
+
+    err = symTableExitScope(table); // exit while
+
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 10 - symTableExitScope",
+            "Symtable exited while",
+            "Symtable failed to exit while"
+        );
+    }
+
+    err = symTableExitScope(table); // exit function
+
+    if(test != NULL) {
+        testCase(
+            test,
+            err == SUCCESS,
+            "AST 10 - symTableExitScope",
+            "Symtable exited function",
+            "Symtable failed to exit function"
+        );
+    }
+
 }

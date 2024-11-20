@@ -108,17 +108,130 @@ void run_tests(void) {
     AST 5
 
     pub fn main() void {
-        const a = ifj.string("ahoj ");
-        var ct : []u8= ifj.string("svete");
-        ct = build(a, ct);
-        ifj.write(ct);
-    }
+    const a = ifj.string("ahoj ");
+    var ct : []u8= ifj.string("svete");
+    ct = build(a, ct);
+    ifj.write(ct);
+}
     */
     create_test_env(&table, &returnAsts, &test, "AST 5");
     return_asts_5(table, returnAsts, test);
     free_test_env(&table, &returnAsts, &test);
 
-    // continue later with other tests
+    /*
+    AST 6
+
+    pub fn main() void {
+    ifj.write("Zadejte cislo pro vypocet faktorialu\n");
+    const a = ifj.readi32();
+    if (a) |val| {
+        if (val < 0) {
+            ifj.write("Faktorial "); 
+            ifj.write(val);
+            ifj.write(" nelze spocitat\n");
+        } else {
+            var d: f64= ifj.i2f(val);
+            var vysl: f64 = 1.0;
+            while (d > 0) {
+                vysl = vysl * d;
+                d = d - 1.0;
+            }
+            ifj.write("Vysledek: "); ifj.write(vysl); ifj.write(" = ");
+            const vysl_i32 = ifj.f2i(vysl);
+            ifj.write(vysl_i32); ifj.write("\n");
+        }
+    } else { // a == null
+        ifj.write("Faktorial pro null nelze spocitat\n");
+    }
+}
+    */
+    create_test_env(&table, &returnAsts, &test, "AST 6");
+    return_asts_6(table, returnAsts, test);
+    free_test_env(&table, &returnAsts, &test);
+
+    /*
+    AST 7
+
+    pub fn main() void {
+    ifj.write("Zadejte cislo pro vypocet faktorialu: ");
+    const inp = ifj.readi32();
+    if (inp) |INP| {
+        if (INP < 0) {
+            ifj.write("Faktorial nelze spocitat!\n");
+        } else {
+            const vysl = factorial(INP);
+            ifj.write("Vysledek: "); ifj.write(vysl);
+        }
+    } else {
+        ifj.write("Chyba pri nacitani celeho cisla!\n");
+    }
+}
+    */
+    create_test_env(&table, &returnAsts, &test, "AST 7");
+    return_asts_7(table, returnAsts, test);
+    free_test_env(&table, &returnAsts, &test);
+
+    /*
+    AST 8
+
+    pub fn decrement(n: i32, m: i32) i32 {
+    return n - m;
+    */
+    create_test_env(&table, &returnAsts, &test, "AST 8");
+    return_asts_8(table, returnAsts, test);
+    free_test_env(&table, &returnAsts, &test);
+
+    /*
+    AST 9
+
+    pub fn factorial(n: i32) i32 {
+    var result: i32 = 0 - 1;
+    if (n < 2) {
+        result = 1;
+    } else {
+        const decremented_n = decrement(n, 1);
+        const temp_result = factorial(decremented_n);
+        result = n * temp_result;
+    }
+    return result;
+    }
+    */
+    create_test_env(&table, &returnAsts, &test, "AST 9");
+    return_asts_9(table, returnAsts, test);
+    free_test_env(&table, &returnAsts, &test);
+
+    /*
+    AST 10
+
+    pub fn main() void {
+    const str1 = ifj.string("Toto je text v programu jazyka IFJ24");
+    var str2 = ifj.string(", ktery jeste trochu obohatime");
+    str2 = ifj.concat(str1, str2);
+    ifj. write(str1); 
+    ifj . write("\n");
+    ifj .write(str2); ifj.write("\n");
+    ifj.write("Zadejte serazenou posloupnost malych pismen a-h:\n");
+    var newInput = ifj.readstr();
+    var all: []u8= ifj.string("");
+    while (newInput) |inpOK| {
+        const abcdefgh = ifj.string("abcdefgh");
+        const strcmpResult = ifj.strcmp(inpOK, abcdefgh);
+        if (strcmpResult == 0) {
+            ifj.write("Spravne zadano!\n");
+            ifj.write(all); // vypsat spojene nepodarene vstupy
+            newInput = null; // misto break;
+        } else {
+            ifj.write("Spatne zadana posloupnost, zkuste znovu:\n");
+            all = ifj.concat(all, inpOK); // spojuji neplatne vstupy
+            newInput = ifj.readstr();
+        }
+    }
+    }
+    }
+    */
+    create_test_env(&table, &returnAsts, &test, "AST 10");
+    return_asts_10(table, returnAsts, test);
+    free_test_env(&table, &returnAsts, &test);
 }
 
 int main(void) {
