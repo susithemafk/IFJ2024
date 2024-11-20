@@ -13,7 +13,7 @@ Syntaxe programu:
 <params> -> ε
 <parameter> -> <var_id> : <data_type>
 <parameter> -> ε
-<parameter_next> -> , <parameter>
+<parameter_next> -> , <parameter> <parameter_next>
 <parameter_next> -> ε
 
 <var_def> -> const <var_id> : <data_type> = <no_truth_expr>;
@@ -26,8 +26,15 @@ Syntaxe programu:
 
 <func_call> -> <native_func_call>
 <func_call> -> <user_func_call>
-<native_func_call> -> ifj.<native_func_name> ( <params> );
-<user_func_call> -> <func_id> ( <params> );
+<native_func_call> -> ifj.<native_func_name> ( <arguments> );
+<user_func_call> -> <func_id> ( <arguments> );
+
+<arguments> -> <argument> <argument_next>
+<arguments> -> ε
+<argument_next> -> , <argument> <argument_next>
+<argument_next> -> ε
+<argument> -> <var_id>
+<argument> -> <const>
 
 <if> -> if ( <truth_expr> ) { <body> } <else>
 <if> -> if ( <no_truth_expr> ) | <var_id> | { <body> } <else>
@@ -56,6 +63,9 @@ Syntaxe programu:
 <data_type> -> ? <type>
 <data_type> -> <type>
 
+<const> -> <string_u8>
+<const> -> <number>
+
 terminály:
 <func_id>
 <var_id>
@@ -65,6 +75,9 @@ terminály:
 <truth_expr>
 <prolog>
 <native_func_name>
+<string_u8>
+<number>
+
 ---------------------------------------------------
 Pravdivostní výrazy (pouze 1 porovnávací operátor), rozvoj <truth_expr>:
  S -> R
