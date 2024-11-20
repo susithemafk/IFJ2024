@@ -10,6 +10,7 @@ static enum ERR_CODES err;
 // vnoreny funkce resi first pass
 // udelat parser dle good_asts.c
 // vracet error kody
+// todo question mark
 
 TOKEN_PTR currentToken(void)
 {
@@ -94,6 +95,18 @@ bool match(enum TOKEN_TYPE tokenType)
 	printf("Matched token: \t%s\n", token->value);
 #endif
 	getNextToken();
+	return true;
+}
+
+bool is_truth_expr(void)
+{
+	TOKEN_PTR nextToken = getDataAtIndex(buffer, tokenIndex + 1);
+
+	if (nextToken->type == TOKEN_RPAR)
+	{
+		return false;
+	}
+
 	return true;
 }
 
@@ -278,6 +291,12 @@ bool parse_parameter(void)
 		printf("Successfully parsed <parameter> (empty)\n");
 #endif
 		return true;
+	}
+
+	// question mark
+	if (currentToken()->type == TOKEN_QUESTION_MARK)
+	{
+		getNextToken();
 	}
 
 	if (currentToken()->type == TOKEN_IDENTIFIER)
@@ -564,7 +583,7 @@ bool parse_body_content(void)
 		return parse_var_assign();
 
 	default:
-		printf("Syntax error: unexpected token %s\n, expected: const, var, if, while, return, identifier, ifj, _", token->value);
+		printf("Unexpected token %s\n, expected: const, var, if, while, return, identifier, ifj, _", token->value);
 		return false;
 	}
 
@@ -687,18 +706,27 @@ bool parse_if(void)
 		return false;
 	if (!match(TOKEN_LPAR))
 		return false;
+	if (is_truth_expr())
+	{
+		if (!parse_truth_expr())
+			return false;
+		if (!match(TOKEN_RPAR))
+			return false;
+	}
+	else
+	{
+		if (!match(TOKEN_IDENTIFIER))
+			return false;
+		if (!match(TOKEN_RPAR))
+			return false;
+		if (!match(TOKEN_VBAR))
+			return false;
+		if (!match(TOKEN_IDENTIFIER))
+			return false;
+		if (!match(TOKEN_VBAR))
+			return false;
+	}
 
-	// TODO
-	/**
-	 * 1. pouze a tak musí být ještě |na|
-	 * 2. pokud tam je jen 5 nebo jinej literal tak error
-	 * 3.
-	 */
-
-	// if (!parse_no_truth_expr())
-	// 	return false;
-	if (!match(TOKEN_RPAR))
-		return false;
 	if (!match(TOKEN_LBRACE))
 		return false;
 	if (!parse_body())
@@ -723,9 +751,9 @@ bool parse_else(void)
 	if (currentToken()->type != TOKEN_ELSE)
 	{
 #ifdef DEBUG
-		printf("No else clause found\n"); // TODO: chyba, musí existovat ELSE vždycky
+		printf("Expected 'else' but got: %s\n", currentToken()->value);
 #endif
-		return true;
+		return false;
 	}
 
 	getNextToken();
@@ -752,10 +780,27 @@ bool parse_while(void)
 		return false;
 	if (!match(TOKEN_LPAR))
 		return false;
-	if (!parse_no_truth_expr() && !parse_truth_expr()) // TODO: pipa pouze když se jedná o no truth expr
-		return false;
-	if (!match(TOKEN_RPAR))
-		return false;
+	if (is_truth_expr())
+	{
+		if (!parse_truth_expr())
+			return false;
+		if (!match(TOKEN_RPAR))
+			return false;
+	}
+	else
+	{
+		if (!match(TOKEN_IDENTIFIER))
+			return false;
+		if (!match(TOKEN_RPAR))
+			return false;
+		if (!match(TOKEN_VBAR))
+			return false;
+		if (!match(TOKEN_IDENTIFIER))
+			return false;
+		if (!match(TOKEN_VBAR))
+			return false;
+	}
+
 	if (!match(TOKEN_LBRACE))
 		return false;
 	if (!parse_body())
@@ -914,7 +959,6 @@ bool parse_no_truth_expr(void)
 	// pokud jde o literal a za nim je strednik, tak si ho zparsuju sam
 	if ((token->type == TOKEN_STRING || token->type == TOKEN_I32 || token->type == TOKEN_F64 || token->type == TOKEN_U8) && nextToken->type == TOKEN_SEMICOLON)
 	{
-		puts("AAA");
 		getNextToken();
 		return true;
 	}

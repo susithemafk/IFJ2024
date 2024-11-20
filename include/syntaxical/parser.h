@@ -13,6 +13,7 @@ enum ERR_CODES parser_init(FILE *input);
 enum ERR_CODES parser_parse(FILE *input);
 
 bool match(enum TOKEN_TYPE tokenType);
+bool is_truth_expr(void);
 bool parse_program(void);
 bool parse_prolog(void);
 bool parse_functions(void);
