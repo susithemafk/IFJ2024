@@ -36,8 +36,8 @@ bool parse_while(void);
 bool parse_ret_value(void);
 bool parse_native_func_call(void);
 bool parse_user_func_call(void);
-bool parse_func_call_params(void);
-bool parse_func_call_param(void);
-bool parse_func_call_param_next(void);
+bool parse_arguments(void);
+bool parse_argument(void);
+bool parse_argument_next(void);
 
 // void parser_cleanup(void);

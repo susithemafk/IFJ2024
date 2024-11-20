@@ -231,7 +231,7 @@ bool parse_params(void)
 	printf("Parsing <params>\n");
 #endif
 
-	// Handle empty params case
+	// empty params
 	if (currentToken()->type == TOKEN_RPAR)
 	{
 #ifdef DEBUG
@@ -241,6 +241,11 @@ bool parse_params(void)
 	}
 
 	if (!parse_parameter())
+	{
+		return false;
+	}
+
+	if (!parse_parameter_next())
 	{
 		return false;
 	}
@@ -257,8 +262,8 @@ bool parse_parameter(void)
 	printf("Parsing <parameter>\n");
 #endif
 
-	// Handle empty parameter case
-	if (currentToken()->type != TOKEN_IDENTIFIER)
+	// empty parameter
+	if (currentToken()->type == TOKEN_RPAR)
 	{
 #ifdef DEBUG
 		printf("Successfully parsed <parameter> (empty)\n");
@@ -266,22 +271,26 @@ bool parse_parameter(void)
 		return true;
 	}
 
+	if (currentToken()->type == TOKEN_IDENTIFIER)
+	{
 #ifdef DEBUG
-	printf("Parameter name: %s\n", currentToken()->value);
+		printf("Parameter name: %s\n", currentToken()->value);
 #endif
-	getNextToken(); // consume identifier
+		getNextToken(); // consume identifier
 
-	if (!match(TOKEN_COLON)) // todo nepovinny, nejspis staci jen vnorit parse_data_type nez hned returnovat false
-	{
-		return false;
+		if (!match(TOKEN_COLON)) // todo nepovinny, nejspis staci jen vnorit parse_data_type nez hned returnovat false
+		{
+			return false;
+		}
+
+		if (!parse_data_type())
+		{
+			return false;
+		}
+
+		return true;
 	}
-
-	if (!parse_data_type())
-	{
-		return false;
-	}
-
-	if (!parse_parameter_next())
+	else
 	{
 		return false;
 	}
@@ -312,6 +321,11 @@ bool parse_parameter_next(void)
 		return false;
 	}
 
+	if (!parse_parameter_next())
+	{
+		return false;
+	}
+
 #ifdef DEBUG
 	printf("Successfully parsed <parameter_next>\n");
 #endif
@@ -320,119 +334,98 @@ bool parse_parameter_next(void)
 
 // Tam může jít i32 f64 []u8 nebo identifier nebo taky nic nebo string
 // TODO: pridat do LL gramatiky a podle ni pak upravit
-bool parse_func_call_params(void)
+bool parse_arguments(void)
 {
 #ifdef DEBUG
-	printf("Parsing <function_call_params>\n");
+	printf("Parsing <arguments>\n");
 #endif
 
+	// empty arguments
 	if (currentToken()->type == TOKEN_RPAR)
 	{
 #ifdef DEBUG
-		printf("Successfully parsed function parameters (empty)\n");
+		printf("Successfully parsed <arguments> (empty)\n");
 #endif
 		return true;
 	}
 
-	if (!parse_func_call_param())
+	if (!parse_argument())
 	{
 		return false;
 	}
 
-	if (!parse_func_call_param_next())
+	if (!parse_argument_next())
 	{
 		return false;
 	}
 
 #ifdef DEBUG
-	printf("Successfully parsed <function_call_params>\n");
+	printf("Successfully parsed <arguments>\n");
 #endif
 	return true;
 }
 
-bool parse_func_call_param(void)
+bool parse_argument(void)
 {
 #ifdef DEBUG
-	printf("Parsing <function_call_param>\n");
+	printf("Parsing <argument>\n");
 #endif
 
-	// empty params
+	// empty argument
 	if (currentToken()->type == TOKEN_RPAR)
 	{
 #ifdef DEBUG
-		printf("Successfully parsed <function_call_params> (empty)\n");
+		printf("Successfully parsed <argument> (empty)\n");
 #endif
 		return true;
 	}
 
-	if (currentToken()->type == TOKEN_I32 || currentToken()->type == TOKEN_F64 || currentToken()->type == TOKEN_U8)
+	if (currentToken()->type == TOKEN_I32 || currentToken()->type == TOKEN_F64 || currentToken()->type == TOKEN_U8 || TOKEN_IDENTIFIER || TOKEN_STRING)
 	{
 #ifdef DEBUG
-		printf("Data type: %s\n", currentToken()->value);
+		printf("Argument: %s\n", currentToken()->value);
 #endif
 		getNextToken();
 		return true;
 	}
-
-	if (currentToken()->type == TOKEN_IDENTIFIER)
-	{
-
-#ifdef DEBUG
-		printf("Identifier: %s\n", currentToken()->value);
-#endif
-		getNextToken();
-		return true;
-	}
-
-	if (currentToken()->type == TOKEN_STRING)
-	{
-#ifdef DEBUG
-		printf("String: %s\n", currentToken()->value);
-
-#endif
-		getNextToken();
-		return true;
-	}
-
-	if (!parse_func_call_param_next())
+	else
 	{
 		return false;
 	}
 
 #ifdef DEBUG
-	printf("Successfully parsed <function_call_param>\n");
+	printf("Successfully parsed <argument>\n");
 #endif
 	return true;
 }
 
-bool parse_func_call_param_next(void)
+bool parse_argument_next(void)
 {
 #ifdef DEBUG
-	printf("Parsing next function parameter\n");
+	printf("Parsing <argument_next>\n");
 #endif
 
 	if (currentToken()->type != TOKEN_COMMA)
 	{
 #ifdef DEBUG
-		printf("No more parameters\n");
+		printf("Successfully parsed <argument_next> (empty)\n");
 #endif
 		return true;
 	}
 
-	getNextToken(); // Consume the comma
-
-	if (!parse_func_call_param())
+	getNextToken(); // consume comma
+	if (!parse_argument())
 	{
 		return false;
 	}
 
-	if (!parse_func_call_param_next())
+	if (!parse_argument_next())
 	{
 		return false;
 	}
 
 #ifdef DEBUG
-	printf("Successfully parsed next function parameter\n");
+	printf("Successfully parsed <argument_next>\n");
 #endif
 	return true;
 }
@@ -839,7 +832,7 @@ bool parse_user_func_call(void)
 		return false;
 	if (!match(TOKEN_LPAR))
 		return false;
-	if (!parse_func_call_params())
+	if (!parse_arguments())
 		return false;
 	if (!match(TOKEN_RPAR))
 		return false;
