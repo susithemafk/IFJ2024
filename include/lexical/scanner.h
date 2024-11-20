@@ -55,6 +55,7 @@ typedef enum
 	SCANNER_QUESTION_MARK, // ?
 	SCANNER_UNDERSCORE,	   // _
 	SCANNER_AT,			   // @
+	SCANNER_VBAR, 		   // |
 
 	SCANNER_I32,	   // 1
 	SCANNER_I64,	   // 1.0

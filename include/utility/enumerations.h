@@ -125,7 +125,8 @@ enum TOKEN_TYPE
     TOKEN_QUESTION_MARK,    // 37 question mark ('?')
     TOKEN_AT,               // 38 at ('@')
     TOKEN_IFJ,              // 39 ifj
-    TOKEN_IMPORT            // 40 import
+    TOKEN_IMPORT,           // 40 import
+    TOKEN_VBAR              // 41 vertical bar ('|')
 };
 
 typedef struct TOKEN {
