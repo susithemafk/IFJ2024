@@ -84,6 +84,9 @@ enum ERR_CODES scanner_get_token(struct TOKEN *tokenPointer)
 	tokenPointer->value = (char *)malloc(allocated_length);
 	if (tokenPointer->value == NULL)
 	{
+		#ifdef DEBUG
+		DEBUG_MSG("Failed to allocate memory for token value during lexical analysis");
+		#endif
 		return E_INTERNAL; // memory allocation failed
 	}
 
@@ -592,8 +595,12 @@ enum ERR_CODES scanner_get_token(struct TOKEN *tokenPointer)
 		{
 			allocated_length += ALLOC_SIZE;
 			char *temp = realloc(tokenPointer->value, allocated_length);
-			if (temp == NULL)
+			if (temp == NULL) {
+				#ifdef DEBUG
+				DEBUG_MSG("Failed to reallocate memory for token value during lexical analysis");
+				#endif
 				return E_INTERNAL;
+			}
 
 			tokenPointer->value = temp;
 		}
