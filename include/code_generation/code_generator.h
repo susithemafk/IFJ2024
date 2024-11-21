@@ -3,7 +3,7 @@
  * @author <253171> Vanesa Zimmermannová
  * @file code_generator.h
  * @date 20.10.2024
- * @brief Header file for the code generator
+ * @brief Declarations for the code generator
  */
 
 #ifndef CODE_GENERATOR_H

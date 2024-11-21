@@ -1,3 +1,11 @@
+/** AUTHOR
+ *
+ * @author <253171> Vanesa Zimmermannová
+ * @file code_generator.c
+ * @date 21.10.2024
+ * @brief Implementation of the builtin functions generator
+ */
+
 #include "code_generation/builtin_generator.h"
 #include <stdio.h>
 

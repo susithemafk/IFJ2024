@@ -1,9 +1,16 @@
+/** AUTHOR
+ *
+ * @author <253171> Vanesa Zimmermannová
+ * @file code_generator.c
+ * @date 21.10.2024
+ * @brief Declarations of the Abstract Syntax Tree
+ */
+
 #ifndef EXPRESSION_AST_H
 #define EXPRESSION_AST_H
 
 #include "utility/enumerations.h"
 #include "utility/linked_list.h"
-
 
 struct DataType {
     enum DATA_TYPES data_type;
@@ -21,7 +28,6 @@ enum ExpressionType {
 struct Identifier {
     char *name;
 };
-
 
 struct FunctionCall {
     struct Identifier func_id;
@@ -61,6 +67,5 @@ void freeIdentifier(struct Identifier *identifier);
 void freeFunctionCall(struct FunctionCall *func_call);
 void freeExpression(struct Expression *expr);
 void freeLiteral(struct Literal *literal);
-
 
 #endif // EXPRESSION_AST_H

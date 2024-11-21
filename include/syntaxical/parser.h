@@ -41,6 +41,3 @@ bool parse_native_func_call(FunctionCall *function_call);
 bool parse_user_func_call(FunctionCall *function_call);
 bool parse_func_call_params(LinkedList *attributes);
 bool parse_func_call_param(Expression *expr);
-
-
-

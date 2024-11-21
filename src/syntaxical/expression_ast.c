@@ -1,3 +1,11 @@
+/** AUTHOR
+ *
+ * @author <253171> Vanesa Zimmermannová
+ * @file code_generator.c
+ * @date 20.10.2024
+ * @brief Implementation of abstract syntax tree functions - resource releasing
+ */
+
 #include "syntaxical/expression_ast.h"
 #include <stdlib.h>
 

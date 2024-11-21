@@ -1,3 +1,11 @@
+/** AUTHOR
+ *
+ * @author <253171> Vanesa Zimmermannová
+ * @file code_generator.c
+ * @date 21.10.2024
+ * @brief Declarations of the Abstract Syntax Tree
+ */
+
 #ifndef AST_H
 #define AST_H
 
