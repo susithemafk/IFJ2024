@@ -9,76 +9,83 @@
 #ifndef AST_H
 #define AST_H
 
+#include "semantical/symtable.h"
 #include "syntaxical/expression_ast.h"
 #include "utility/enumerations.h"
 #include "utility/linked_list.h"
-
-struct Program {
+typedef struct Program {
     LinkedList *functions;
-};
+} Program;
 
-struct Body {
+typedef struct Body {
     LinkedList *statements;
-};
+} Body;
 
-enum StatementType {
+typedef enum StatementType {
     FunctionCallStatementType,
     ReturnStatementType,
     WhileStatementType,
     IfStatementType,
     AssigmentStatementType,
     VariableDefinitionStatementType,
-};
+} StatementType;
 
-struct ReturnStatement {
+typedef struct ReturnStatement {
     struct Expression value;
-};
+} ReturnStatement;
 
-struct WhileStatement {
+typedef struct WhileStatement {
     struct Expression condition;
     struct Body body;
 
     struct Identifier non_nullable;
+    SymVariable *non_nullable_var;
     bool code_gen_defined; // if the identifier is defined in generated code
-};
+} WhileStatement;
 
-struct IfStatement {
+typedef struct IfStatement {
     struct Expression condition;
     struct Body if_body;
     struct Body else_body;
 
     struct Identifier non_nullable;
+    SymVariable *non_nullable_var;
     bool code_gen_defined; // if the identifier is defined in generated code
-};
+} IfStatement;
 
-struct AssigmentStatement {
+typedef struct AssigmentStatement {
     struct Identifier id;
+    SymVariable *var;
     bool discard;
     struct Expression value;
-};
+} AssigmentStatement;
 
-struct VariableDefinitionStatement {
+typedef struct VariableDefinitionStatement {
     struct Identifier id;
     struct DataType type;
+    SymVariable *var;
     bool isConst;
     struct Expression value;
     bool code_gen_defined; // if the identifier is defined in generated code
-};
+} VariableDefinitionStatement;
 
-struct Param {
+typedef struct Param {
     struct Identifier id;
     struct DataType type;
-};
+    SymVariable *var;
+} Param;
 
-struct Function {
+typedef struct Function {
     struct Identifier id;
     LinkedList *params;
+    SymFunctionPtr symFunction;
+
     struct Body body;
 
     struct DataType returnType;
-};
+} Function;
 
-struct Statement {
+typedef struct Statement {
     enum StatementType type;
     union {
         struct FunctionCall function_call_statement;
@@ -88,18 +95,7 @@ struct Statement {
         struct AssigmentStatement assigment_statement;
         struct VariableDefinitionStatement variable_definition_statement;
     } data;
-};
-
-typedef struct Statement Statement;
-typedef struct ReturnStatement ReturnStatement;
-typedef struct WhileStatement WhileStatement;
-typedef struct IfStatement IfStatement;
-typedef struct AssigmentStatement AssigmentStatement;
-typedef struct VariableDefinitionStatement VariableDefinitionStatement;
-typedef struct Param Param;
-typedef struct Body Body;
-typedef struct Function Function;
-typedef struct Program Program;
+} Statement;
 
 void freeProgram(Program *program);
 void freeFunction(Function *function);
