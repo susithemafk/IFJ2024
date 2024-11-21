@@ -1,5 +1,4 @@
 #include "lexical/scanner.h"
-#include "semantical/sem_enums.h"
 #include "semantical/symtable.h"
 #include "syntaxical/parser_pass1.h"
 #include "utility/enumerations.h"

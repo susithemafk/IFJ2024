@@ -13,6 +13,7 @@
 #include "syntaxical/expression_ast.h"
 #include "utility/enumerations.h"
 #include "utility/linked_list.h"
+
 typedef struct Program {
     LinkedList *functions;
 } Program;

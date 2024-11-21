@@ -11,6 +11,7 @@
 
 #include "utility/enumerations.h"
 #include "utility/linked_list.h"
+#include "semantical/symtable.h"
 
 typedef struct DataType {
     enum DATA_TYPES data_type;
@@ -22,17 +23,19 @@ enum ExpressionType {
     FunctionCallExpressionType,
     LiteralExpressionType,
     BinaryExpressionType,
-    UnaryExpressionType,
 };
 typedef struct Identifier {
     char *name;
     DataType data_type;
+
+    SymVariable *var;
 } Identifier;
 
 typedef struct FunctionCall {
     struct Identifier func_id;
     LinkedList *arguments; // list of expressions (Expression *)
 
+    SymFunctionPtr func;
     DataType return_type;
 } FunctionCall;
 

@@ -10,6 +10,7 @@
 #include "code_generation/code_generator.h"
 #include "syntaxical/parser.h"
 #include "utility/enumerations.h"
+#include "semantical/sem_analyzer.h"
 
 int main(void) {
     enum ERR_CODES status;
@@ -24,6 +25,13 @@ int main(void) {
     struct Program program;
     status = parser_parse(stdin, &program);
 
+    if (status != SUCCESS) {
+        parser_cleanup();
+        freeProgram(&program);
+        return status;
+    }
+
+    status = analyzeProgram(&program);
     if (status != SUCCESS) {
         parser_cleanup();
         freeProgram(&program);

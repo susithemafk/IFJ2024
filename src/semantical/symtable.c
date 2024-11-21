@@ -1,30 +1,30 @@
 /** AUTHOR
- * 
+ *
  * @author <247581> Martin Mendl
  * @file symtable.c
  * @date 28.9. 2024
  * @brief main scr file for the symtable
  */
 
+#include "semantical/symtable.h"
+#include "semantical/inbuild_funcs.h"
+#include "utility/binary_search_tree.h"
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdbool.h>
 #include <string.h>
-#include "semantical/symtable.h"
-#include "semantical/sem_enums.h"
-#include "utility/binary_search_tree.h"
-#include "semantical/abstract_syntax_tree.h"
-#include "ast_assets/inbuild_funcs.h"
 
 // ####################### SYMTABLE #######################
 
 // Wrapper function to get rid of all the function definitions
 void freeFuncDefsWrapper(void **data) {
 
-    if (data == NULL || *data == NULL) return;
+    if (data == NULL || *data == NULL)
+        return;
 
     LinkedList *list = (LinkedList *)*data;
-    if (list == NULL) return;
+    if (list == NULL)
+        return;
 
     SymFunctionPtr oneFunc;
     unsigned int size = getSize(list);
@@ -42,7 +42,8 @@ SymFunctionPtr symInitFuncDefinition(void) {
 
     // allocate the memory for the function definition
     SymFunctionPtr func = (SymFunctionPtr)malloc(sizeof(struct SymFunction));
-    if (func == NULL) return NULL;
+    if (func == NULL)
+        return NULL;
 
     // init the function definition
     func->funcName = NULL;
@@ -56,10 +57,13 @@ SymFunctionPtr symInitFuncDefinition(void) {
 // Function to free a function definition
 void symFreeFuncDefinition(SymFunctionPtr *func) {
 
-    if (func == NULL || *func == NULL) return;
-    
-    if ((*func)->funcName != NULL) free((*func)->funcName);
-    if ((*func)->paramaters != NULL) removeList(&(*func)->paramaters);
+    if (func == NULL || *func == NULL)
+        return;
+
+    if ((*func)->funcName != NULL)
+        free((*func)->funcName);
+    if ((*func)->paramaters != NULL)
+        removeList(&(*func)->paramaters);
 
     free(*func);
     *func = NULL;
@@ -68,11 +72,13 @@ void symFreeFuncDefinition(SymFunctionPtr *func) {
 // Function to add a parameter to a function definition
 bool symAddParamToFunc(SymFunctionPtr func, enum DATA_TYPES type, bool nullable) {
 
-    if (func == NULL) return false;
+    if (func == NULL)
+        return false;
 
     // alocate the memory for the parameter
     SymFunctionParamPtr param = (SymFunctionParamPtr)malloc(sizeof(struct SymFunctionParam));
-    if (param == NULL) return false;
+    if (param == NULL)
+        return false;
 
     // fill the parameter
     param->type = type;
@@ -100,39 +106,47 @@ bool symAddParamToFunc(SymFunctionPtr func, enum DATA_TYPES type, bool nullable)
 bool symEditFuncDef(SymFunctionPtr func, char *name, enum DATA_TYPES returnType, int nullable) {
 
     // check if the call is valid
-    if (func == NULL) return false;
-    if ((name == NULL && returnType == dTypeUndefined && nullable == -1)) return false;
+    if (func == NULL)
+        return false;
+    if ((name == NULL && returnType == dTypeUndefined && nullable == -1))
+        return false;
 
     // handle name
     if (name != NULL) {
-        if (func->funcName != NULL) return false;
+        if (func->funcName != NULL)
+            return false;
         func->funcName = malloc(sizeof(char) * (strlen(name) + 1));
-        if (func->funcName == NULL) return false;
+        if (func->funcName == NULL)
+            return false;
         strcpy(func->funcName, name);
     }
 
     // handle return type
     if (returnType != dTypeUndefined) {
-        if (func->returnType != dTypeUndefined) return false;
+        if (func->returnType != dTypeUndefined)
+            return false;
         func->returnType = returnType;
     }
 
     // handle nullable
     if (nullable != -1) {
-        if (func->nullableReturn != false) return false;
+        if (func->nullableReturn != false)
+            return false;
         func->nullableReturn = (nullable == 1) ? true : false;
     }
 
     return true;
-}   
+}
 
 // Function to insert a new function definition into the symbol table
 enum ERR_CODES symTableAddFunction(SymTable *table, SymFunctionPtr function) {
 
-    if (table == NULL || function == NULL) return E_INTERNAL;
+    if (table == NULL || function == NULL)
+        return E_INTERNAL;
 
     // check if the function is already in the table
-    if (symTableFindFunction(table, function->funcName) != NULL) return E_SEMANTIC_REDIFINITION;
+    if (symTableFindFunction(table, function->funcName) != NULL)
+        return E_SEMANTIC_REDIFINITION;
 
     // insert the function into the table
     unsigned int hash = hashString(function->funcName);
@@ -140,7 +154,8 @@ enum ERR_CODES symTableAddFunction(SymTable *table, SymFunctionPtr function) {
     LinkedList *sameHashFuncs = (LinkedList *)bstSearchForNode(table->functionDefinitions, hash);
     if (sameHashFuncs == NULL) {
         sameHashFuncs = initLinkedList(false);
-        if (sameHashFuncs == NULL) return E_INTERNAL;
+        if (sameHashFuncs == NULL)
+            return E_INTERNAL;
         if (!insertNodeAtIndex(sameHashFuncs, (void *)function, -1)) {
             removeList(&sameHashFuncs);
             return E_INTERNAL;
@@ -153,7 +168,8 @@ enum ERR_CODES symTableAddFunction(SymTable *table, SymFunctionPtr function) {
     }
 
     // add the function to the list
-    if (!insertNodeAtIndex(sameHashFuncs, (void *)function, -1)) return E_INTERNAL;
+    if (!insertNodeAtIndex(sameHashFuncs, (void *)function, -1))
+        return E_INTERNAL;
 
     return SUCCESS;
 }
@@ -161,17 +177,20 @@ enum ERR_CODES symTableAddFunction(SymTable *table, SymFunctionPtr function) {
 // Function to find a function definition
 SymFunctionPtr symTableFindFunction(SymTable *table, char *name) {
 
-    if (table == NULL || name == NULL) return NULL;
+    if (table == NULL || name == NULL)
+        return NULL;
 
     unsigned int hash = hashString(name);
     LinkedList *sameHashFuncs = (LinkedList *)bstSearchForNode(table->functionDefinitions, hash);
 
-    if (sameHashFuncs == NULL) return NULL;
+    if (sameHashFuncs == NULL)
+        return NULL;
 
     unsigned int size = getSize(sameHashFuncs);
     for (unsigned int i = 0; i < size; i++) {
         SymFunctionPtr func = (SymFunctionPtr)getDataAtIndex(sameHashFuncs, i);
-        if (func != NULL && strcmp(func->funcName, name) == 0) return func;
+        if (func != NULL && strcmp(func->funcName, name) == 0)
+            return func;
     }
 
     return NULL;
@@ -181,7 +200,8 @@ SymFunctionPtr symTableFindFunction(SymTable *table, char *name) {
 bool _searchForVarSameHash(LinkedList *list, char *name) {
 
     // check if the list is not NULL
-    if (list == NULL) return false;
+    if (list == NULL)
+        return false;
 
     unsigned int size = getSize(list);
     for (unsigned int i = 0; i < size; i++) {
@@ -203,7 +223,7 @@ SymTable *symTableInit(void) {
     // create the global scope structures
     SymTable *table = (SymTable *)malloc(sizeof(SymTable));
     SymTableNode *globalScope = (SymTableNode *)malloc(sizeof(SymTableNode));
-    
+
     // check if the memory was allocated
     if (table == NULL || globalScope == NULL) {
         return NULL;
@@ -211,10 +231,10 @@ SymTable *symTableInit(void) {
 
     // fill the global scope
     globalScope->type = SYM_GLOBAL;
-    globalScope->key = 0; // key for the global scope
-    globalScope->parent = NULL; // no parent
+    globalScope->key = 0;                              // key for the global scope
+    globalScope->parent = NULL;                        // no parent
     globalScope->variables = bstInit(freeListWrapper); // link to variables, in global scope disabled
-    globalScope->innerScope = NULL; // link to other scopes
+    globalScope->innerScope = NULL;                    // link to other scopes
 
     // check for init problems
     if (globalScope->variables == NULL) {
@@ -261,7 +281,7 @@ SymTable *symTableInit(void) {
         free(table);
         return NULL;
     }
-   
+
     // save the global constants
     if (!bstInsertNode(globalScope->variables, hashString("_"), (void *)globalConstants)) {
         free(thorwAway);
@@ -321,10 +341,10 @@ bool symTableMoveScopeDown(SymTable *table, enum SYMTABLE_NODE_TYPES type) {
 
     // fill the new scope
     newScope->type = type;
-    newScope->key = table->scopeCount; // key for the new scope
+    newScope->key = table->scopeCount;      // key for the new scope
     newScope->parent = table->currentScope; // parent is the current scope
-    newScope->variables = variables; // link to variables
-    newScope->innerScope = NULL; // link to other scopes
+    newScope->variables = variables;        // link to variables
+    newScope->innerScope = NULL;            // link to other scopes
 
     // insert the new scope into the current scope
     table->currentScope->innerScope = newScope;
@@ -366,7 +386,7 @@ void _symTableTraverseVariables(TreeNode *node, bool *result) {
         }
     }
 
-    if (variables == NULL) 
+    if (variables == NULL)
         *result = false;
 
     return;
@@ -381,7 +401,7 @@ bool _symTableAllVariablesAccesed(SymTableNode *node) {
 
     bool result = true;
     _symTableTraverseVariables(node->variables->root, &result);
-    
+
     return result == true;
 }
 
@@ -389,7 +409,8 @@ bool _symTableAllVariablesAccesed(SymTableNode *node) {
 enum ERR_CODES symTableExitScope(SymTable *table) {
 
     // check if the table is not NULL
-    if (table == NULL) return E_INTERNAL;
+    if (table == NULL)
+        return E_INTERNAL;
 
     // need to remove the current scope
     SymTableNode *currentScope = table->currentScope;
@@ -410,7 +431,8 @@ enum ERR_CODES symTableExitScope(SymTable *table) {
     bool result = bstFree(&currentScope->variables);
     free(currentScope);
 
-    if (!result) return E_INTERNAL;
+    if (!result)
+        return E_INTERNAL;
 
     return returnCode;
 }
@@ -424,7 +446,8 @@ SymVariable *symTableDeclareVariable(SymTable *table, char *name, enum DATA_TYPE
 
     // Check if the variable already exists in the current scope
     SymVariable *var = symTableFindVariable(table, name);
-    if (var != NULL)  return NULL; // Variable already exists
+    if (var != NULL)
+        return NULL; // Variable already exists
 
     // Allocate memory for a new variable
     SymVariable *newVariable = (SymVariable *)malloc(sizeof(SymVariable));
@@ -472,8 +495,8 @@ SymVariable *symTableDeclareVariable(SymTable *table, char *name, enum DATA_TYPE
             return NULL;
         }
         bstInsertNode(variables, hash, (void *)sameHashVariables);
-        return newVariable;    
-    } 
+        return newVariable;
+    }
 
     // Insert the new variable into the existing list
     if (!insertNodeAtIndex((LinkedList *)sameHashVariables, (void *)newVariable, -1)) {
@@ -489,7 +512,7 @@ SymVariable *symTableDeclareVariable(SymTable *table, char *name, enum DATA_TYPE
 SymVariable *symTableFindVariable(SymTable *table, char *name) {
 
     // Check if the table or name is null
-    if (table == NULL || name == NULL) 
+    if (table == NULL || name == NULL)
         return NULL;
 
     // Hash the name to find the corresponding variables
@@ -513,7 +536,7 @@ SymVariable *symTableFindVariable(SymTable *table, char *name) {
             SymVariable *variable = (SymVariable *)getDataAtIndex((LinkedList *)sameHashVariables, i);
 
             // Skip null or mismatched variables
-            if (variable == NULL || strcmp(variable->name, name) != 0) 
+            if (variable == NULL || strcmp(variable->name, name) != 0)
                 continue;
 
             // Mark the variable as accessed if found
@@ -522,11 +545,11 @@ SymVariable *symTableFindVariable(SymTable *table, char *name) {
 
             return variable;
         }
-        
+
         // Move up to the parent scope if not found
         currentScope = currentScope->parent;
     }
-    
+
     return NULL; // Variable not found
 }
 
@@ -564,7 +587,7 @@ bool symTableFree(SymTable **table) {
         return false;
 
     // free the inner scopes
-    if (tTable->root != NULL) 
+    if (tTable->root != NULL)
         _symTableFreeNode(tTable->root);
 
     // free the variables
@@ -579,7 +602,7 @@ bool symTableFree(SymTable **table) {
 
     removeList(&tTable->data);
     bstFree(&(*table)->functionDefinitions);
-    
+
     // free the table
     free(tTable);
     *table = NULL;

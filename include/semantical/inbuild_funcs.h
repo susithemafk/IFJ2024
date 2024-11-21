@@ -11,9 +11,7 @@
 
 #include <stdbool.h>
 #include <stdlib.h>
-#include "semantical/abstract_syntax_tree.h"
 #include "semantical/symtable.h"
-#include "semantical/sem_enums.h"
 #include "utility/enumerations.h"
 
 /*

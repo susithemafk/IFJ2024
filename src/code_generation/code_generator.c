@@ -167,8 +167,6 @@ void generateCodeExpression(Expression *expression) {
     case BinaryExpressionType:
         generateCodeBinaryExpression(&expression->data.binary_expr);
         break;
-    case UnaryExpressionType:
-        break;
     }
 }
 

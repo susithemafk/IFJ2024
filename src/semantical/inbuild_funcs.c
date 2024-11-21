@@ -10,7 +10,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
-#include "ast_assets/inbuild_funcs.h"
+#include "semantical/inbuild_funcs.h"
 #include "utility/enumerations.h"
 #include "semantical/symtable.h"
 

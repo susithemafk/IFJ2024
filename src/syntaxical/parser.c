@@ -2,6 +2,7 @@
 #include "syntaxical/precident.h"
 #include "utility/my_utils.h"
 
+
 static unsigned int tokenIndex = 0;
 static LinkedList *buffer = NULL;
 static SymTable *table = NULL; // TODO: vhodit do mainu table, pak parser, pak v mainu free
