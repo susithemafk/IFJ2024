@@ -44,6 +44,8 @@ int _getPrecedentIndex(enum TOKEN_TYPE token) {
     case TOKEN_IDENTIFIER:
     case TOKEN_I32:
     case TOKEN_F64:
+    case TOKEN_U8:
+    case TOKEN_NULL:
         return 4;
     case TOKEN_EQUALS:
     case TOKEN_NOTEQUAL:
@@ -529,7 +531,9 @@ enum ERR_CODES _applyRulesExpresion(LinkedList *stack, unsigned int ruleStartIdx
     }
 
     // E -> id
-    if (item1 != NULL && item1->type == STACK_ITEM_TOKEN && (item1->content.operation == TOKEN_IDENTIFIER || item1->content.operation == TOKEN_I32 || item1->content.operation == TOKEN_F64) &&
+    if (item1 != NULL && item1->type == STACK_ITEM_TOKEN &&
+        (item1->content.operation == TOKEN_IDENTIFIER || item1->content.operation == TOKEN_I32 || item1->content.operation == TOKEN_F64 || item1->content.operation == TOKEN_U8 ||
+         item1->content.operation == TOKEN_NULL) &&
         item2 == NULL && item3 == NULL) {
 #if DEBUG
         DEBUG_MSG("E -> id");
