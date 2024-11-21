@@ -15,8 +15,6 @@
 #include "utility/linked_list.h"
 #include "lexical/scanner.h"
 
-static enum ERR_CODES status;
-static struct TOKEN token;
 
 // ####################### PARSER #######################
 

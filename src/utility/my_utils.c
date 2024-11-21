@@ -1,4 +1,7 @@
 #include "utility/my_utils.h"
+#include <stdlib.h>
+#include <string.h>
+#include <stdio.h>
 
 bool isDigit(char input)
 {
@@ -14,4 +17,15 @@ int hex_to_int(char hex)
 	if (hex >= 'a' && hex <= 'f')
 		return hex - 'a' + 10;
 	return -1;
+}
+
+
+char *copyString(char *string) {
+    char *newString = malloc(strlen(string) + 1);
+    if (!newString) {
+        return NULL;
+    }
+    strcpy(newString, string);
+
+    return newString;
 }

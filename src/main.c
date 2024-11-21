@@ -7,31 +7,35 @@
  * @author <253171> Vanesa Zimmermannová
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include "code_generation/code_generator.h"
+#include "syntaxical/parser.h"
 #include "utility/enumerations.h"
 
-#include "lexical/scanner.h"
+int main(void) {
+    enum ERR_CODES status;
 
-static enum ERR_CODES status;
-static struct TOKEN token;
+    // init parser
+    status = parser_init();
+    if (status != SUCCESS) {
+        return status;
+    }
 
-int main(void)
-{
-	FILE *input = stdin;
-	scanner_init(input);
+    // parse input
+    struct Program program;
+    status = parser_parse(stdin, &program);
 
-	status = scanner_get_token(&token);
+    if (status != SUCCESS) {
+        parser_cleanup();
+        freeProgram(&program);
+        return status;
+    }
 
-	while (status == SUCCESS && token.type != TOKEN_EOF)
-	{
-		// printf("Token type: %d\n", token.type);
-		// printf("Token \n -value: %s\n -type: %d\n\n", token.value, token.type);
-		status = scanner_get_token(&token);
-	}
+    // generate code
+    generateCodeProgram(&program);
 
-	return 0;
+    parser_cleanup();
+    freeProgram(&program);
+    return SUCCESS;
 }
 
 // todo realloc muze delat na lexikalce memory leak

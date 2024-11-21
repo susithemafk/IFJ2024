@@ -123,6 +123,9 @@ enum TOKEN_TYPE
 	TOKEN_WHILE,  // 35. while
     TOKEN_DELETE_VALUE, // 36 delte value ('_')
     TOKEN_QUESTION_MARK, // 37 question mark ('?')
+
+    TOKEN_PIPE, // 38. |
+    TOKEN_AT, // 39. @
 };
 
 typedef struct TOKEN {

@@ -69,7 +69,10 @@ typedef enum
 	SCANNER_COMMENT_START, //
 	SCANNER_COMMENT_END,   // \n or EOF
 
-	SCANNER_EOF
+	SCANNER_EOF,
+
+	SCANNER_PIPE,
+	SCANNER_AT,
 } SCANNER_STATUS;
 
 enum ERR_CODES scanner_init(FILE *input);
