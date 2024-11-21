@@ -168,6 +168,19 @@ void generateCodeExpression(Expression *expression) {
         generateCodeBinaryExpression(&expression->data.binary_expr);
         break;
     }
+
+    switch (expression->conversion) {
+    case NoConversion:
+        break;
+    case IntToFloat:
+        PRINTLN("INT2FLOATS");
+        break;
+    case FloatToInt:
+        PRINTLN("FLOAT2INTS");
+        break;
+    default:
+        break;
+    }
 }
 
 void generateCodeFunctionCall(FunctionCall *function_call) {

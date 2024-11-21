@@ -24,6 +24,12 @@ enum ExpressionType {
     LiteralExpressionType,
     BinaryExpressionType,
 };
+
+enum ExpressionConversion {
+    NoConversion,
+    IntToFloat,
+    FloatToInt,
+};
 typedef struct Identifier {
     char *name;
     DataType data_type;
@@ -53,6 +59,7 @@ typedef struct BinaryExpression {
 typedef struct Expression {
     struct DataType data_type;
     enum ExpressionType expr_type;
+    enum ExpressionConversion conversion;
     union {
         struct FunctionCall function_call;
         struct Identifier identifier;
