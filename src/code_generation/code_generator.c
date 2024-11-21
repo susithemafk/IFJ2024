@@ -66,6 +66,8 @@ void generateCodeStatement(Statement *statement) {
     switch (statement->type) {
     case FunctionCallStatementType:
         generateCodeFunctionCall(&statement->data.function_call_statement);
+        if (statement->data.function_call_statement.return_type.data_type != dTypeVoid)
+            PRINTLN("POPS GF@_");
         break;
     case ReturnStatementType:
         generateCodeReturnStatement(&statement->data.return_statement);
