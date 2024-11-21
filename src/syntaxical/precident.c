@@ -366,6 +366,7 @@ enum ERR_CODES startPrecedentAnalysis(LinkedList *buffer, unsigned int *startIdx
                 newToken->ast_node.expr_type = LiteralExpressionType;
                 newToken->ast_node.data.literal.value = copyString(token->value);
                 newToken->ast_node.data_type.data_type = (token->type == TOKEN_I32) ? dTypeI32 : dTypeF64;
+                newToken->ast_node.data.literal.data_type = newToken->ast_node.data_type;
                 if (newToken->ast_node.data.literal.value == NULL) {
                     removeStack(&stack);
                     return E_INTERNAL;

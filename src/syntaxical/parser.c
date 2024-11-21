@@ -412,6 +412,8 @@ bool parse_func_call_param(Expression *expr) {
             break;
         }
 
+        expr->data.literal.data_type = expr->data_type;
+
         getNextToken();
         return true;
     }
@@ -444,6 +446,7 @@ bool parse_func_call_param(Expression *expr) {
             return false;
 
         expr->data_type.data_type = dTypeU8;
+        expr->data.literal.data_type = expr->data_type;
         // TODO fill data_type
 
         getNextToken();

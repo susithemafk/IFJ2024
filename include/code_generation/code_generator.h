@@ -25,7 +25,7 @@ void generateCodeReturnStatement(ReturnStatement *statement);
 void generateCodeExpression(Expression *expression);
 void generateCodeFunctionCall(FunctionCall *function_call);
 void generateCodeIdentifier(Identifier *identifier);
-void generateCodeLiteral(Literal *literal, DataType *data_type);
+void generateCodeLiteral(Literal *literal);
 void generateCodeBinaryExpression(BinaryExpression *binary_expression);
 
 void preGenerateBody(Body *body);

@@ -162,7 +162,7 @@ void generateCodeExpression(Expression *expression) {
         generateCodeFunctionCall(&expression->data.function_call);
         break;
     case LiteralExpressionType:
-        generateCodeLiteral(&expression->data.literal, &expression->data_type);
+        generateCodeLiteral(&expression->data.literal);
         break;
     case BinaryExpressionType:
         generateCodeBinaryExpression(&expression->data.binary_expr);
@@ -197,8 +197,8 @@ void generateCodeIdentifier(Identifier *identifier) {
     PRINTLN("PUSHS LF@%s", identifier->name);
 }
 
-void generateCodeLiteral(Literal *literal, DataType *data_type) {
-    switch (data_type->data_type) {
+void generateCodeLiteral(Literal *literal) {
+    switch (literal->data_type.data_type) {
     case dTypeI32:
         PRINTLN("PUSHS int@%s", literal->value);
         break;
