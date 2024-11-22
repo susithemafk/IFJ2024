@@ -10,7 +10,7 @@
 
 #include "syntaxical/ast.h"
 
-enum ERR_CODES parser_init();
+enum ERR_CODES parser_init(SymTable *tbl);
 void parser_cleanup(void);
 enum ERR_CODES parser_parse(FILE *input, Program *program);
 

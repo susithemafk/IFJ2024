@@ -16,7 +16,7 @@
     } while (0)
 
 
-void generateFuncWrite() {
+void generateFuncWrite(void) {
     PRINTLN("LABEL function_write");
     PRINTLN("PUSHFRAME");
     PRINTLN("CREATEFRAME");
@@ -28,7 +28,7 @@ void generateFuncWrite() {
     PRINTLN("POPFRAME");
 }
 
-void generateFuncReadStr(){
+void generateFuncReadStr(void){
     PRINTLN("LABEL function_readString");
     PRINTLN("PUSHFRAME");
     PRINTLN("CREATEFRAME");
@@ -39,7 +39,7 @@ void generateFuncReadStr(){
 
     PRINTLN("POPFRAME");
 }
-void generateFuncReadInt(){
+void generateFuncReadInt(void){
     PRINTLN("LABEL function_readInt");
     PRINTLN("PUSHFRAME");
     PRINTLN("CREATEFRAME");
@@ -50,7 +50,7 @@ void generateFuncReadInt(){
 
     PRINTLN("POPFRAME");
 }
-void generateFuncReadFloat(){
+void generateFuncReadFloat(void){
     PRINTLN("LABEL function_readFloat");
     PRINTLN("PUSHFRAME");
     PRINTLN("CREATEFRAME");
@@ -62,7 +62,7 @@ void generateFuncReadFloat(){
     PRINTLN("POPFRAME");
 }
 
-void generateBuiltins() {
+void generateBuiltins(void) {
     PRINTLN("\n# Builtin functions\n");
 
     generateFuncWrite();

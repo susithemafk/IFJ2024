@@ -14,9 +14,12 @@
 
 int main(void) {
     enum ERR_CODES status;
+    
+    SymTable *table = symTableInit();
+    if (!table) return E_INTERNAL;
 
     // init parser
-    status = parser_init();
+    status = parser_init(table);
     if (status != SUCCESS) {
         return status;
     }
@@ -31,7 +34,7 @@ int main(void) {
         return status;
     }
 
-    status = analyzeProgram(&program);
+    status = analyzeProgram(&program, table);
     if (status != SUCCESS) {
         parser_cleanup();
         freeProgram(&program);

@@ -12,7 +12,7 @@ static enum ERR_CODES err;
 // udelat parser dle good_asts.c
 // todo return bez leve zavorky ve funkci
 
-TOKEN_PTR currentToken() {
+TOKEN_PTR currentToken(void) {
     return (TOKEN_PTR)getDataAtIndex(buffer, tokenIndex);
 }
 
@@ -21,16 +21,12 @@ TOKEN_PTR getNextToken(void) {
     return (TOKEN_PTR)getDataAtIndex(buffer, tokenIndex);
 }
 
-enum ERR_CODES parser_init() {
-    table = symTableInit();
+enum ERR_CODES parser_init(SymTable *tbl) {
     buffer = initLinkedList(false);
+	table = tbl;
 
-    if (!table || !buffer) {
-        if (table)
-            symTableFree(&table);
-        if (buffer)
-            freeBuffer(&buffer);
-
+    if (!buffer) {
+		freeBuffer(&buffer);
         puts("Error in parser init");
         return E_INTERNAL;
     }
@@ -39,11 +35,13 @@ enum ERR_CODES parser_init() {
 }
 
 void parser_cleanup(void) {
-    if (table)
-        symTableFree(&table);
-
-    if (buffer)
+    if (buffer) {
         freeBuffer(&buffer);
+	}
+
+	if (table) {
+		symTableFree(&table);
+	}
 }
 
 enum ERR_CODES parser_parse(FILE *input, struct Program *program) {
@@ -66,9 +64,6 @@ enum ERR_CODES parser_parse(FILE *input, struct Program *program) {
         puts("Error in second pass");
         return E_SYNTAX;
     }
-
-    freeBuffer(&buffer);
-    symTableFree(&table);
 
     return SUCCESS;
 }

@@ -10,11 +10,11 @@
 #define BUILTIN_GENERATOR_H
 
 
-void generateFuncWrite();
-void generateFuncReadStr();
-void generateFuncReadInt();
-void generateFuncReadFloat();
+void generateFuncWrite(void);
+void generateFuncReadStr(void);
+void generateFuncReadInt(void);
+void generateFuncReadFloat(void);
 
-void generateBuiltins();
+void generateBuiltins(void);
 
 #endif // BUILTIN_GENERATOR_H

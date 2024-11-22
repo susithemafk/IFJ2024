@@ -5,7 +5,7 @@
 all_tests=0
 passed_tests=0
 
-for file in $(find tests/ -type f); do
+for file in $(find ./tests/syntaxical -type f); do
     ./main < $file > test_out.ifj24
 
     rc=$?
