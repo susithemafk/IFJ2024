@@ -364,7 +364,3 @@ LinkedList *bstGetNodes(BST *tree) {
 
     return list;
 }
-
-
-
-

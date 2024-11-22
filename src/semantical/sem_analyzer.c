@@ -7,25 +7,38 @@
 
 // Function to analyze the whole program
 enum ERR_CODES analyzeProgram(Program *program, SymTable *table) {
+    #ifdef DEBUG
+    printf("\n\n=== %sAnalyzing program%s ===\n\n", COLOR_WARN, COLOR_RESET);
+    #endif
     if (!program) return E_INTERNAL;
 
     enum ERR_CODES err;
 
+    #ifdef DEBUG
+    puts("Analyzing functions");
+    #endif
     // go function by function
     unsigned int size = getSize(program->functions);
     for (unsigned int i = 0; i < size; i++) {
         Function *function = (Function *)getDataAtIndex(program->functions, i);
+        SymFunctionPtr funDef = symTableFindFunction(table, function->id.name);
+        if (!funDef) return E_INTERNAL;
+
+
+        // enter the function scope
         if (!symTableMoveScopeDown(table, SYM_FUNCTION)) return E_INTERNAL;
+
         unsigned int size1 = getSize(function->params);
+        #ifdef DEBUG
+        printf("Analyzing function %s\n", function->id.name);
+        #endif
         for (unsigned int j = 0; j < size1; j++) {
             // add the params to the function scope
             Param *param = (Param *)getDataAtIndex(function->params, j);
-            err = analyzeParam(param, table);
+            SymFunctionParamPtr arg = (SymFunctionParamPtr)getDataAtIndex(funDef->paramaters, j);
+            err = analyzeParam(param, table, arg);
             if (err != SUCCESS) return err;
         }
-
-        SymFunctionPtr funDef = symTableFindFunction(table, function->id.name);
-        if (!funDef) return E_INTERNAL;
 
         int retCount = 0;   
         err = analyzeBody(&function->body, table, funDef, &retCount);
@@ -44,47 +57,90 @@ enum ERR_CODES analyzeProgram(Program *program, SymTable *table) {
     return SUCCESS;
 }
 
-enum ERR_CODES analyzeParam(Param *param, SymTable *table) {
+// function to analyze a paramater
+enum ERR_CODES analyzeParam(Param *param, SymTable *table, SymFunctionParamPtr arg) {
     if (!param || !table) return E_INTERNAL;
+
+    #ifdef DEBUG
+    printf("Analyzing param %s\n", param->id.name);
+    #endif
     
     SymVariable *var = symTableDeclareVariable(
         table, 
         param->id.name, 
-        param->id.data_type.data_type, 
+        arg->type,
         false, 
-        param->id.data_type.is_nullable 
+        arg->nullable
     );
     if (!var) return E_SEMANTIC_REDIFINITION;
+    #ifdef DEBUG
+    printf("Param %s declared\n", param->id.name);
+    if (!var) printf("ERROC redifinition\n");
+    printf("Param analyzed\n");
+    #endif
     return SUCCESS;
 }
 
+// Function to analyze the body of a function
 enum ERR_CODES analyzeBody(Body *body, SymTable *table, SymFunctionPtr currentFunc, int *retCount) {
+    #ifdef DEBUG
+    puts("Analyzing body");
+    #endif
     if (!body) return E_INTERNAL;
     enum ERR_CODES err;
 
     unsigned int size = getSize(body->statements);
     for (unsigned int i = 0; i < size; i++) {
+        #ifdef DEBUG
+        printf("Analyzing statement %d\n", i);
+        #endif
         Statement *statement = (Statement *)getDataAtIndex(body->statements, i);
         err = analyzeStatement(statement, table, currentFunc, retCount);
+        #ifdef DEBUG
+        printf("Statement %d analyzed\n", i);
+        printf("err: %d\n", err);   
+        #endif
         if (err != SUCCESS) return err;
     }
 
+    #ifdef DEBUG
+    puts("Body analyzed");
+    #endif
     return SUCCESS;
 }
 
+// Function to analyze a statement
 enum ERR_CODES analyzeStatement(Statement *statement, SymTable *table, SymFunctionPtr currentFunc, int *retCount) {
+    #ifdef DEBUG
+    puts("Analyzing statement");
+    #endif
     if (!statement) return E_INTERNAL;
     enum ERR_CODES err;
 
     switch (statement->type) {
         case FunctionCallStatementType:
+            #ifdef DEBUG
+            puts("Analyzing function call");
+            #endif
             // check if the function is void 
             err = analyzeFunctionCall(&statement->data.function_call_statement, table);
+            #ifdef DEBUG
+            printf("Function call analyzed\n");
+            printf("err: %d\n", err);
+            #endif
             if (err != SUCCESS) return err;
 
             // check if the function is void
             SymFunctionPtr SymFunction = symTableFindFunction(table, statement->data.function_call_statement.func_id.name);
+            #ifdef DEBUG
+            if (!SymFunction) printf("Function definition not found\n");
+            #endif
             if (!SymFunction) return E_SEMANTIC_UND_FUNC_OR_VAR;
+            #ifdef DEBUG
+            printf("Function return type: %d\n", SymFunction->returnType);
+            if (SymFunction->returnType != dTypeVoid) printf("Function is not void\n");
+            printf("Function is void, we good\n");
+            #endif
             if (SymFunction->returnType != dTypeVoid) return E_SEMANTIC_BAD_FUNC_RETURN;
             return SUCCESS;
 
@@ -169,20 +225,37 @@ enum ERR_CODES analyzeFunctionCall(FunctionCall *function_call, SymTable *table)
     return SUCCESS;
 }
 
+// Function to analyze a binary expression
 bool nullCompatabilityCheck(bool nullMain, bool nullSecond) {
     if (!nullMain && nullSecond) return false;
     return true;
 }
 
+// Function to analyze a binary expression
 enum ERR_CODES analyzeReturnStatement(ReturnStatement *return_statement, SymTable *table,  SymFunctionPtr currentFunc, int *retCount) {
     if (!return_statement) return E_INTERNAL;
+
+    #ifdef DEBUG
+    puts("Analyzing return statement");
+    #endif
 
     enum ERR_CODES err;
 
     enum DATA_TYPES returnType;
     bool nullable;
     err = analyzeExpression(&return_statement->value, table, &returnType, &nullable);
+    #ifdef DEBUG
+    printf("Return type: %d\n", returnType);
+    printf("Nullable: %d\n", nullable);
+    printf("err: %d\n", err);
+    #endif
     if (err != SUCCESS) return err;
+
+    #ifdef DEBUG
+    if (currentFunc->returnType != returnType) printf("Return type is not the same\n");
+    if (!currentFunc->nullableReturn && nullable) printf("Return type is nullable\n");
+    printf("return valid\n");
+    #endif
 
     // check if the return type is correct
     if (currentFunc->returnType != returnType) return E_SEMANTIC_BAD_FUNC_RETURN;
@@ -193,7 +266,11 @@ enum ERR_CODES analyzeReturnStatement(ReturnStatement *return_statement, SymTabl
     return SUCCESS;
 }
 
+// Function to analyze a while statement
 enum ERR_CODES analyzeWhileStatement(WhileStatement *while_statement, SymTable *table, SymFunctionPtr currentFunc, int* retCount) {
+    #ifdef DEBUG
+    puts("Analyzing while statement");
+    #endif
     if (!while_statement) return E_INTERNAL;
 
     enum ERR_CODES err;
@@ -201,16 +278,29 @@ enum ERR_CODES analyzeWhileStatement(WhileStatement *while_statement, SymTable *
     bool nullable;
 
     err = analyzeExpression(&while_statement->condition, table, &type, &nullable);
+    #ifdef DEBUG
+    printf("While type: %d\n", type);
+    printf("While nullable: %d\n", nullable);
+    printf("err: %d\n", err);
+    #endif
     if (err != SUCCESS) return err;
 
     if (!symTableMoveScopeDown(table, SYM_WHILE)) return E_INTERNAL; // move to while
 
     // we should have this type if whiele -> while (exp) |a| { body }
     if (while_statement->non_nullable.name) {
+        #ifdef DEBUG
+        puts("analyzing while (a) |na| {...}");
+        #endif
         // need to somehow find the variable in the while scope?
         char * varName = while_statement->condition.data.identifier.name;
         SymVariable *var = symTableFindVariable(table, varName);
         if (!var) return E_SEMANTIC_UND_FUNC_OR_VAR;
+        #ifdef DEBUG
+        if (!var->nullable) printf("err Variable %s is not nullable\n", varName);
+        if (var->type == dTypeNone) printf("err Variable %s has no type\n", varName);
+        printf("while var valid\n");
+        #endif
         if (!var->nullable) return E_SEMANTIC_INCOMPATABLE_TYPES;
         if (var->type == dTypeNone) return E_SEMANTIC_UNKNOWN_TYPE;
 
@@ -221,37 +311,74 @@ enum ERR_CODES analyzeWhileStatement(WhileStatement *while_statement, SymTable *
             var->mutable,
             false
         );
+
+        #ifdef DEBUG
+        if (!nonNullVar) printf("Variable %s redifined\n", while_statement->non_nullable.name);
+        printf("while non nullable var valid\n");
+        #endif
+
         if (!nonNullVar) return E_SEMANTIC_REDIFINITION;
         while_statement->non_nullable_var = nonNullVar;
     } else {
+        #ifdef DEBUG
+        puts("analyzing while (truthExp) {...}");
+        if (type != dTypeBool) printf("While type is not bool\n");
+        printf("while type valid\n");
+        #endif
         if (type != dTypeBool) return E_SEMANTIC_INCOMPATABLE_TYPES; // this shoud never happen, we would have a syntax err
     }
 
     err = analyzeBody(&while_statement->body, table, currentFunc, retCount);
+
+    #ifdef DEBUG
+    puts("while body analyzed");
+    printf("while error: %d\n", err);
+    #endif
+
     if (err != SUCCESS) return err;
 
     // exit the while scope
     return symTableExitScope(table);
 }
 
+// Function to analyze an if statement
 enum ERR_CODES analyzeIfStatement(IfStatement *if_statement, SymTable *table, SymFunctionPtr currentFunc, int *retCount) {
     if (!if_statement) return E_INTERNAL;
+
+    #ifdef DEBUG
+    puts("Analyzing if statement");
+    #endif
 
     enum ERR_CODES err = SUCCESS;
 
     enum DATA_TYPES type;
     bool nullable;
     err = analyzeExpression(&if_statement->condition, table, &type, &nullable);
+
+    #ifdef DEBUG
+    printf("If type: %d\n", type);
+    printf("If nullable: %d\n", nullable);
+    printf("err: %d\n", err);
+    #endif
+
     if (err != SUCCESS) return err;
 
     // move to if scope
     if (!symTableMoveScopeDown(table, SYM_IF)) return E_INTERNAL;
 
     if (if_statement->non_nullable.name) {
+        #ifdef DEBUG
+        puts("analyzing if (a) |na| {...}");
+        #endif
         // need to somehow find the variable in the while scope?
         char * varName = if_statement->condition.data.identifier.name;
         SymVariable *var = symTableFindVariable(table, varName);
         if (!var) return E_SEMANTIC_UND_FUNC_OR_VAR;
+        #ifdef DEBUG
+        if (!var->nullable) printf("Variable %s is not nullable\n", varName);
+        if (var->type == dTypeNone) printf("Variable %s has no type\n", varName);
+        printf("if var valid\n");
+        #endif
         if (!var->nullable) return E_SEMANTIC_INCOMPATABLE_TYPES;
         if (var->type == dTypeNone) return E_SEMANTIC_UNKNOWN_TYPE;
 
@@ -262,14 +389,28 @@ enum ERR_CODES analyzeIfStatement(IfStatement *if_statement, SymTable *table, Sy
             var->mutable,
             false
         );
+
+        #ifdef DEBUG
+        if (!nonNullVar) printf("Variable %s redifined\n", if_statement->non_nullable.name);
+        printf("if non nullable var valid\n");
+        #endif
         if (!nonNullVar) return E_SEMANTIC_REDIFINITION;
         if_statement->non_nullable_var = nonNullVar;
     } else {
+        #ifdef DEBUG
+        puts("analyzing if (truthExp) {...}");
+        if (type != dTypeBool) printf("If type is not bool\n");
+        printf("if type valid\n");
+        #endif
         if (type != dTypeBool) return E_SEMANTIC_INCOMPATABLE_TYPES; // this shoud never happen, we would have a syntax err
     }
 
     // analyze the if body
     err = analyzeBody(&if_statement->if_body, table, currentFunc, retCount);
+    #ifdef DEBUG
+    puts("if body analyzed");
+    printf("if error: %d\n", err);
+    #endif
     if (err != SUCCESS) return err;
 
     // exit the if scope
@@ -279,12 +420,17 @@ enum ERR_CODES analyzeIfStatement(IfStatement *if_statement, SymTable *table, Sy
     // analyze the else body
     if (!symTableMoveScopeDown(table, SYM_IF)) return E_INTERNAL; // move to else
     err = analyzeBody(&if_statement->else_body, table, currentFunc, retCount);
+    #ifdef DEBUG
+    puts("else body analyzed");
+    printf("else error: %d\n", err);
+    #endif
     if (err != SUCCESS) return err;
 
     // exit the else scope
     return symTableExitScope(table);
 }
 
+// Function to analyze an assigment statement
 enum ERR_CODES analyzeAssigmentStatement(AssigmentStatement *statement, SymTable *table) {
     if (!statement) return E_INTERNAL;
 
@@ -292,27 +438,78 @@ enum ERR_CODES analyzeAssigmentStatement(AssigmentStatement *statement, SymTable
 
     SymVariable *var = symTableFindVariable(table, statement->id.name);
     if (!var) return E_SEMANTIC_UND_FUNC_OR_VAR;
-    if (!var->mutable && var->id != 0) return E_SEMANTIC_REDIFINITION;
+    #ifdef DEBUG
+    if (!var->mutable && var->id != 0) printf("Variable %s is not mutable\n", statement->id.name);
+    if (var->id == 0) printf("Variable %s is global\n", statement->id.name);
+    printf("var valid\n");
+    #endif
+    if (!var->mutable && var->id != 0) return E_SEMANTIC_REDIFINITION; // var-id 0 is the global var _
 
     enum DATA_TYPES type;
     bool nullable;
     err = analyzeExpression(&statement->value, table, &type, &nullable);
+    #ifdef DEBUG
+    printf("Assigment type: %d\n", type);
+    printf("Assigment nullable: %d\n", nullable);
+    printf("err: %d\n", err);
+    #endif
     if (err != SUCCESS) return err;
 
+    #ifdef DEBUG
+    if (var->id == 0) printf("Variable %s is global\n", statement->id.name);
+    if (type == dTypeUndefined && var->nullable) printf("Variable %s is nullable\n", statement->id.name);
+    if (var->nullable != nullable) printf("Variable %s is not nullable\n", statement->id.name);
+    if (var->type == dTypeNone) {
+        printf("Variable %s has no type\n", statement->id.name);
+        printf("assigning type %d\n", type);    
+    }
+    #endif
+    // after we know, the expresion is valid, we can check if the types are the same
+    if (var->id == 0) return SUCCESS; // we can assign anything to the global var _ the value should be discarded
+
+    // var a = null;
     if (type == dTypeUndefined && var->nullable) return SUCCESS;
 
+    // null compatability
     if (var->nullable != nullable) return E_SEMANTIC_INCOMPATABLE_TYPES;
+
+    #ifdef DEBUG
+    if (var->type == dTypeNone) {
+        printf("Variable %s has no type\n", statement->id.name);
+        printf("assigning type %d\n", type);    
+    }
+    #endif
+    // in case we did not define the type, we can do it now
     if (var->type == dTypeNone) {
         var->type = type;
         return SUCCESS;
     }
+
+    #ifdef DEBUG
+    if (var->type != type) printf("Variable %s is not the same type\n", statement->id.name);
+    printf("var type valid\n");
+    #endif
+
+    // check if the types are the same
     if (var->type != type) return E_SEMANTIC_INCOMPATABLE_TYPES;
     return SUCCESS;
 }
 
+// Function to analyze a variable definition statement
 enum ERR_CODES analyzeVariableDefinitionStatement(VariableDefinitionStatement *statement, SymTable *table) {
+    #ifdef DEBUG
+    puts("Analyzing variable definition statement");
+    #endif
+
     if (!statement) return E_INTERNAL;
     enum ERR_CODES err;
+
+    #ifdef DEBUG
+    printf("declaring variable %s\n", statement->id.name);
+    printf("Variable type: %d\n", statement->id.data_type.data_type);
+    printf("Variable nullable: %d\n", statement->id.data_type.is_nullable);
+    printf("Variable const: %d\n", statement->isConst);
+    #endif
 
     // declare the var
     SymVariable *var = symTableDeclareVariable(
@@ -322,18 +519,53 @@ enum ERR_CODES analyzeVariableDefinitionStatement(VariableDefinitionStatement *s
         !statement->isConst,
         statement->id.data_type.is_nullable
     );
+    #ifdef DEBUG
+    if (!var) printf("Variable %s redifined\n", statement->id.name);
+    printf("var declare valid\n");
+    #endif
     if (!var) return E_SEMANTIC_REDIFINITION;
+
     bool nullable;
-    err = analyzeExpression(&statement->value, table, &var->type, &nullable);
+    enum DATA_TYPES type;
+    err = analyzeExpression(&statement->value, table, &type, &nullable);
+    #ifdef DEBUG
+    printf("analyzing right side of the definition\n");
+    printf("exp type: %d\n", type);
+    printf("exp nullable: %d\n", nullable);
+    printf("err: %d\n", err);
+    #endif
     if (err != SUCCESS) return err;
-
+    
+    #ifdef DEBUG
+    if (type == dTypeUndefined) printf("variable has no type, return UNKNOWN_TYPE\n");
+    if (var->type == dTypeNone) printf("variable has no type, return assigning form exp\n");
+    #endif
     // var a = null;
-    if (var->type == dTypeUndefined) return E_SEMANTIC_UNKNOWN_TYPE;
-
+    if (type == dTypeUndefined) return E_SEMANTIC_UNKNOWN_TYPE;
+    
+    // nullability can be assinged on declaration
     var->nullable = nullable;
+
+    // in case we did not define the type, we can do it now
+    if (var->type == dTypeNone) {
+        var->type = type;
+        return SUCCESS;
+    }
+
+    #ifdef DEBUG
+    printf("Variable type: %d\n", var->type);
+    printf("Variable nullable: %d\n", var->nullable);
+    if (var->type != type) printf("Variable %s is not the same type\n", statement->id.name);
+    printf("var type valid\n");
+    #endif
+
+    // check if the types are the same
+    if (var->type != type) return E_SEMANTIC_INCOMPATABLE_TYPES;
+
     return SUCCESS;
 }
 
+// Function to analyze an expression
 enum ERR_CODES analyzeExpression(Expression *expr, SymTable *table, enum DATA_TYPES *returnType, bool *resultNullable) {
     if (!expr) return E_INTERNAL;
 
@@ -343,39 +575,45 @@ enum ERR_CODES analyzeExpression(Expression *expr, SymTable *table, enum DATA_TY
 
 
     switch (expr->expr_type) {
-    case FunctionCallExpressionType:
-        err = analyzeFunctionCall(&expr->data.function_call, table);
-        // try to find the defintion and the return type and set then
-        fncDef = symTableFindFunction(table, expr->data.function_call.func_id.name);
-        if (!fncDef) return E_SEMANTIC_UND_FUNC_OR_VAR;
-        *returnType = fncDef->returnType;
-        *resultNullable = fncDef->nullableReturn;
-        break;
-
-    case LiteralExpressionType:
-        *returnType = expr->data.literal.data_type.data_type;
-        *resultNullable = expr->data.literal.data_type.is_nullable; // since null literal is nullable i guess
-        break;
-
-    case BinaryExpressionType:
-        err = analyzeBinaryExpression(&expr->data.binary_expr, table, returnType, resultNullable);
-        break;
-
-    case IdentifierExpressionType:
-        if (!expr->data.identifier.name) {
-            *returnType = dTypeUndefined;
-            *resultNullable = true;
+        // function call
+        case FunctionCallExpressionType:
+            err = analyzeFunctionCall(&expr->data.function_call, table);
+            // try to find the defintion and the return type and set then
+            fncDef = symTableFindFunction(table, expr->data.function_call.func_id.name);
+            if (!fncDef) return E_SEMANTIC_UND_FUNC_OR_VAR;
+            *returnType = fncDef->returnType;
+            *resultNullable = fncDef->nullableReturn;
             break;
-        } // null
-        var = symTableFindVariable(table, expr->data.identifier.name);
-        // check for NULL i guess, since null is and identifier
-        if (!var) return E_SEMANTIC_UND_FUNC_OR_VAR;
-        *returnType = var->type;
-        *resultNullable = var->nullable;
-        break;
-    default:
-        err = E_INTERNAL;
-        break;
+
+        // literal
+        case LiteralExpressionType:
+            *returnType = expr->data.literal.data_type.data_type;
+            *resultNullable = expr->data.literal.data_type.is_nullable; // since null literal is nullable i guess
+            break;
+
+        // binary expression
+        case BinaryExpressionType:
+            err = analyzeBinaryExpression(&expr->data.binary_expr, table, returnType, resultNullable);
+            break;
+
+        // identifier
+        case IdentifierExpressionType:
+            if (!expr->data.identifier.name) {
+                *returnType = dTypeUndefined;
+                *resultNullable = true;
+                break;
+            } // null
+            var = symTableFindVariable(table, expr->data.identifier.name);
+            // check for NULL i guess, since null is and identifier
+            if (!var) return E_SEMANTIC_UND_FUNC_OR_VAR;
+            *returnType = var->type;
+            *resultNullable = var->nullable;
+            break;
+
+        // bad ast construction
+        default:
+            err = E_INTERNAL;
+            break;
     }
     return err;
 }
@@ -412,6 +650,7 @@ enum COVERSION_FLAGS canCovertLiteral(Literal *literal, enum DATA_TYPES expected
     return CONV_NOT_POSSIBLE;
 }
 
+// Function to analyze a binary expression
 enum ERR_CODES analyzeBinaryExpression(BinaryExpression *binary_expr, SymTable *table, enum DATA_TYPES *returnType, bool *resultNullable) {
     // base case
     if (!binary_expr) {
@@ -500,6 +739,7 @@ enum ERR_CODES analyzeBinaryExpression(BinaryExpression *binary_expr, SymTable *
         return E_SEMANTIC_INCOMPATABLE_TYPES;
     }
 
+    // we have incompatible types, but we can convert them
     *returnType = dTypeF64;
     *resultNullable = false;
     return SUCCESS;

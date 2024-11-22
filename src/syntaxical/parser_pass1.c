@@ -36,20 +36,13 @@ bool saveNewToken(struct TOKEN token, LinkedList *buffer) {
     
     // create a new token
     TOKEN_PTR newToken = (TOKEN_PTR)malloc(sizeof(struct TOKEN));
-    if (newToken == NULL) {
-        freeBuffer(&buffer);
-        return false;
-    }
+    if (newToken == NULL) return false;
 
     newToken->type = token.type;    
     newToken->value = token.value;
     
     // save the token to the buffer
-    if (!insertNodeAtIndex(buffer, (void *)newToken, -1)) {
-        freeBuffer(&buffer);
-        return false;
-    }
-
+    if (!insertNodeAtIndex(buffer, (void *)newToken, -1)) return false;
     return true;
 }
 
@@ -70,17 +63,11 @@ enum ERR_CODES pubfn(LinkedList *buffer, SymTable *table) {
     if (token.type != TOKEN_IDENTIFIER) return E_SYNTAX;
 
     SymFunctionPtr symFunction = symInitFuncDefinition();
-    if (symFunction == NULL) {
-        freeBuffer(&buffer);
-        return E_INTERNAL;
-    }
+    if (symFunction == NULL) return E_INTERNAL;
 
     symEditFuncDef(symFunction, token.value, dTypeUndefined, -1); 
     status = symTableAddFunction(table, symFunction); // we will finish it later ..
-    if (status != SUCCESS) {
-        freeBuffer(&buffer);
-        return status;
-    }
+    if (status != SUCCESS) return status;
 
     // try to find the left parenthesis
     status = scanner_get_token(&token);

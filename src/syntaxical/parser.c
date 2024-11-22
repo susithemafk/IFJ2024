@@ -27,7 +27,9 @@ enum ERR_CODES parser_init(SymTable *tbl) {
 
     if (!buffer) {
 		freeBuffer(&buffer);
+		#ifdef DEBUG
         puts("Error in parser init");
+		#endif
         return E_INTERNAL;
     }
 
@@ -51,7 +53,9 @@ enum ERR_CODES parser_parse(FILE *input, struct Program *program) {
 
     enum ERR_CODES err = firstPass(table, input, buffer);
     if (err != SUCCESS) {
+		#ifdef DEBUG
         puts("Error in first pass");
+		#endif
         return err;
     }
 

@@ -418,8 +418,14 @@ enum ERR_CODES symTableExitScope(SymTable *table) {
 
     // check if all variables were accesed
     if (_symTableAllVariablesAccesed(currentScope)) {
+        #ifdef DEBUG
+        printf("Symtable -> All variables in the scope were accesed\n");
+        #endif
         returnCode = SUCCESS;
     } else {
+        #ifdef DEBUG
+        printf("symtable -> Not all variables in the scope were accesed\n");
+        #endif
         returnCode = E_SEMANTIC_UND_FUNC_OR_VAR;
     }
 
@@ -431,9 +437,7 @@ enum ERR_CODES symTableExitScope(SymTable *table) {
     bool result = bstFree(&currentScope->variables);
     free(currentScope);
 
-    if (!result)
-        return E_INTERNAL;
-
+    if (!result) return E_INTERNAL;
     return returnCode;
 }
 
@@ -541,8 +545,16 @@ SymVariable *symTableFindVariable(SymTable *table, char *name) {
 
             // Mark the variable as accessed if found
 
-            variable->accesed = true; // Only mark if you intend to track access
+            variable->accesed = true; // Mark, that the variable was accessed
 
+            #ifdef DEBUG
+            printf("Variable %s found in scope %d\n", name, currentScope->key);
+            printf("Variable ID: %d\n", variable->id);
+            printf("Variable name: %s\n", variable->name);
+            printf("Variable type: %d\n", variable->type);
+            printf("Variable mutable: %d\n", variable->mutable);
+            printf("Variable nullable: %d\n", variable->nullable);
+            #endif
             return variable;
         }
 
