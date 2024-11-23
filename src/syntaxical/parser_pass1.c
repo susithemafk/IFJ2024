@@ -54,11 +54,13 @@ enum ERR_CODES pubfn(LinkedList *buffer, SymTable *table) {
 
     // try to find the fn    
     enum ERR_CODES status = scanner_get_token(&token);
+    if (status != SUCCESS) return status;
     if (!saveNewToken(token, buffer)) return E_INTERNAL;
     if (token.type != TOKEN_FN) return E_SYNTAX;
 
     // try to find the function name
     status = scanner_get_token(&token);
+    if (status != SUCCESS) return status;
     if (!saveNewToken(token, buffer)) return E_INTERNAL;
     if (token.type != TOKEN_IDENTIFIER) return E_SYNTAX;
 
@@ -71,6 +73,7 @@ enum ERR_CODES pubfn(LinkedList *buffer, SymTable *table) {
 
     // try to find the left parenthesis
     status = scanner_get_token(&token);
+    if (status != SUCCESS) return status;
     if (!saveNewToken(token, buffer)) return E_INTERNAL;
     if (token.type != TOKEN_LPAR) return E_SYNTAX;
 
@@ -80,6 +83,7 @@ enum ERR_CODES pubfn(LinkedList *buffer, SymTable *table) {
         
         // ) or Identifier
         status = scanner_get_token(&token);
+        if (status != SUCCESS) return status;
         if (!saveNewToken(token, buffer)) return E_INTERNAL;
         if (token.type == TOKEN_RPAR && first) break;
         first = false;
@@ -87,11 +91,13 @@ enum ERR_CODES pubfn(LinkedList *buffer, SymTable *table) {
 
         // :
         status = scanner_get_token(&token);
+        if (status != SUCCESS) return status;
         if (!saveNewToken(token, buffer)) return E_INTERNAL;
         if (token.type != TOKEN_COLON) return E_SYNTAX;
 
         // type
         status = scanner_get_token(&token);
+        if (status != SUCCESS) return status;
         if (!saveNewToken(token, buffer)) return E_INTERNAL;
         if (token.type != TOKEN_I32 && token.type != TOKEN_F64 && token.type != TOKEN_U8) {
             #ifdef DEBUG
@@ -106,6 +112,7 @@ enum ERR_CODES pubfn(LinkedList *buffer, SymTable *table) {
 
         // now can be , or )
         status = scanner_get_token(&token);
+        if (status != SUCCESS) return status;
         if (!saveNewToken(token, buffer)) return E_INTERNAL;
         if (token.type != TOKEN_COMMA && token.type != TOKEN_RPAR) {
             #ifdef DEBUG
@@ -120,10 +127,12 @@ enum ERR_CODES pubfn(LinkedList *buffer, SymTable *table) {
 
     // check for the return type we can have ? followed by i32 of f64 or u8 or void
     status = scanner_get_token(&token);
+    if (status != SUCCESS) return status;
     if (!saveNewToken(token, buffer)) return E_INTERNAL;
 
     if (token.type == TOKEN_QUESTION_MARK) {
         status = scanner_get_token(&token);
+        if (status != SUCCESS) return status;
         if (!saveNewToken(token, buffer)) return E_INTERNAL;
         if (token.type != TOKEN_I32 && token.type != TOKEN_F64 && token.type != TOKEN_U8) return E_SYNTAX;
         if (!symEditFuncDef(symFunction, NULL, covertTokneDataType(token.type), 1)) return E_INTERNAL;
@@ -138,12 +147,14 @@ enum ERR_CODES pubfn(LinkedList *buffer, SymTable *table) {
 
     // now we shoudl have the { init counter to 1, if ew find } do count -1 else count +1, if count == 0, we are done
     status = scanner_get_token(&token);
+    if (status != SUCCESS) return status;
     if (!saveNewToken(token, buffer)) return E_INTERNAL;
     if (token.type != TOKEN_LBRACE) return E_SYNTAX;
     int count = 1;
 
     while(1) {
         status = scanner_get_token(&token);
+        if (status != SUCCESS) return status;
         if (!saveNewToken(token, buffer)) return E_INTERNAL;
         if (token.type == TOKEN_PUB) return E_SYNTAX; // we do not support nested functions
         if (token.type == TOKEN_LBRACE) count++;
@@ -162,6 +173,7 @@ enum ERR_CODES firstPass(SymTable *table, FILE *input, LinkedList *buffer) {
     while (status == SUCCESS) {
         // get the token
         status = scanner_get_token(&token);
+        if (status != SUCCESS) return status;
         if (status != SUCCESS) return E_INTERNAL;
         if (token.type == TOKEN_EOF) {
             if (!saveNewToken(token, buffer)) return E_INTERNAL;

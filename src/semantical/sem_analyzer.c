@@ -506,8 +506,8 @@ enum ERR_CODES analyzeVariableDefinitionStatement(VariableDefinitionStatement *s
 
     #ifdef DEBUG
     printf("declaring variable %s\n", statement->id.name);
-    printf("Variable type: %d\n", statement->id.data_type.data_type);
-    printf("Variable nullable: %d\n", statement->id.data_type.is_nullable);
+    printf("Variable type: %d\n", statement->type.data_type);
+    printf("Variable nullable: %d\n", statement->type.is_nullable);
     printf("Variable const: %d\n", statement->isConst);
     #endif
 
@@ -515,9 +515,9 @@ enum ERR_CODES analyzeVariableDefinitionStatement(VariableDefinitionStatement *s
     SymVariable *var = symTableDeclareVariable(
         table, 
         statement->id.name, 
-        statement->id.data_type.data_type, 
+        statement->type.data_type,
         !statement->isConst,
-        statement->id.data_type.is_nullable
+        statement->type.is_nullable
     );
     #ifdef DEBUG
     if (!var) printf("Variable %s redifined\n", statement->id.name);

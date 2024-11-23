@@ -53,7 +53,7 @@ print=$3
 valgrind=$4
 
 # Redirect output to /dev/null if 'print' is false
-if [ "$print" == "false" ]; then
+if [ "$print" == "false" ] || [ "$testcase" = "-1" ]; then
     redirect_output="> /dev/null 2>&1"
 else
     redirect_output=""
@@ -74,7 +74,7 @@ if [ "$testcase" == "-1" ]; then
 
     # Find all test files, sort them numerically by test number
     for file in $(find ./test_inputs/integration -type f | sort -V); do
-        ./$binary < "$file" $redirect_output # Redirect stdout and stderr as per 'print' param
+        eval "./$binary < \"$file\" $redirect_output"
         rc=$?
 
         all_tests=$((all_tests + 1))
@@ -99,7 +99,7 @@ else
     # Run a specific test case
     file=$(find ./test_inputs/integration -type f -name "test_${testcase}_*.zig")
     if [ -f "$file" ]; then
-        ./$binary < "$file" $redirect_output
+        ./$binary < "$file"
         rc=$?
 
         all_tests=1

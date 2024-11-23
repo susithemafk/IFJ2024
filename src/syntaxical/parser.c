@@ -55,6 +55,7 @@ enum ERR_CODES parser_parse(FILE *input, struct Program *program) {
     if (err != SUCCESS) {
 		#ifdef DEBUG
         puts("Error in first pass");
+        printf("Error code: %d\n", err);
 		#endif
         return err;
     }
@@ -464,7 +465,7 @@ bool parse_data_type(DataType *data_type) {
 #endif
 
     bool isNullable = false;
-    enum DATA_TYPES dataType = dTypeUndefined;
+    enum DATA_TYPES dataType = dTypeNone;
 
     if (currentToken()->type == TOKEN_QUESTION_MARK) {
         isNullable = true;
@@ -652,6 +653,9 @@ bool parse_var_def(VariableDefinitionStatement *variable_definition_statement) {
 
         if (!parse_data_type(&variable_definition_statement->type))
             return false;
+    } else {
+        variable_definition_statement->type.data_type = dTypeNone;
+        variable_definition_statement->type.is_nullable = false;
     }
 
     if (!match(TOKEN_ASSIGN))

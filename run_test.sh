@@ -124,6 +124,7 @@ handle_exit_code $?
 if [ "$TEST_NAME" == "integration" ]; then
     echo "Running integration tests..."
     ./integration_tests.sh $OUTPUT_BIN $TESTCASE $PRINT $USE_VALGRIND
+
     handle_exit_code $?  # Check if the integration tests script ran successfully
 else
     echo "Running unit tests..."
@@ -145,7 +146,7 @@ else
     handle_exit_code $? # Check exit code
 fi
 
-Clean up
+#Clean up
 print_section "CLEANING UP"
 rm -f ./$OUTPUT_BIN
 echo -e "${GREEN}Cleanup complete.${RESET}"

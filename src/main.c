@@ -16,11 +16,18 @@ int main(void) {
     enum ERR_CODES status;
     
     SymTable *table = symTableInit();
+    #ifdef DEBUG
+    if (!table) printf("Table not created\n");
+    printf("Table created\n");
+    #endif
     if (!table) return E_INTERNAL;
 
     // init parser
     status = parser_init(table);
     if (status != SUCCESS) {
+        #ifdef DEBUG
+        printf("Error in parser init\n");
+        #endif
         return status;
     }
 
@@ -28,11 +35,25 @@ int main(void) {
     struct Program program;
     status = parser_parse(stdin, &program);
 
+    #ifdef DEBUG
+    printf("Parser parse status: %d\n", status);
+    #endif
+
     if (status != SUCCESS) {
+        #ifdef DEBUG
+        printf("cleaning up\n");
+        #endif
         parser_cleanup();
+        #ifdef DEBUG
+        printf("cleaning ast\n");
+        #endif
         freeProgram(&program);
         return status;
     }
+
+    #ifdef DEBUG
+    printf("Analyzing program\n");
+    #endif
 
     status = analyzeProgram(&program, table);
     if (status != SUCCESS) {
