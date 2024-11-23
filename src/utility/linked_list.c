@@ -26,13 +26,10 @@ int emptyList(struct LinkedList *list) {
 
 // Function to get the size of the list
 unsigned int getSize(struct LinkedList *list) {
-    
     // check for internal error
     if (list == NULL) return 0;
     return list->size;
 }
-
-
 
 // function to init the linked list
 struct LinkedList *initLinkedList(bool freeData) {

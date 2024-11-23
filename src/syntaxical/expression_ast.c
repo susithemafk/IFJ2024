@@ -10,14 +10,25 @@
 #include <stdlib.h>
 
 void freeDataType(DataType *data_type) {
-    (void)data_type;
+    #ifdef DEBUG
+    DEBUG_MSG("Freeing data type");
+    #endif
+    (void)data_type; // not needed?
 }
 
 void freeIdentifier(Identifier *identifier) {
+    #ifdef DEBUG
+    DEBUG_MSG("Freeing identifier");
+    #endif
+    if (!identifier) return;
     free(identifier->name);
 }
 
 void freeFunctionCall(FunctionCall *func_call) {
+    #ifdef DEBUG
+    DEBUG_MSG("Freeing function call");
+    #endif
+    if (!func_call) return;
     freeIdentifier(&func_call->func_id);
     int size = getSize(func_call->arguments);
     for (int i = 0; i < size; i++) {
@@ -29,6 +40,9 @@ void freeFunctionCall(FunctionCall *func_call) {
 }
 
 void freeExpression(Expression *expr) {
+    #ifdef DEBUG
+    DEBUG_MSG("Freeing expression");
+    #endif
     if(!expr) return;
 
     switch (expr->expr_type) {
@@ -56,5 +70,9 @@ void freeExpression(Expression *expr) {
 }
 
 void freeLiteral(Literal *literal) {
+    #ifdef DEBUG
+    DEBUG_MSG("Freeing literal");
+    #endif
+    if (!literal) return;
     free(literal->value);
 }

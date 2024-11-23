@@ -99,7 +99,11 @@ else
     # Run a specific test case
     file=$(find ./test_inputs/integration -type f -name "test_${testcase}_*.zig")
     if [ -f "$file" ]; then
-        ./$binary < "$file"
+        if [ "$valgrind" == "true" ]; then
+            valgrind --leak-check=full --error-exitcode=1 ./$binary < "$file"
+            rc=$?
+        else
+            ./$binary < "$file"
         rc=$?
 
         all_tests=1

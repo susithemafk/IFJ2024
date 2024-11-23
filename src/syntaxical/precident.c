@@ -487,12 +487,10 @@ enum ERR_CODES _applyRulesExpresion(LinkedList *stack, unsigned int ruleStartIdx
             return E_SYNTAX; // invalid operand
 
         Expression *left = malloc(sizeof(Expression));
-        if (left == NULL)
-            return E_INTERNAL;
+        if (left == NULL) return E_INTERNAL;
 
         Expression *right = malloc(sizeof(Expression));
-        if (right == NULL)
-            return E_INTERNAL;
+        if (right == NULL) return E_INTERNAL;
 
         *left = item1->ast_node;
         *right = item3->ast_node;
@@ -502,10 +500,8 @@ enum ERR_CODES _applyRulesExpresion(LinkedList *stack, unsigned int ruleStartIdx
         item1->ast_node.data.binary_expr.operation = item2->content.operation;
         item1->ast_node.expr_type = BinaryExpressionType;
 
-        if (!removeNodeAtIndex(stack, ruleStartIdx + 1))
-            return E_INTERNAL;
-        if (!removeNodeAtIndex(stack, ruleStartIdx + 1))
-            return E_INTERNAL;
+        if (!removeNodeAtIndex(stack, ruleStartIdx + 1)) return E_INTERNAL;
+        if (!removeNodeAtIndex(stack, ruleStartIdx + 1)) return E_INTERNAL;
         return SUCCESS;
     }
 

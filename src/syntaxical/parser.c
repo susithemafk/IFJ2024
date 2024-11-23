@@ -595,30 +595,54 @@ bool parse_if(IfStatement *if_statement) {
 
     if (!match(TOKEN_IF)) return false;
     if (!match(TOKEN_LPAR)) return false;
-    if (!parse_truth_expr(&if_statement->condition)) return false;
-    if (!match(TOKEN_RPAR)) return false;
+    TOKEN_PTR curToken = currentToken();
+    TOKEN_PTR nextToken = getNextToken();
 
-    // TODO
-    /**
-     * 1. pouze a tak musí být ještě |na|
-     * 2. pokud tam je jen 5 nebo jinej literal tak error
-     * 3.
-     */
+    #ifdef DEBUG
+    printf("Current token: %s\n", curToken->value);
+    printf("Next token: %s\n", nextToken->value);
+    #endif
 
-    if (currentToken()->type == TOKEN_PIPE) {
-        getNextToken();
-        if (currentToken()->type != TOKEN_IDENTIFIER) return false;
+    // handeling if (a) |na| {...}
+    if (curToken->type == TOKEN_IDENTIFIER && nextToken->type == TOKEN_RPAR) {
+        #ifdef DEBUG
+        printf("Handeling if (a) |na| {...}\n");
+        #endif
+        // save the current token into the expression ..
+        if_statement->condition.expr_type = IdentifierExpressionType;
+        if_statement->condition.data.identifier.name = copyString(curToken->value);
+        if (!if_statement->condition.data.identifier.name) return false;
+        tokenIndex++;
 
+        if (!match(TOKEN_PIPE)) return false;
+        if (!match(TOKEN_IDENTIFIER)) return false;
+        tokenIndex--;
+        // saving the not nullable var name
         if_statement->non_nullable.name = copyString(currentToken()->value);
         if (!if_statement->non_nullable.name) return false;
-        getNextToken();
+        tokenIndex++;
         if (!match(TOKEN_PIPE)) return false;
+        #ifdef DEBUG
+        printf("Successfully parsed if (a) |na|\n");
+        #endif
+       
+    // handeling if (exp) {...}   
+    } else {
+        #ifdef DEBUG
+        printf("Handeling if (exp) {...}\n");
+        #endif
+        tokenIndex--; // got back to the start of the expression
+        if (!parse_truth_expr(&if_statement->condition)) return false;
+        if (!match(TOKEN_RPAR)) return false;
+        #ifdef DEBUG
+        printf("Successfully parsed if (exp)\n");
+        #endif
     }
-
-    if (!match(TOKEN_LBRACE)) return false;
-    if (!parse_body(&if_statement->if_body)) return false;
-    if (!match(TOKEN_RBRACE)) return false;
-    if (!parse_else(if_statement)) return false;
+    // checking the if else bodyes
+    if (!match(TOKEN_LBRACE)) return false; // if () {
+    if (!parse_body(&if_statement->if_body)) return false; // if () { ... 
+    if (!match(TOKEN_RBRACE)) return false; // if () { ... }
+    if (!parse_else(if_statement)) return false; // if () { ... } else { ... }
 
     #ifdef DEBUG
     printf("Successfully parsed <if>\n");
@@ -631,7 +655,7 @@ bool parse_else(IfStatement *if_statement) {
     printf("Parsing <else>\n");
     #endif
 
-    if (currentToken()->type != TOKEN_ELSE) {
+    if (currentToken()->type != TOKEN_ELSE) { // else
         #ifdef DEBUG
         printf("No else clause found\n");
         #endif
@@ -639,9 +663,9 @@ bool parse_else(IfStatement *if_statement) {
     }
 
     getNextToken();
-    if (!match(TOKEN_LBRACE)) return false;
-    if (!parse_body(&if_statement->else_body)) return false;
-    if (!match(TOKEN_RBRACE)) return false;
+    if (!match(TOKEN_LBRACE)) return false; // else {
+    if (!parse_body(&if_statement->else_body)) return false; // else { ...
+    if (!match(TOKEN_RBRACE)) return false; // else { ... }
 
     #ifdef DEBUG
     printf("Successfully parsed <else>\n");
@@ -654,20 +678,35 @@ bool parse_while(WhileStatement *while_statement) {
     printf("Parsing <while>\n");
     #endif
 
-    if (!match(TOKEN_WHILE)) return false;
-    if (!match(TOKEN_LPAR)) return false;
-    if (!parse_truth_expr(&while_statement->condition)) return false;
-    if (!match(TOKEN_RPAR)) return false;
+    if (!match(TOKEN_WHILE)) return false; // while
+    if (!match(TOKEN_LPAR)) return false; // while (
 
-    if (currentToken()->type == TOKEN_PIPE) {
-        getNextToken();
-        if (currentToken()->type != TOKEN_IDENTIFIER) return false;
+    TOKEN_PTR curToken = currentToken();
+    TOKEN_PTR nextToken = getNextToken();
 
-        while_statement->non_nullable.name = copyString(currentToken()->value);
-        if (!while_statement->non_nullable.name) return false;
-        getNextToken();
+    // handeling while (a) |na| {...}
+    if (curToken->type == TOKEN_IDENTIFIER && nextToken->type == TOKEN_RPAR) {
+        
+        // save the current token into the expression ..
+        while_statement->condition.expr_type = IdentifierExpressionType;
+        while_statement->condition.data.identifier.name = copyString(curToken->value);
+        if (!while_statement->condition.data.identifier.name) return false;
+        tokenIndex++;
 
         if (!match(TOKEN_PIPE)) return false;
+        if (!match(TOKEN_IDENTIFIER)) return false;
+        tokenIndex--;
+        // saving the not nullable var name
+        while_statement->non_nullable.name = copyString(currentToken()->value);
+        if (!while_statement->non_nullable.name) return false;
+        tokenIndex++;
+        if (!match(TOKEN_PIPE)) return false;
+
+    // handeling while (exp) {...}
+    } else {
+        tokenIndex--; // got back to the start of the expression
+        if (!parse_truth_expr(&while_statement->condition)) return false;
+        if (!match(TOKEN_RPAR)) return false;
     }
 
     if (!match(TOKEN_LBRACE)) return false;

@@ -33,6 +33,7 @@ int main(void) {
 
     // parse input
     struct Program program;
+    program.functions = NULL; // important, for faild first pass
     status = parser_parse(stdin, &program);
 
     #ifdef DEBUG

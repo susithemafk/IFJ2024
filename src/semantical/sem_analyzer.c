@@ -392,7 +392,7 @@ enum ERR_CODES analyzeIfStatement(IfStatement *if_statement, SymTable *table, Sy
 
         #ifdef DEBUG
         if (!nonNullVar) printf("Variable %s redifined\n", if_statement->non_nullable.name);
-        printf("if non nullable var valid\n");
+        printf("if non nullable var valid, with name: %s\n", if_statement->non_nullable.name);
         #endif
         if (!nonNullVar) return E_SEMANTIC_REDIFINITION;
         if_statement->non_nullable_var = nonNullVar;
@@ -542,6 +542,7 @@ enum ERR_CODES analyzeVariableDefinitionStatement(VariableDefinitionStatement *s
     #endif
     // var a = null;
     if (type == dTypeUndefined) return E_SEMANTIC_UNKNOWN_TYPE;
+    if (type == dTypeVoid) return E_SEMANTIC_INCOMPATABLE_TYPES;
     
     // nullability can be assinged on declaration
     var->nullable = nullable;

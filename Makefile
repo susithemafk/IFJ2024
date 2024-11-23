@@ -38,14 +38,6 @@ printCmd := $(shell if [ "$$(uname)" = "Darwin" ]; then echo "echo"; else echo "
 # Test names (adjust as needed)
 TESTS = $(wildcard $(TEST_DIR)/*)
 
-# Prepare the test environment
-prepare:
-	@$(printCmd) "\033[1;36m==================================\033[0m"
-	@$(printCmd) "Preparing test environment ..."
-	@chmod +x run_test.sh
-	@$(printCmd) "\033[1;36mPermisions granted\033[0m"
-	@$(printCmd) "\033[1;36m==================================\033[0m"
-
 # Targets
 all: main
 
@@ -56,6 +48,14 @@ main: $(SRC_FILES) $(SRC_DIR)/main.c
 	@$(CC) $(CFLAGS) $(INCLUDES) $(SRC_FILES) $(SRC_DIR)/main.c -o $@
 	@$(printCmd) "\033[1;36m==================================\033[0m"
 	@$(printCmd) "\033[1;32mBuild completed successfully!   \033[0m"
+	@$(printCmd) "\033[1;36m==================================\033[0m"
+
+# Prepare the test environment
+prepare:
+	@$(printCmd) "\033[1;36m==================================\033[0m"
+	@$(printCmd) "Preparing test environment ..."
+	@chmod +x run_test.sh
+	@$(printCmd) "\033[1;36mPermisions granted\033[0m"
 	@$(printCmd) "\033[1;36m==================================\033[0m"
 
 # Build test target (build only, no execution)

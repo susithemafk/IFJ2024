@@ -426,7 +426,7 @@ enum ERR_CODES symTableExitScope(SymTable *table) {
         #ifdef DEBUG
         printf("symtable -> Not all variables in the scope were accesed\n");
         #endif
-        returnCode = E_SEMANTIC_UND_FUNC_OR_VAR;
+        returnCode = E_SEMANTIC_UNUSED_VAR;
     }
 
     // update the current scope
