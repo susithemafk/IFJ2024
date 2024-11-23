@@ -487,6 +487,7 @@ bool parse_body_content(struct Statement *statement) {
     #endif
 
     TOKEN_PTR token = currentToken();
+    TOKEN_PTR nextToken;
 
     // printf("Deciding on token: \t%s\n", token->value);
 
@@ -508,7 +509,7 @@ bool parse_body_content(struct Statement *statement) {
         return match(TOKEN_SEMICOLON);
 
     case TOKEN_IDENTIFIER:
-        TOKEN_PTR nextToken = getDataAtIndex(buffer, tokenIndex + 1);
+        nextToken = getDataAtIndex(buffer, tokenIndex + 1);
         if (nextToken && nextToken->type == TOKEN_ASSIGN) {
             statement->type = AssigmentStatementType;
             return parse_var_assign(&statement->data.assigment_statement);
