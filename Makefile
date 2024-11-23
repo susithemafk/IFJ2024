@@ -105,23 +105,25 @@ zip:
 
 # help command
 help:
-	@$(printCmd) "\033[1;36m+---------------------------------------------------------------+-------------------------------------------------------+---------------------------------------+\033[0m"
-	@$(printCmd) "\033[1;36m| \033[1;33mCommand                        				\033[1;36m| \033[1;33mDescription                                           \033[1;36m| \033[1;33mExample      			        \033[1;36m|\033[0m"
-	@$(printCmd) "\033[1;36m+---------------------------------------------------------------+-------------------------------------------------------+---------------------------------------+\033[0m"
-	@$(printCmd) "\033[1;36m| \033[1;32mmake\033[2;37m                           				\033[0m\033[1;36m| \033[0mCompile the main program                              \033[1;36m| \033[1;35mmake                     		\033[1;36m|\033[0m"
-	@$(printCmd) "\033[1;36m| \033[1;32mmake\033[2;37m run                    					\033[0m\033[1;36m| \033[0mRun a file (provide file=<test_name>)                 \033[1;36m| \033[1;35mmake run file=test1.c    		\033[1;36m|\033[0m"
-	@$(printCmd) "\033[1;36m| \033[1;32mmake\033[2;37m test                      				\033[0m\033[1;36m| \033[0mRun a file with debug macros enabled                  \033[1;36m| \033[1;35mmake test file=test1.c   		\033[1;36m|\033[0m"
-	@$(printCmd) "\033[1;36m| \033[1;32mmake\033[2;37m valgrind                  				\033[0m\033[1;36m| \033[0mRun a file under Valgrind (provide file=<test_name>)  \033[1;36m| \033[1;35mmake valgrind file=test1.c		\033[1;36m|\033[0m"
-	@$(printCmd) "\033[1;36m| \033[1;32mmake\033[2;37m run integration          				\033[0m\033[1;36m| \033[0mRun all integration tests                             \033[1;36m| \033[1;35mmake run integration     		\033[1;36m|\033[0m"
-	@$(printCmd) "\033[1;36m| \033[1;32mmake\033[2;37m test integration          				\033[0m\033[1;36m| \033[0mRun all integration tests with debug macros           \033[1;36m| \033[1;35mmake test integration    		\033[1;36m|\033[0m"
-	@$(printCmd) "\033[1;36m| \033[1;32mmake\033[2;37m valgrind integration      				\033[0m\033[1;36m| \033[0mRun all integration tests under Valgrind              \033[1;36m| \033[1;35mmake valgrind integration		\033[1;36m|\033[0m"
-	@$(printCmd) "\033[1;36m| \033[1;32mmake\033[2;37m run integration testcase=<test_num> print=<bool>		\033[0m\033[1;36m| \033[0mRun specific integration test                         \033[1;36m| \033[1;35mmake run integration testcase=1\033[1;36m	|\033[0m"
-	@$(printCmd) "\033[1;36m| \033[1;32mmake\033[2;37m test integration testcase=<test_num> print=<bool>	\033[0m\033[1;36m| \033[0mRun specific integration test with debug macros       \033[1;36m| \033[1;35mmake test integration testcase=1\033[1;36m	|\033[0m"
-	@$(printCmd) "\033[1;36m| \033[1;32mmake\033[2;37m valgrind integration testcase=<test_num>	print=<bool>	\033[0m\033[1;36m| \033[0mRun specific integration test under Valgrind      	\033[1;36m| \033[1;35mmake valgrind integration testcase=1\033[1;36m  |\033[0m"
-	@$(printCmd) "\033[1;36m| \033[1;32mmake\033[2;37m clean                		     			\033[0m\033[1;36m| \033[0mClean build files                                 	\033[1;36m| \033[1;35mmake clean               		\033[1;36m|\033[0m"
-	@$(printCmd) "\033[1;36m| \033[1;32mmake\033[2;37m zip          		             			\033[0m\033[1;36m| \033[0mZip the project                                   	\033[1;36m| \033[1;35mmake zip                 		\033[1;36m|\033[0m"
-	@$(printCmd) "\033[1;36m| \033[1;32mmake\033[2;37m help			                		\033[0m\033[1;36m| \033[0mShow this help message                                \033[1;36m| \033[1;35mmake help                		\033[1;36m|\033[0m"
-	@$(printCmd) "\033[1;36m+---------------------------------------------------------------+-------------------------------------------------------+---------------------------------------+\033[0m"
+	@$(printCmd) "\033[1;36m+-----------------------------------------------------------------------+-------------------------------------------------------+-----------------------------------------------+\033[0m"
+	@$(printCmd) "\033[1;36m| \033[1;33mCommand                        					\033[1;36m| \033[1;33mDescription                                           \033[1;36m| \033[1;33mExample      			        	\033[1;36m|\033[0m"
+	@$(printCmd) "\033[1;36m+-----------------------------------------------------------------------+-------------------------------------------------------+-----------------------------------------------+\033[0m"
+	@$(printCmd) "\033[1;36m| \033[1;32mmake\033[2;37m                           					\033[0m\033[1;36m| \033[0mCompile the main program                              \033[1;36m| \033[1;35mmake                     			\033[1;36m|\033[0m"
+	@$(printCmd) "\033[1;36m| \033[1;32mmake\033[2;37m run                    						\033[0m\033[1;36m| \033[0mRun a file (provide file=<test_name>)                 \033[1;36m| \033[1;35mmake run file=test1.c    			\033[1;36m|\033[0m"
+	@$(printCmd) "\033[1;36m| \033[1;32mmake\033[2;37m test                      					\033[0m\033[1;36m| \033[0mRun a file with debug macros enabled                  \033[1;36m| \033[1;35mmake test file=test1.c   			\033[1;36m|\033[0m"
+	@$(printCmd) "\033[1;36m| \033[1;32mmake\033[2;37m valgrind                  					\033[0m\033[1;36m| \033[0mRun a file under Valgrind (provide file=<test_name>)  \033[1;36m| \033[1;35mmake valgrind file=test1.c			\033[1;36m|\033[0m"
+	@$(printCmd) "\033[1;36m| \033[1;32mmake\033[2;37m run file=integration          					\033[0m\033[1;36m| \033[0mRun all integration tests                             \033[1;36m| \033[1;35mmake run file=integration     		\033[1;36m|\033[0m"
+	@$(printCmd) "\033[1;36m| \033[1;32mmake\033[2;37m test file=integration          					\033[0m\033[1;36m| \033[0mRun all integration tests with debug macros           \033[1;36m| \033[1;35mmake test file=integration    		\033[1;36m|\033[0m"
+	@$(printCmd) "\033[1;36m| \033[1;32mmake\033[2;37m valgrind file=integration      					\033[0m\033[1;36m| \033[0mRun all integration tests under Valgrind              \033[1;36m| \033[1;35mmake valgrind file=integration		\033[1;36m|\033[0m"
+	@$(printCmd) "\033[1;36m| \033[1;32mmake\033[2;37m run file=integration testcase=<test_num> print=<bool>		\033[0m\033[1;36m| \033[0mRun specific integration test                         \033[1;36m| \033[1;35mmake run file=integration testcase=1	\033[1;36m	|\033[0m"
+	@$(printCmd) "\033[1;36m| \033[1;32mmake\033[2;37m test file=integration testcase=<test_num> print=<bool>		\033[0m\033[1;36m| \033[0mRun specific integration test with debug macros       \033[1;36m| \033[1;35mmake test file=integration testcase=1	   \033[1;36m	|\033[0m"
+	@$(printCmd) "\033[1;36m| \033[1;32mmake\033[2;37m valgrind file=integration testcase=<test_num> print=<bool>	\033[0m\033[1;36m| \033[0mRun specific integration test under Valgrind      	\033[1;36m| \033[1;35mmake valgrind file=integration testcase=1\033[1;36m  	|\033[0m"
+	@$(printCmd) "\033[1;36m| \033[1;32mmake\033[2;37m clean                		     				\033[0m\033[1;36m| \033[0mClean build files                                 	\033[1;36m| \033[1;35mmake clean             			\033[1;36m|\033[0m"
+	@$(printCmd) "\033[1;36m| \033[1;32mmake\033[2;37m zip          		             				\033[0m\033[1;36m| \033[0mZip the project                                   	\033[1;36m| \033[1;35mmake zip                 			\033[1;36m|\033[0m"
+	@$(printCmd) "\033[1;36m| \033[1;32mmake\033[2;37m help			                			\033[0m\033[1;36m| \033[0mShow this help message                                \033[1;36m| \033[1;35mmake help                			\033[1;36m|\033[0m"
+	@$(printCmd) "\033[1;36m+-----------------------------------------------------------------------+-------------------------------------------------------+-----------------------------------------------+\033[0m"
+	
+	
 
 
 
