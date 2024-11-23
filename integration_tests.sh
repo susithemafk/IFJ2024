@@ -104,6 +104,7 @@ else
             rc=$?
         else
             ./$binary < "$file"
+        fi
         rc=$?
 
         all_tests=1
