@@ -177,6 +177,10 @@ enum ERR_CODES scanner_get_token(struct TOKEN *tokenPointer) {
                 state = SCANNER_AT;
                 tokenPointer->type = TOKEN_AT;
                 break;
+            case '?':
+                state = SCANNER_QUESTION_MARK;
+                tokenPointer->type = TOKEN_QUESTION_MARK;
+                break;
 
             default:
                 if (isspace(input))
@@ -470,9 +474,11 @@ enum ERR_CODES scanner_get_token(struct TOKEN *tokenPointer) {
                     tokenPointer->type = TOKEN_VOID;
                 } else if (!strcmp(tokenPointer->value, "while")) {
                     tokenPointer->type = TOKEN_WHILE;
-                }
+                } else if (!strcmp(tokenPointer->value, "_")) {
+                    tokenPointer->type = TOKEN_DELETE_VALUE;
+                
                 // Identifikátor je poslední, jelikož se nejedná o rezervované slovo
-                else {
+                } else {
                     tokenPointer->type = TOKEN_IDENTIFIER;
                 }
                 return SUCCESS;
@@ -491,6 +497,7 @@ enum ERR_CODES scanner_get_token(struct TOKEN *tokenPointer) {
         case SCANNER_SEMICOLON:
         case SCANNER_PIPE:
         case SCANNER_AT:
+        case SCANNER_QUESTION_MARK:
             return scanner_end(input, &nextCharacter, tokenPointer, string_index);
 
         default:
