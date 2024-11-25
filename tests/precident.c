@@ -64,10 +64,10 @@ int main(void) {
     struct TOKEN d = {.value=_d, .type=TOKEN_IDENTIFIER};
     struct TOKEN g = {.value=_g, .type=TOKEN_IDENTIFIER};
 
-    struct TOKEN two = {.value=_two, .type=TOKEN_I32};
-    struct TOKEN three = {.value=_three, .type=TOKEN_I32};
-    struct TOKEN six = {.value=_six, .type=TOKEN_I32};
-    struct TOKEN pi = {.value=_pi, .type=TOKEN_F64};
+    struct TOKEN two = {.value=_two, .type=TOKEN_INTEGER_LITERAL};
+    struct TOKEN three = {.value=_three, .type=TOKEN_INTEGER_LITERAL};
+    struct TOKEN six = {.value=_six, .type=TOKEN_INTEGER_LITERAL};
+    struct TOKEN pi = {.value=_pi, .type=TOKEN_FLOAT_LITERAL};
 
     struct TOKEN plus = {.value=_plus, .type=TOKEN_PLUS};
     struct TOKEN minus = {.value=_minus, .type=TOKEN_MINUS};

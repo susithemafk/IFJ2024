@@ -9,23 +9,18 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h> 
 #include "semantical/sem_analyzer.h"
 #include "syntaxical/ast.h"
 #include "utility/enumerations.h"
-#include <stdio.h> 
 
 // Function to analyze the whole program
 enum ERR_CODES analyzeProgram(Program *program, SymTable *table) {
-    #ifdef DEBUG
-    printf("\n\n=== %sAnalyzing program%s ===\n\n", COLOR_WARN, COLOR_RESET);
-    #endif
+    DEBUG_PRINT("\n\n=== %sAnalyzing program%s ===\n\n", COLOR_WARN, COLOR_RESET);
     if (!program) return E_INTERNAL;
 
     enum ERR_CODES err;
-
-    #ifdef DEBUG
-    puts("Analyzing functions");
-    #endif
+    DEBUG_PRINT("Analyzing functions");
     // go function by function
     unsigned int size = getSize(program->functions);
     for (unsigned int i = 0; i < size; i++) {
@@ -33,14 +28,11 @@ enum ERR_CODES analyzeProgram(Program *program, SymTable *table) {
         SymFunctionPtr funDef = symTableFindFunction(table, function->id.name);
         if (!funDef) return E_INTERNAL;
 
-
         // enter the function scope
         if (!symTableMoveScopeDown(table, SYM_FUNCTION)) return E_INTERNAL;
 
         unsigned int size1 = getSize(function->params);
-        #ifdef DEBUG
-        printf("Analyzing function %s\n", function->id.name);
-        #endif
+        DEBUG_PRINT("Analyzing function %s", function->id.name);
         for (unsigned int j = 0; j < size1; j++) {
             // add the params to the function scope
             Param *param = (Param *)getDataAtIndex(function->params, j);
@@ -70,9 +62,7 @@ enum ERR_CODES analyzeProgram(Program *program, SymTable *table) {
 enum ERR_CODES analyzeParam(Param *param, SymTable *table, SymFunctionParamPtr arg) {
     if (!param || !table) return E_INTERNAL;
 
-    #ifdef DEBUG
-    printf("Analyzing param %s\n", param->id.name);
-    #endif
+    DEBUG_PRINT("Analyzing param %s", param->id.name);
     
     SymVariable *var = symTableDeclareVariable(
         table, 
@@ -82,74 +72,51 @@ enum ERR_CODES analyzeParam(Param *param, SymTable *table, SymFunctionParamPtr a
         arg->nullable
     );
     if (!var) return E_SEMANTIC_REDIFINITION;
-    #ifdef DEBUG
-    printf("Param %s declared\n", param->id.name);
-    if (!var) printf("ERROC redifinition\n");
-    printf("Param analyzed\n");
-    #endif
+    DEBUG_PRINT("Param %s declared\n", param->id.name); 
     return SUCCESS;
 }
 
 // Function to analyze the body of a function
 enum ERR_CODES analyzeBody(Body *body, SymTable *table, SymFunctionPtr currentFunc, int *retCount) {
-    #ifdef DEBUG
-    puts("Analyzing body");
-    #endif
+    DEBUG_PRINT("Analyzing body");
     if (!body) return E_INTERNAL;
     enum ERR_CODES err;
 
     unsigned int size = getSize(body->statements);
     for (unsigned int i = 0; i < size; i++) {
-        #ifdef DEBUG
-        printf("Analyzing statement %d\n", i);
-        #endif
+        DEBUG_PRINT("Analyzing statement %d", i);
         Statement *statement = (Statement *)getDataAtIndex(body->statements, i);
         err = analyzeStatement(statement, table, currentFunc, retCount);
-        #ifdef DEBUG
-        printf("Statement %d analyzed\n", i);
-        printf("err: %d\n", err);   
-        #endif
+        DEBUG_PRINT("Statement %d analyzed", i);
+        DEBUG_PRINT("err: %d", err);
         if (err != SUCCESS) return err;
     }
 
-    #ifdef DEBUG
-    puts("Body analyzed");
-    #endif
+    DEBUG_PRINT("Body analyzed");
     return SUCCESS;
 }
 
 // Function to analyze a statement
 enum ERR_CODES analyzeStatement(Statement *statement, SymTable *table, SymFunctionPtr currentFunc, int *retCount) {
-    #ifdef DEBUG
-    puts("Analyzing statement");
-    #endif
+    DEBUG_PRINT("Analyzing statement");
     if (!statement) return E_INTERNAL;
     enum ERR_CODES err;
 
     switch (statement->type) {
         case FunctionCallStatementType:
-            #ifdef DEBUG
-            puts("Analyzing function call");
-            #endif
+            DEBUG_PRINT("Analyzing function call");
             // check if the function is void 
             err = analyzeFunctionCall(&statement->data.function_call_statement, table);
-            #ifdef DEBUG
-            printf("Function call analyzed\n");
-            printf("err: %d\n", err);
-            #endif
+            DEBUG_PRINT("Function call analyzed");
+            DEBUG_PRINT("err: %d\n", err);
             if (err != SUCCESS) return err;
 
             // check if the function is void
             SymFunctionPtr SymFunction = symTableFindFunction(table, statement->data.function_call_statement.func_id.name);
-            #ifdef DEBUG
-            if (!SymFunction) printf("Function definition not found\n");
-            #endif
+            DEBUG_PRINT((SymFunction) ? "Function definition found\n" : "Function definition not found");
             if (!SymFunction) return E_SEMANTIC_UND_FUNC_OR_VAR;
-            #ifdef DEBUG
-            printf("Function return type: %d\n", SymFunction->returnType);
-            if (SymFunction->returnType != dTypeVoid) printf("Function is not void\n");
-            printf("Function is void, we good\n");
-            #endif
+            DEBUG_PRINT("Function return type: %d\n", SymFunction->returnType);
+            DEBUG_PRINT((SymFunction->returnType != dTypeVoid) ? "Function is not void\n" : "Function is void, we good");
             if (SymFunction->returnType != dTypeVoid) return E_SEMANTIC_BAD_FUNC_RETURN;
             return SUCCESS;
 
@@ -244,27 +211,19 @@ bool nullCompatabilityCheck(bool nullMain, bool nullSecond) {
 enum ERR_CODES analyzeReturnStatement(ReturnStatement *return_statement, SymTable *table,  SymFunctionPtr currentFunc, int *retCount) {
     if (!return_statement) return E_INTERNAL;
 
-    #ifdef DEBUG
-    puts("Analyzing return statement");
-    #endif
+    DEBUG_PRINT("Analyzing return statement");
 
     enum ERR_CODES err;
-
     enum DATA_TYPES returnType;
     bool nullable;
+
     err = analyzeExpression(&return_statement->value, table, &returnType, &nullable);
-    #ifdef DEBUG
-    printf("Return type: %d\n", returnType);
-    printf("Nullable: %d\n", nullable);
-    printf("err: %d\n", err);
-    #endif
+    DEBUG_PRINT("Return type: %d\nNullable: %d\nError: %d\n", returnType, nullable, err);
     if (err != SUCCESS) return err;
 
-    #ifdef DEBUG
-    if (currentFunc->returnType != returnType) printf("Return type is not the same\n");
-    if (!currentFunc->nullableReturn && nullable) printf("Return type is nullable\n");
-    printf("return valid\n");
-    #endif
+    DEBUG_PRINT_IF(returnType == dTypeUndefined, "Return type is undefined");
+    DEBUG_PRINT_IF(currentFunc->returnType == dTypeNone, "Function return type is undefined");
+    DEBUG_PRINT("return is valid");
 
     // check if the return type is correct
     if (currentFunc->returnType != returnType) return E_SEMANTIC_BAD_FUNC_RETURN;
@@ -277,39 +236,31 @@ enum ERR_CODES analyzeReturnStatement(ReturnStatement *return_statement, SymTabl
 
 // Function to analyze a while statement
 enum ERR_CODES analyzeWhileStatement(WhileStatement *while_statement, SymTable *table, SymFunctionPtr currentFunc, int* retCount) {
-    #ifdef DEBUG
-    puts("Analyzing while statement");
-    #endif
     if (!while_statement) return E_INTERNAL;
+    DEBUG_PRINT("Analyzing while statement");
 
     enum ERR_CODES err;
     enum DATA_TYPES type;
     bool nullable;
 
     err = analyzeExpression(&while_statement->condition, table, &type, &nullable);
-    #ifdef DEBUG
-    printf("While type: %d\n", type);
-    printf("While nullable: %d\n", nullable);
-    printf("err: %d\n", err);
-    #endif
+    DEBUG_PRINT("While type: %d\nWhile nullable: %d\nError: %d", type, nullable, err);
     if (err != SUCCESS) return err;
 
     if (!symTableMoveScopeDown(table, SYM_WHILE)) return E_INTERNAL; // move to while
 
     // we should have this type if whiele -> while (exp) |a| { body }
     if (while_statement->non_nullable.name) {
-        #ifdef DEBUG
-        puts("analyzing while (a) |na| {...}");
-        #endif
+        DEBUG_PRINT("Analyzing while (a) |na| {...}");
         // need to somehow find the variable in the while scope?
         char * varName = while_statement->condition.data.identifier.name;
         SymVariable *var = symTableFindVariable(table, varName);
         if (!var) return E_SEMANTIC_UND_FUNC_OR_VAR;
-        #ifdef DEBUG
-        if (!var->nullable) printf("err Variable %s is not nullable\n", varName);
-        if (var->type == dTypeNone) printf("err Variable %s has no type\n", varName);
-        printf("while var valid\n");
-        #endif
+
+        DEBUG_PRINT_IF(!var->nullable, "Variable %s is not nullable", varName);
+        DEBUG_PRINT_IF(var->type == dTypeNone, "Variable %s has no type", varName);
+        DEBUG_PRINT("While var valid");
+
         if (!var->nullable) return E_SEMANTIC_INCOMPATABLE_TYPES;
         if (var->type == dTypeNone) return E_SEMANTIC_UNKNOWN_TYPE;
 
@@ -321,28 +272,24 @@ enum ERR_CODES analyzeWhileStatement(WhileStatement *while_statement, SymTable *
             false
         );
 
-        #ifdef DEBUG
-        if (!nonNullVar) printf("Variable %s redifined\n", while_statement->non_nullable.name);
-        printf("while non nullable var valid\n");
-        #endif
+        DEBUG_PRINT_IF(!nonNullVar, "Variable %s redifined", while_statement->non_nullable.name);
+        DEBUG_PRINT("While non nullable var valid");
 
         if (!nonNullVar) return E_SEMANTIC_REDIFINITION;
         while_statement->non_nullable_var = nonNullVar;
+
     } else {
-        #ifdef DEBUG
-        puts("analyzing while (truthExp) {...}");
-        if (type != dTypeBool) printf("While type is not bool\n");
-        printf("while type valid\n");
-        #endif
+        DEBUG_PRINT("Analyzing while (truthExp) {...}");
+        DEBUG_PRINT_IF(type != dTypeBool, "While type is not bool");
+        DEBUG_PRINT("While type valid");
+
         if (type != dTypeBool) return E_SEMANTIC_INCOMPATABLE_TYPES; // this shoud never happen, we would have a syntax err
     }
 
     err = analyzeBody(&while_statement->body, table, currentFunc, retCount);
 
-    #ifdef DEBUG
-    puts("while body analyzed");
-    printf("while error: %d\n", err);
-    #endif
+    DEBUG_PRINT("While body analyzed");
+    DEBUG_PRINT("While error: %d", err);
 
     if (err != SUCCESS) return err;
 
@@ -354,9 +301,7 @@ enum ERR_CODES analyzeWhileStatement(WhileStatement *while_statement, SymTable *
 enum ERR_CODES analyzeIfStatement(IfStatement *if_statement, SymTable *table, SymFunctionPtr currentFunc, int *retCount) {
     if (!if_statement) return E_INTERNAL;
 
-    #ifdef DEBUG
-    puts("Analyzing if statement");
-    #endif
+    DEBUG_PRINT("Analyzing if statement");
 
     enum ERR_CODES err = SUCCESS;
 
@@ -364,11 +309,7 @@ enum ERR_CODES analyzeIfStatement(IfStatement *if_statement, SymTable *table, Sy
     bool nullable;
     err = analyzeExpression(&if_statement->condition, table, &type, &nullable);
 
-    #ifdef DEBUG
-    printf("If type: %d\n", type);
-    printf("If nullable: %d\n", nullable);
-    printf("err: %d\n", err);
-    #endif
+    DEBUG_PRINT("If type: %d\nIf nullable: %d\nError: %d", type, nullable, err);
 
     if (err != SUCCESS) return err;
 
@@ -376,18 +317,16 @@ enum ERR_CODES analyzeIfStatement(IfStatement *if_statement, SymTable *table, Sy
     if (!symTableMoveScopeDown(table, SYM_IF)) return E_INTERNAL;
 
     if (if_statement->non_nullable.name) {
-        #ifdef DEBUG
-        puts("analyzing if (a) |na| {...}");
-        #endif
+        DEBUG_PRINT("Analyzing if (a) |na| {...}");
         // need to somehow find the variable in the while scope?
         char * varName = if_statement->condition.data.identifier.name;
         SymVariable *var = symTableFindVariable(table, varName);
         if (!var) return E_SEMANTIC_UND_FUNC_OR_VAR;
-        #ifdef DEBUG
-        if (!var->nullable) printf("Variable %s is not nullable\n", varName);
-        if (var->type == dTypeNone) printf("Variable %s has no type\n", varName);
-        printf("if var valid\n");
-        #endif
+
+        DEBUG_PRINT_IF(!var->nullable, "Variable %s is not nullable", varName);
+        DEBUG_PRINT_IF(var->type == dTypeNone, "Variable %s has no type", varName);
+        DEBUG_PRINT("If var valid");
+
         if (!var->nullable) return E_SEMANTIC_INCOMPATABLE_TYPES;
         if (var->type == dTypeNone) return E_SEMANTIC_UNKNOWN_TYPE;
 
@@ -399,27 +338,25 @@ enum ERR_CODES analyzeIfStatement(IfStatement *if_statement, SymTable *table, Sy
             false
         );
 
-        #ifdef DEBUG
-        if (!nonNullVar) printf("Variable %s redifined\n", if_statement->non_nullable.name);
-        printf("if non nullable var valid, with name: %s\n", if_statement->non_nullable.name);
-        #endif
+        DEBUG_PRINT_IF(!nonNullVar, "Variable %s redifined", if_statement->non_nullable.name);
+        DEBUG_PRINT("If non nullable var valid");
+
         if (!nonNullVar) return E_SEMANTIC_REDIFINITION;
         if_statement->non_nullable_var = nonNullVar;
     } else {
-        #ifdef DEBUG
-        puts("analyzing if (truthExp) {...}");
-        if (type != dTypeBool) printf("If type is not bool\n");
-        printf("if type valid\n");
-        #endif
+
+        DEBUG_PRINT("Analyzing if (truthExp) {...}");
+        DEBUG_PRINT_IF(type != dTypeBool, "If type is not bool");
+        DEBUG_PRINT("If type valid\n");
+
         if (type != dTypeBool) return E_SEMANTIC_INCOMPATABLE_TYPES; // this shoud never happen, we would have a syntax err
     }
 
     // analyze the if body
     err = analyzeBody(&if_statement->if_body, table, currentFunc, retCount);
-    #ifdef DEBUG
-    puts("if body analyzed");
-    printf("if error: %d\n", err);
-    #endif
+    DEBUG_PRINT("If body analyzed");
+    DEBUG_PRINT("If error: %d", err);
+
     if (err != SUCCESS) return err;
 
     // exit the if scope
@@ -429,10 +366,8 @@ enum ERR_CODES analyzeIfStatement(IfStatement *if_statement, SymTable *table, Sy
     // analyze the else body
     if (!symTableMoveScopeDown(table, SYM_IF)) return E_INTERNAL; // move to else
     err = analyzeBody(&if_statement->else_body, table, currentFunc, retCount);
-    #ifdef DEBUG
-    puts("else body analyzed");
-    printf("else error: %d\n", err);
-    #endif
+    DEBUG_PRINT("Else body analyzed");
+    DEBUG_PRINT("Else error: %d", err);
     if (err != SUCCESS) return err;
 
     // exit the else scope
@@ -447,11 +382,11 @@ enum ERR_CODES analyzeAssigmentStatement(AssigmentStatement *statement, SymTable
 
     SymVariable *var = symTableFindVariable(table, statement->id.name);
     if (!var) return E_SEMANTIC_UND_FUNC_OR_VAR;
-    #ifdef DEBUG
-    if (!var->mutable && var->id != 0) printf("Variable %s is not mutable\n", statement->id.name);
-    if (var->id == 0) printf("Variable %s is global\n", statement->id.name);
-    printf("var valid\n");
-    #endif
+
+    DEBUG_PRINT_IF(!var->mutable && var->id != 0, "Variable %s is not mutable", statement->id.name);
+    DEBUG_PRINT_IF(var->id == 0, "Variable %s is global", statement->id.name);
+    DEBUG_PRINT("Var valid");
+
     if (!var->mutable && var->id != 0) return E_SEMANTIC_REDIFINITION; // var-id 0 is the global var _
 
     var->modified = true; // we modifed the variable
@@ -459,22 +394,17 @@ enum ERR_CODES analyzeAssigmentStatement(AssigmentStatement *statement, SymTable
     enum DATA_TYPES type;
     bool nullable;
     err = analyzeExpression(&statement->value, table, &type, &nullable);
-    #ifdef DEBUG
-    printf("Assigment type: %d\n", type);
-    printf("Assigment nullable: %d\n", nullable);
-    printf("err: %d\n", err);
-    #endif
+
+    DEBUG_PRINT("Assigment type: %d\nAssigment nullable: %d\nError: %d", type, nullable, err);
+
     if (err != SUCCESS) return err;
 
-    #ifdef DEBUG
-    if (var->id == 0) printf("Variable %s is global\n", statement->id.name);
-    if (type == dTypeUndefined && var->nullable) printf("Variable %s is nullable\n", statement->id.name);
-    if (var->nullable != nullable) printf("Variable %s is not nullable\n", statement->id.name);
-    if (var->type == dTypeNone) {
-        printf("Variable %s has no type\n", statement->id.name);
-        printf("assigning type %d\n", type);    
-    }
-    #endif
+    DEBUG_PRINT_IF(var->id == 0, "Variable %s is global", statement->id.name);
+    DEBUG_PRINT_IF(type == dTypeUndefined && var->nullable, "Variable %s is nullable", statement->id.name);
+    DEBUG_PRINT_IF(var->nullable != nullable, "Variable %s is not nullable", statement->id.name);
+    DEBUG_PRINT_IF(var->type == dTypeNone, "Variable %s has no type", statement->id.name);
+    DEBUG_PRINT_IF(var->type != type, "Variable %s is not the same type\nassigning type %d", statement->id.name, type);
+
     // after we know, the expresion is valid, we can check if the types are the same
     if (var->id == 0) return SUCCESS; // we can assign anything to the global var _ the value should be discarded
 
@@ -484,22 +414,16 @@ enum ERR_CODES analyzeAssigmentStatement(AssigmentStatement *statement, SymTable
     // null compatability
     if (var->nullable != nullable) return E_SEMANTIC_INCOMPATABLE_TYPES;
 
-    #ifdef DEBUG
-    if (var->type == dTypeNone) {
-        printf("Variable %s has no type\n", statement->id.name);
-        printf("assigning type %d\n", type);    
-    }
-    #endif
+    DEBUG_PRINT_IF(var->type == dTypeNone, "Variable %s has no type, assigning type: %d", statement->id.name, type);
+
     // in case we did not define the type, we can do it now
     if (var->type == dTypeNone) {
         var->type = type;
         return SUCCESS;
     }
 
-    #ifdef DEBUG
-    if (var->type != type) printf("Variable %s is not the same type\n", statement->id.name);
-    printf("var type valid\n");
-    #endif
+    DEBUG_PRINT_IF(var->type != type, "Variable %s is not the same type", statement->id.name);
+    DEBUG_PRINT("Var type valid");
 
     // check if the types are the same
     if (var->type != type) {
@@ -512,19 +436,13 @@ enum ERR_CODES analyzeAssigmentStatement(AssigmentStatement *statement, SymTable
 
 // Function to analyze a variable definition statement
 enum ERR_CODES analyzeVariableDefinitionStatement(VariableDefinitionStatement *statement, SymTable *table) {
-    #ifdef DEBUG
-    puts("Analyzing variable definition statement");
-    #endif
 
     if (!statement) return E_INTERNAL;
+
+    DEBUG_PRINT("Analyzing variable definition statement");
     enum ERR_CODES err;
 
-    #ifdef DEBUG
-    printf("declaring variable %s\n", statement->id.name);
-    printf("Variable type: %d\n", statement->type.data_type);
-    printf("Variable nullable: %d\n", statement->type.is_nullable);
-    printf("Variable const: %d\n", statement->isConst);
-    #endif
+    DEBUG_PRINT("declaring variable %s\nVariable type: %d\nVariable nullable: %d\nVariable const: %d", statement->id.name, statement->type.data_type, statement->type.is_nullable, statement->isConst);
 
     // declare the var
     SymVariable *var = symTableDeclareVariable(
@@ -534,27 +452,23 @@ enum ERR_CODES analyzeVariableDefinitionStatement(VariableDefinitionStatement *s
         !statement->isConst,
         statement->type.is_nullable
     );
-    #ifdef DEBUG
-    if (!var) printf("Variable %s redifined\n", statement->id.name);
-    printf("var declare valid\n");
-    #endif
+
+    DEBUG_PRINT_IF(!var, "Variable %s redifined", statement->id.name);
+    DEBUG_PRINT("Var declare valid");
+
     if (!var) return E_SEMANTIC_REDIFINITION;
 
     bool nullable;
     enum DATA_TYPES type;
     err = analyzeExpression(&statement->value, table, &type, &nullable);
-    #ifdef DEBUG
-    printf("analyzing right side of the definition\n");
-    printf("exp type: %d\n", type);
-    printf("exp nullable: %d\n", nullable);
-    printf("err: %d\n", err);
-    #endif
+
+    DEBUG_PRINT("analyzing right side of the definition\nexp type: %d\nexp nullable: %d\nerr: %d", type, nullable, err);
+
     if (err != SUCCESS) return err;
+
+    DEBUG_PRINT_IF(type == dTypeUndefined, "Variable %s is undefined", statement->id.name);
+    DEBUG_PRINT_IF(var->type == dTypeNone, "Variable %s has no type", statement->id.name);
     
-    #ifdef DEBUG
-    if (type == dTypeUndefined) printf("variable has no type, return UNKNOWN_TYPE\n");
-    if (var->type == dTypeNone) printf("variable has no type, return assigning form exp\n");
-    #endif
     // var a = null;
     if (type == dTypeUndefined) return E_SEMANTIC_UNKNOWN_TYPE;
     if (type == dTypeVoid) return E_SEMANTIC_INCOMPATABLE_TYPES;
@@ -568,12 +482,9 @@ enum ERR_CODES analyzeVariableDefinitionStatement(VariableDefinitionStatement *s
         return SUCCESS;
     }
 
-    #ifdef DEBUG
-    printf("Variable type: %d\n", var->type);
-    printf("Variable nullable: %d\n", var->nullable);
-    if (var->type != type) printf("Variable %s is not the same type\n", statement->id.name);
-    printf("var type valid\n");
-    #endif
+    DEBUG_PRINT("Variable type: %d\nVariable nullable: %d", var->type, var->nullable);
+    DEBUG_PRINT_IF(var->type != type, "Variable %s is not the same type", statement->id.name);
+    DEBUG_PRINT("Var type valid");
 
     // check if the types are the same
     if (var->type != type) {

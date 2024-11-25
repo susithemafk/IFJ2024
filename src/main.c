@@ -16,18 +16,16 @@ int main(void) {
     enum ERR_CODES status;
     
     SymTable *table = symTableInit();
-    #ifdef DEBUG
-    if (!table) printf("Table not created\n");
-    printf("Table created\n");
-    #endif
+
+    DEBUG_PRINT_IF(!table, "Table not created");
+    DEBUG_PRINT("Table created");
+
     if (!table) return E_INTERNAL;
 
     // init parser
     status = parser_init(table);
     if (status != SUCCESS) {
-        #ifdef DEBUG
-        printf("Error in parser init\n");
-        #endif
+        DEBUG_PRINT("Error in parser init");
         return status;
     }
 
@@ -36,25 +34,18 @@ int main(void) {
     program.functions = NULL; // important, for faild first pass
     status = parser_parse(stdin, &program);
 
-    #ifdef DEBUG
-    printf("Parser parse status: %d\n", status);
-    #endif
+    DEBUG_PRINT("parser parse status: %d", status); 
 
     if (status != SUCCESS) {
-        #ifdef DEBUG
-        printf("cleaning up\n");
-        #endif
+        DEBUG_PRINT("cleaning up");
         parser_cleanup();
-        #ifdef DEBUG
-        printf("cleaning ast\n");
-        #endif
+        DEBUG_PRINT("cleaning ast");
         freeProgram(&program);
         return status;
     }
 
-    #ifdef DEBUG
-    printf("Analyzing program\n");
-    #endif
+    // analyze program
+    DEBUG_PRINT("Analyzing program");
 
     status = analyzeProgram(&program, table);
     if (status != SUCCESS) {
@@ -64,6 +55,8 @@ int main(void) {
     }
 
     // generate code
+    DEBUG_PRINT("Generating code");
+
     generateCodeProgram(&program);
 
     parser_cleanup();

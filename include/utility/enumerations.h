@@ -10,6 +10,7 @@
 #define ENUMERATIONS_H
 
 #include <stdbool.h>
+#include <stdarg.h>
 
 // ANSI color codes for console output
 #define COLOR_PASS "\033[0;32m" // Green
@@ -19,6 +20,27 @@
 #define COLOR_RESET "\033[0m"   // Reset to default
 #define COLOR_FILE "\033[2;37m" // Faint White
 #define COLOR_FUNC "\033[0;35m" // Magenta
+
+/**
+ * @brief Print debug messages
+ * @see https://stackoverflow.com/questions/66431424/defining-a-conditional-print-macro-in-c
+ */
+// Unified debug macro
+// Debug macro
+#ifdef DEBUG
+    // Always print debug messages
+    #define DEBUG_PRINT(...) printDebug(__func__, __VA_ARGS__)
+
+    // Conditionally print debug messages
+    #define DEBUG_PRINT_IF(cond, ...) do { \
+        if (cond) printDebug(__func__, __VA_ARGS__); \
+    } while (0)
+#else
+    // No-op in release builds
+    #define DEBUG_PRINT(...) // No-op
+    #define DEBUG_PRINT_IF(cond, ...) // No-op
+#endif
+
 
 /**
  * @brief Enums for error codes
@@ -174,9 +196,6 @@ bool isDataType(enum TOKEN_TYPE type);
  */
 enum DATA_TYPES covertTokneDataType(enum TOKEN_TYPE type);
 
-// Debug macro
-#define DEBUG_MSG(message) printDebug(__FILE__, __func__, message)
-
 /**
  * Function to print out a debug message
  *
@@ -184,7 +203,7 @@ enum DATA_TYPES covertTokneDataType(enum TOKEN_TYPE type);
  * @param message The message to print
  * @return void
  */
-void printDebug(const char *file_name, const char *function_name, const char *message);
+void printDebug(const char *function_name, const char *format, ...);
 
 /**
  * Function to hash a string

@@ -385,12 +385,9 @@ void _symTableTraverseVariables(TreeNode *node, bool *result) {
         variable = (SymVariable *)getDataAtIndex(variables, i);
         //if (variable == NULL || variable->accesed == false) {
         if (variable == NULL || variable->modified == false || variable->accesed == false) {
-            #ifdef DEBUG
-            printf("Variable %s was not accesed\n", variable->name);
-            printf("mutable: %d\n", variable->mutable);
-            printf("modified: %d\n", variable->modified);
-            printf("accesed: %d\n", variable->accesed);
-            #endif
+
+            DEBUG_PRINT("Variable %s is not semanticaly correct\n - mutable: %d\n - modified: %d\n - accesed: %d\n", variable->name, variable->mutable, variable->modified, variable->accesed);
+
             *result = false;
             return;
         }
@@ -428,14 +425,10 @@ enum ERR_CODES symTableExitScope(SymTable *table) {
 
     // check if all variables were accesed
     if (_symTableAllVariablesAccesed(currentScope)) {
-        #ifdef DEBUG
-        printf("Symtable -> All variables in the scope were accesed\n");
-        #endif
+        DEBUG_PRINT("Symtable -> All variables in the scope were accesed");
         returnCode = SUCCESS;
     } else {
-        #ifdef DEBUG
-        printf("symtable -> Not all variables in the scope were accesed\n");
-        #endif
+        DEBUG_PRINT("Symtable -> Not all variables in the scope were accesed");
         returnCode = E_SEMANTIC_UNUSED_VAR;
     }
 

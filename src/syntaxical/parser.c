@@ -12,16 +12,6 @@
 #include "syntaxical/precident.h"
 #include "utility/my_utils.h"
 
-/**
- * @brief Print debug messages
- * @see https://stackoverflow.com/questions/66431424/defining-a-conditional-print-macro-in-c
- */
-#ifdef DEBUG
-#define DEBUG_PRINT(...) printf(__VA_ARGS__)
-#else
-#define DEBUG_PRINT(...)
-#endif
-
 static unsigned int tokenIndex = 0;
 static LinkedList *buffer = NULL;
 static SymTable *table = NULL; // TODO: vhodit do mainu table, pak parser, pak v mainu free

@@ -16,6 +16,30 @@
 #include "utility/linked_list.h"
 #include <stdbool.h>
 
+#ifdef DEBUG
+#define DEBUG_TOKEN_RULE(stackItem, token, rule)                 \
+    do {                                                        \
+        printf("Rule checking result:\n");                      \
+        printf("- stack item: ");                               \
+        printTokenType(stackItem);                              \
+        printf("- input item: ");                               \
+        printTokenType(token->type);                            \
+        printf("- rule: ");                                     \
+        switch (rule) {                                         \
+            case GREATER: printf(">\n"); break;                 \
+            case LESS:    printf("<\n"); break;                 \
+            case EQUAL:   printf("=\n"); break;                 \
+            case END:     printf("END\n"); break;               \
+            case ERROR:   printf("ERROR\n"); break;             \
+            default:      printf("UNKNOWN RULE\n"); break;      \
+        }                                                       \
+    } while (0)
+#define DEBUG_STACK(stack) printStack(stack)
+#else
+#define DEBUG_TOKEN_RULE(stackItem, token, rule) // No-op in release builds
+#define DEBUG_STACK(stack) // No-op in release builds
+#endif
+
 // ####################### PRECIDENT #######################
 
 extern const char precedentTable[7][8];

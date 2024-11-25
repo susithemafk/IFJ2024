@@ -11,6 +11,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdarg.h>
 
 // Function to negate a comparason operand
 enum TOKEN_TYPE negateOperand(enum TOKEN_TYPE operand) {
@@ -121,22 +122,18 @@ void printErrCode(enum ERR_CODES errCode) {
 
     printf("Error -> %s%s%s\n", color, errStr, COLOR_RESET);
 }
-
-// Function to print out a debug message
-void printDebug(const char *file_name, const char *function_name, const char *message) {
-    printf("%sDEBUG:%s %sFILE: %s%s \n%sFUNC: %s%s \n%smsg: %s %s\n", 
-            COLOR_INFO,       // Color for DEBUG label
-            COLOR_RESET,      // Reset color after DEBUG label
-            COLOR_FILE,       // Color for FILE label
-            file_name,        // File name passed as argument
-            COLOR_RESET,      // Reset color after file name
-            COLOR_FUNC,       // Color for FUNC label
-            function_name,    // Function name passed as argument
-            COLOR_RESET,      // Reset color after function name
-            COLOR_PASS,       // Color for the "msg->" prefix
-            COLOR_RESET,      // Reset color after "msg->"
-            message);         // The actual message
+// Debug print function
+void printDebug(const char *function_name, const char *format, ...) {
+    va_list args;
+    va_start(args, format);
+    printf("%sDEBUG:%s %sFUNC:%s %s %smsg%s -> ", 
+           COLOR_INFO, COLOR_RESET, 
+           COLOR_FUNC, function_name, COLOR_RESET, COLOR_PASS, COLOR_RESET);
+    vprintf(format, args); // Print the formatted message
+    printf(" %s\n", COLOR_RESET);
+    va_end(args);
 }
+
 
 // Function to hash a string
 unsigned int hashString(const char* str) {

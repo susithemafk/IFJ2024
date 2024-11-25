@@ -119,6 +119,8 @@ void test_variables(void) {
         "Failed to find 'Y' in the block scope (unexpected)"
     );
 
+    varY->modified = true; // similating modification
+
     // 12. Test finding 'X' from the function scope
     SymVariable *varX = symTableFindVariable(table, "X");
     testCase(
@@ -128,6 +130,8 @@ void test_variables(void) {
         "Found 'X' from the function scope (expected)",
         "Failed to find 'X' from the function scope (unexpected)"
     );
+
+    varX->modified = true; // similating modification
 
     // 13. Check if 'X' is mutable
     testCase(
@@ -184,9 +188,6 @@ void test_variables(void) {
         "All variables were used (expected)",
         "Not all variables were used (unexpected)"
     );
-
-    // Free the symbol table
-    printf("-- Freeing the symbol table (when exiting the global scope)\n");
 
     // 19. Free the symbol table
     testCase(

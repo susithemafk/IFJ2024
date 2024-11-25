@@ -49,9 +49,7 @@ bool saveNewToken(struct TOKEN token, LinkedList *buffer) {
 
 enum ERR_CODES pubfn(LinkedList *buffer, SymTable *table) {
 
-    #ifdef DEBUG
-    DEBUG_MSG("Parsing function definition\n");
-    #endif
+    DEBUG_PRINT("Parsing function definition");
 
     // try to find the fn    
     enum ERR_CODES status = scanner_get_token(&token);
@@ -101,11 +99,7 @@ enum ERR_CODES pubfn(LinkedList *buffer, SymTable *table) {
         if (status != SUCCESS) return status;
         if (!saveNewToken(token, buffer)) return E_INTERNAL;
         if (token.type != TOKEN_I32 && token.type != TOKEN_F64 && token.type != TOKEN_U8) {
-            #ifdef DEBUG
-            DEBUG_MSG("Expected i32 or f64 or u8 but got: ");
-            printTokenType(token.type);
-            printf("value of token: %s\n", token.value);
-            #endif
+            DEBUG_PRINT("Expected i32 or f64 or u8 but got: %s", token.value);
             return E_SYNTAX;
         }
 
@@ -116,8 +110,8 @@ enum ERR_CODES pubfn(LinkedList *buffer, SymTable *table) {
         if (status != SUCCESS) return status;
         if (!saveNewToken(token, buffer)) return E_INTERNAL;
         if (token.type != TOKEN_COMMA && token.type != TOKEN_RPAR) {
+            DEBUG_PRINT("Expected , or ) but got: ");
             #ifdef DEBUG
-            DEBUG_MSG("Expected , or ) but got: ");
             printTokenType(token.type); 
             #endif
             return E_SYNTAX;

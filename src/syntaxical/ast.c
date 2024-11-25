@@ -11,9 +11,7 @@
 #include <stdio.h>
 
 void freeProgram(Program *program) {
-    #ifdef DEBUG
-    DEBUG_MSG("Freeing program");
-    #endif
+    DEBUG_PRINT("Freeing program");
     if (!program) return;
     int size = getSize(program->functions);
     for (int i = 0; i < size; i++) {
@@ -25,9 +23,7 @@ void freeProgram(Program *program) {
 }
 
 void freeFunction(Function *function) {
-    #ifdef DEBUG
-    DEBUG_MSG("Freeing function");
-    #endif
+    DEBUG_PRINT("Freeing function");
     if (!function) return;
     freeIdentifier(&function->id);
     freeBody(&function->body);
@@ -43,9 +39,7 @@ void freeFunction(Function *function) {
 }
 
 void freeBody(Body *body) {
-    #ifdef DEBUG
-    DEBUG_MSG("Freeing body");
-    #endif
+    DEBUG_PRINT("Freeing body");
     if (!body) return;
     int size = getSize(body->statements);
     for (int i = 0; i < size; i++) {
@@ -57,18 +51,14 @@ void freeBody(Body *body) {
 }
 
 void freeParam(Param *param) {
-    #ifdef DEBUG
-    DEBUG_MSG("Freeing param");
-    #endif
+    DEBUG_PRINT("Freeing param");
     if (!param) return;
     freeIdentifier(&param->id);
     freeDataType(&param->type);
 }
 
 void freeVariableDefinitionStatement(VariableDefinitionStatement *statement) {
-    #ifdef DEBUG
-    DEBUG_MSG("Freeing variable definition statement");
-    #endif
+    DEBUG_PRINT("Freeing variable definition statement");
     if (!statement) return;
     freeIdentifier(&statement->id);
     freeDataType(&statement->type);
@@ -76,18 +66,14 @@ void freeVariableDefinitionStatement(VariableDefinitionStatement *statement) {
 }
 
 void freeAssigmentStatement(AssigmentStatement *statement) {
-    #ifdef DEBUG
-    DEBUG_MSG("Freeing assigment statement");
-    #endif
+    DEBUG_PRINT("Freeing assigment statement");
     if (!statement) return;
     freeIdentifier(&statement->id);
     freeExpression(&statement->value);
 }
 
 void freeIfStatement(IfStatement *statement) {
-    #ifdef DEBUG
-    DEBUG_MSG("Freeing if statement");
-    #endif
+    DEBUG_PRINT("Freeing if statement");
     if (!statement) return;
     freeBody(&statement->if_body);
     freeBody(&statement->else_body);
@@ -96,9 +82,7 @@ void freeIfStatement(IfStatement *statement) {
 }
 
 void freeWhileStatement(WhileStatement *statement) {
-    #ifdef DEBUG
-    DEBUG_MSG("Freeing while statement");
-    #endif
+    DEBUG_PRINT("Freeing while statement");
     if (!statement) return;
     freeBody(&statement->body);
     freeExpression(&statement->condition);
@@ -106,17 +90,13 @@ void freeWhileStatement(WhileStatement *statement) {
 }
 
 void freeReturnStatement(ReturnStatement *statement) {
-    #ifdef DEBUG
-    DEBUG_MSG("Freeing return statement");
-    #endif
+    DEBUG_PRINT("Freeing return statement");
     if (!statement) return;
     freeExpression(&statement->value);
 }
 
 void freeStatement(Statement *statement) {
-    #ifdef DEBUG
-    DEBUG_MSG("Freeing statement");
-    #endif
+    DEBUG_PRINT("Freeing statement");
     if (!statement) return;
     switch (statement->type) {
     case FunctionCallStatementType:
