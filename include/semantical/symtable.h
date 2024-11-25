@@ -116,6 +116,7 @@ typedef struct SymVariable {
     bool mutable; // if the variable is mutable (constants will have this false)
     int nullable; // Indicates if the variable can hold a null value -1 unknown, 0 not nullable, 1 nullable
     bool accesed; // if the variable was accessed
+    bool modified; // if the variable was modified
 } SymVariable;
 
 

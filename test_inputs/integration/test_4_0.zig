@@ -4,8 +4,8 @@ pub fn factorial(n: i32) i32 {
     if (n <= 1) {
         return 1;
     } else {
-        var d = n - 1;
-        var c = factorial(d);
+        const d = n - 1;
+        const c = factorial(d);
         return n * c;
     }
 }

@@ -91,7 +91,7 @@ valgrind:
 clean:
 	@$(printCmd) "\033[1;36m==================================\033[0m"
 	@$(printCmd) "\033[1;33mCleaning build files...         \033[0m"
-	@rm -f main test_* ifj_to_go.zip
+	@rm -f main ifj_to_go.zip
 	@$(printCmd) "\033[1;32mAll build files cleaned\033[0m"
 	@$(printCmd) "\033[1;36m==================================\033[0m"
 
@@ -101,6 +101,14 @@ zip:
 	@cd ../ && zip -rq ./IFJ2024/ifj_to_go.zip ./IFJ2024 -x "*/.git/*" "*/.gitignore" || \
 		$(printCmd) "\033[1;31mZipping failed.\033[0m"
 	@$(printCmd) "\033[1;32mProject zipped successfully: ../IFJ2024/ifj_to_go.zip\033[0m"
+	@$(printCmd) "\033[1;36m==================================\033[0m"
+
+submit:
+	@$(printCmd) "\033[1;36m==================================\033[0m"
+	@$(printCmd) "\033[1;33mPreparing submission zip...       \033[0m"
+	@zip -rq xsucha18.zip . -x "*.git/*" ".gitignore" || \
+		$(printCmd) "\033[1;31mZipping failed.\033[0m"
+	@$(printCmd) "\033[1;32mSubmission zip created: ./xsucha18.zip\033[0m"
 	@$(printCmd) "\033[1;36m==================================\033[0m"
 
 # help command
@@ -120,6 +128,7 @@ help:
 	@$(printCmd) "\033[1;36m| \033[1;32mmake\033[2;37m valgrind file=integration testcase=<test_num> print=<bool>	\033[0m\033[1;36m| \033[0mRun specific integration test under Valgrind      	\033[1;36m| \033[1;35mmake valgrind file=integration testcase=1\033[1;36m  	|\033[0m"
 	@$(printCmd) "\033[1;36m| \033[1;32mmake\033[2;37m clean                		     				\033[0m\033[1;36m| \033[0mClean build files                                 	\033[1;36m| \033[1;35mmake clean             			\033[1;36m|\033[0m"
 	@$(printCmd) "\033[1;36m| \033[1;32mmake\033[2;37m zip          		             				\033[0m\033[1;36m| \033[0mZip the project                                   	\033[1;36m| \033[1;35mmake zip                 			\033[1;36m|\033[0m"
+	@$(printCmd) "\033[1;36m| \033[1;32mmake\033[2;37m submit          		             				\033[0m\033[1;36m| \033[0mCreate submission zip                            	\033[1;36m| \033[1;35mmake submit                 			\033[1;36m|\033[0m"
 	@$(printCmd) "\033[1;36m| \033[1;32mmake\033[2;37m help			                			\033[0m\033[1;36m| \033[0mShow this help message                                \033[1;36m| \033[1;35mmake help                			\033[1;36m|\033[0m"
 	@$(printCmd) "\033[1;36m+-----------------------------------------------------------------------+-------------------------------------------------------+-----------------------------------------------+\033[0m"
 	

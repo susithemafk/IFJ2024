@@ -269,12 +269,15 @@ SymTable *symTableInit(void) {
         free(globalConstants);
         return NULL;
     }
+
     strcpy(thorwAway->name, "_");
     thorwAway->type = dTypeNone;
     thorwAway->accesed = true;
     thorwAway->id = 0;
     thorwAway->mutable = false;
     thorwAway->nullable = 1;
+    thorwAway->accesed = true;
+
     if (!insertNodeAtIndex(globalConstants, (void *)thorwAway, -1)) {
         free(thorwAway);
         free(globalScope);
@@ -380,7 +383,14 @@ void _symTableTraverseVariables(TreeNode *node, bool *result) {
     unsigned int size = getSize(variables);
     for (unsigned i = 0; i < size; i++) {
         variable = (SymVariable *)getDataAtIndex(variables, i);
-        if (variable == NULL || variable->accesed == false) {
+        //if (variable == NULL || variable->accesed == false) {
+        if (variable == NULL || variable->modified == false || variable->accesed == false) {
+            #ifdef DEBUG
+            printf("Variable %s was not accesed\n", variable->name);
+            printf("mutable: %d\n", variable->mutable);
+            printf("modified: %d\n", variable->modified);
+            printf("accesed: %d\n", variable->accesed);
+            #endif
             *result = false;
             return;
         }
@@ -475,6 +485,7 @@ SymVariable *symTableDeclareVariable(SymTable *table, char *name, enum DATA_TYPE
     newVariable->nullable = nullable;
     newVariable->accesed = false;
     newVariable->id = table->varCount;
+    newVariable->modified = (mutable) ? false : true; // if the var is constant, we dont need to acces it
 
     // Get the hash of the variable's name
     unsigned int hash = hashString(name);
@@ -561,7 +572,6 @@ SymVariable *symTableFindVariable(SymTable *table, char *name) {
         // Move up to the parent scope if not found
         currentScope = currentScope->parent;
     }
-
     return NULL; // Variable not found
 }
 

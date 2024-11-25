@@ -308,7 +308,7 @@ enum ERR_CODES analyzeWhileStatement(WhileStatement *while_statement, SymTable *
             table,
             while_statement->non_nullable.name,
             var->type,
-            var->mutable,
+            false, // this war will not exist after the while loop, so it should be const
             false
         );
 
@@ -386,7 +386,7 @@ enum ERR_CODES analyzeIfStatement(IfStatement *if_statement, SymTable *table, Sy
             table,
             if_statement->non_nullable.name,
             var->type,
-            var->mutable,
+            false, // this war will not exist after the while loop, so it should be const
             false
         );
 
@@ -444,6 +444,8 @@ enum ERR_CODES analyzeAssigmentStatement(AssigmentStatement *statement, SymTable
     printf("var valid\n");
     #endif
     if (!var->mutable && var->id != 0) return E_SEMANTIC_REDIFINITION; // var-id 0 is the global var _
+
+    var->modified = true; // we modifed the variable
 
     enum DATA_TYPES type;
     bool nullable;

@@ -39,15 +39,15 @@ SymVariable write_var = {4, "write", DATA_TYPE_VOID, false, true, false};
 
 */
 
-SymVariable write_var = {4, "write", dTypeNone, false, false, true};
-SymVariable term1 = {1, "term", dTypeI32, false, false, true};
-SymVariable term2 = {2, "term", dTypeF64, false, false, true};
-SymVariable term3 = {3, "term", dTypeU8, false, false, true};
-SymVariable s = {4, "s", dTypeU8, false, false, true};
-SymVariable s1 = {5, "s1", dTypeU8, false, false, true};
-SymVariable s2 = {6, "s2", dTypeU8, false, false, true};
-SymVariable i = {7, "i", dTypeI32, false, false, true};
-SymVariable j = {8, "j", dTypeI32, false, false, true};
+SymVariable write_var = {4, "write", dTypeNone, false, false, true, true};
+SymVariable term1 = {1, "term", dTypeI32, false, false, true, true};
+SymVariable term2 = {2, "term", dTypeF64, false, false, true, true};
+SymVariable term3 = {3, "term", dTypeU8, false, false, true, true};
+SymVariable s = {4, "s", dTypeU8, false, false, true, true};
+SymVariable s1 = {5, "s1", dTypeU8, false, false, true, true};
+SymVariable s2 = {6, "s2", dTypeU8, false, false, true, true};
+SymVariable i = {7, "i", dTypeI32, false, false, true, true};
+SymVariable j = {8, "j", dTypeI32, false, false, true, true};
 
 void fillInBuildInFuncions(SymTable* table) {
 
