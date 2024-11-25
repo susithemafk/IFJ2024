@@ -491,7 +491,11 @@ enum ERR_CODES analyzeAssigmentStatement(AssigmentStatement *statement, SymTable
     #endif
 
     // check if the types are the same
-    if (var->type != type) return E_SEMANTIC_INCOMPATABLE_TYPES;
+    if (var->type != type) {
+        if (var->nullable && type == dTypeVoid)
+            return SUCCESS; // var a = null;
+        return E_SEMANTIC_INCOMPATABLE_TYPES;
+    }
     return SUCCESS;
 }
 
@@ -561,8 +565,11 @@ enum ERR_CODES analyzeVariableDefinitionStatement(VariableDefinitionStatement *s
     #endif
 
     // check if the types are the same
-    if (var->type != type) return E_SEMANTIC_INCOMPATABLE_TYPES;
-
+    if (var->type != type) {
+        // if (var->nullable && type == dTypeVoid)  // TODO check if this is correct
+        //     return SUCCESS; // var a = null;
+        return E_SEMANTIC_INCOMPATABLE_TYPES;
+    }
     return SUCCESS;
 }
 

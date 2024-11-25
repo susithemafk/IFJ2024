@@ -9,9 +9,8 @@
 #ifdef DEBUG
 #define DEBUG_PRINT(...) printf(__VA_ARGS__)
 #else
-#define DEBUG_PRINT(...) 
+#define DEBUG_PRINT(...)
 #endif
-
 
 static unsigned int tokenIndex = 0;
 static LinkedList *buffer = NULL;
@@ -78,11 +77,13 @@ bool match(enum TOKEN_TYPE tokenType) {
         DEBUG_PRINT("Expected token type: ");
         printTokenType(tokenType);
         DEBUG_PRINT(" but got: ");
+
         if (token) {
             printTokenType(currentToken()->type);
         } else {
             DEBUG_PRINT("No token");
         }
+
         return false;
     }
 
@@ -97,10 +98,13 @@ bool parse_program(struct Program *program) {
     program->functions = initLinkedList(true);
     if (!program->functions)
         return false;
+
     if (!parse_prolog())
         return false;
+
     if (!parse_functions(program->functions))
         return false;
+
     if (!match(TOKEN_EOF))
         return false;
 
@@ -123,7 +127,7 @@ bool parse_prolog(void) {
         return false; // const identifier = @identifier
     if (!match(TOKEN_LPAR))
         return false; // const identifier = @identifier(
-    if (!match(TOKEN_STRING))
+    if (!match(TOKEN_STRING_LITERAL))
         return false; // const identifier = @identifier("string")
     if (!match(TOKEN_RPAR))
         return false; // const identifier = @identifier("string")
@@ -143,13 +147,15 @@ bool parse_functions(LinkedList *functions) {
         Function *function = malloc(sizeof(struct Function));
         if (!function)
             return false;
-
         memset(function, 0, sizeof(struct Function));
+
         function->params = initLinkedList(true);
         if (!function->params)
             return false;
+
         if (!insertNodeAtIndex(functions, (void *)function, -1))
             return false;
+
         if (!parse_function(function))
             return false;
     }
@@ -165,6 +171,7 @@ bool parse_function(struct Function *function) {
         return false; // pub
     if (!match(TOKEN_FN))
         return false; // pub fn
+
     if (currentToken()->type != TOKEN_IDENTIFIER)
         return false; // pub fn identifier
 
@@ -177,16 +184,22 @@ bool parse_function(struct Function *function) {
 
     if (!match(TOKEN_LPAR))
         return false; // pub fn identifier(
+
     if (!parse_params(function->params))
         return false; // pub fn identifier(params
+
     if (!match(TOKEN_RPAR))
         return false; // pub fn identifier(params)
+
     if (!parse_data_type(&function->returnType))
         return false; // pub fn identifier(params) ret_type
+
     if (!match(TOKEN_LBRACE))
         return false; // pub fn identifier(params) ret_type {
+
     if (!parse_func_body(&function->body))
         return false; // pub fn identifier(params) ret_type { ...
+
     if (!match(TOKEN_RBRACE))
         return false; // pub fn identifier(params) ret_type { ... }
 
@@ -313,7 +326,7 @@ bool parse_func_call_param(Expression *expr) {
         return true;
     }
 
-    if (currentToken()->type == TOKEN_I32 || currentToken()->type == TOKEN_F64 || currentToken()->type == TOKEN_U8) {
+    if (isLiteral(currentToken()->type)) {
         DEBUG_PRINT("Data type: %s\n", currentToken()->value);
 
         expr->expr_type = LiteralExpressionType;
@@ -321,20 +334,7 @@ bool parse_func_call_param(Expression *expr) {
         if (!expr->data.literal.value)
             return false;
 
-        switch (currentToken()->type) {
-        case TOKEN_I32:
-            expr->data_type.data_type = dTypeI32;
-            break;
-        case TOKEN_F64:
-            expr->data_type.data_type = dTypeF64;
-            break;
-        case TOKEN_U8:
-            expr->data_type.data_type = dTypeU8;
-            break;
-        default:
-            break;
-        }
-
+        expr->data_type.data_type = covertTokneDataType(currentToken()->type);
         expr->data.literal.data_type = expr->data_type;
 
         getNextToken();
@@ -356,7 +356,7 @@ bool parse_func_call_param(Expression *expr) {
         return true;
     }
 
-    if (currentToken()->type == TOKEN_STRING) {
+    if (currentToken()->type == TOKEN_STRING_LITERAL) {
         DEBUG_PRINT("String: %s\n", currentToken()->value);
 
         expr->expr_type = LiteralExpressionType;
@@ -379,39 +379,20 @@ bool parse_func_call_param(Expression *expr) {
 bool parse_data_type(DataType *data_type) {
     DEBUG_PRINT("Parsing <data_type>\n");
 
-    bool isNullable = false;
-    enum DATA_TYPES dataType = dTypeNone;
-
     if (currentToken()->type == TOKEN_QUESTION_MARK) {
-        isNullable = true;
+        data_type->is_nullable = true;
         getNextToken();
     }
 
-    switch (currentToken()->type) {
-    case TOKEN_I32:
-        dataType = dTypeI32;
-        break;
-    case TOKEN_F64:
-        dataType = dTypeF64;
-        break;
-    case TOKEN_U8:
-        dataType = dTypeU8;
-        break;
-    case TOKEN_VOID:
-        dataType = dTypeVoid;
-        break;
-    default:
-
+    if (!isDataType(currentToken()->type)) {
         DEBUG_PRINT("Expected data type but got: %s\n", currentToken()->value);
         return false;
     }
+    data_type->data_type = covertTokneDataType(currentToken()->type);
 
     getNextToken();
 
-    data_type->data_type = dataType;
-    data_type->is_nullable = isNullable;
-
-    DEBUG_PRINT("Successfully parsed <data_type>: %d\n", dataType);
+    DEBUG_PRINT("Successfully parsed <data_type>: %d\n", data_type->data_type);
     return true;
 }
 
@@ -490,13 +471,14 @@ bool parse_body_content(struct Statement *statement) {
         statement->type = FunctionCallStatementType;
         return parse_func_call_statement(&statement->data.function_call_statement);
 
-
     case TOKEN_DELETE_VALUE:
         statement->type = AssigmentStatementType;
         return parse_var_assign(&statement->data.assigment_statement);
 
     default:
-        printf("Syntax error: unexpected token %s\n, expected: const, var, if, while, return, identifier, ifj, _", token->value);
+        printf("Syntax error: unexpected token %s\n, expected: const, var, if, while, return, "
+               "identifier, ifj, _",
+               token->value);
         return false;
     }
 
@@ -794,7 +776,8 @@ bool parse_func_call_statement(FunctionCall *function_call) {
 
     TOKEN_PTR nextToken = getDataAtIndex(buffer, tokenIndex + 1);
 
-    if (!strcmp(currentToken()->value, "ifj") && nextToken && nextToken->type == TOKEN_CONCATENATE) {
+    if (!strcmp(currentToken()->value, "ifj") && nextToken &&
+        nextToken->type == TOKEN_CONCATENATE) {
         if (!parse_native_func_call(function_call))
             return false;
         if (!match(TOKEN_SEMICOLON))
@@ -818,7 +801,8 @@ bool parse_var_assign(AssigmentStatement *assign_statement) {
     if (currentToken()->type != TOKEN_IDENTIFIER && currentToken()->type != TOKEN_DELETE_VALUE)
         return false;
 
-    assign_statement->id.name = copyString(currentToken()->value); // even for _ copy identifier (no need to change code generation)
+    assign_statement->id.name = copyString(
+        currentToken()->value); // even for _ copy identifier (no need to change code generation)
     if (!assign_statement->id.name)
         return false;
 
@@ -850,7 +834,8 @@ bool parse_no_truth_expr(Expression *expr) {
             return parse_user_func_call(&expr->data.function_call);
         }
 
-        if (!strcmp(currentToken()->value, "ifj") && nextToken && nextToken->type == TOKEN_CONCATENATE) {
+        if (!strcmp(currentToken()->value, "ifj") && nextToken &&
+            nextToken->type == TOKEN_CONCATENATE) {
             expr->expr_type = FunctionCallExpressionType;
             return parse_native_func_call(&expr->data.function_call);
         }

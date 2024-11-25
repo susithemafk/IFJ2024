@@ -110,7 +110,7 @@ enum ERR_CODES scanner_get_token(struct TOKEN *tokenPointer) {
             case '\"':
                 assign_value = false;
                 state = SCANNER_STRING_START;
-                tokenPointer->type = TOKEN_STRING;
+                tokenPointer->type = TOKEN_STRING_LITERAL;
                 break;
             case ':':
                 state = SCANNER_COLON;
@@ -221,7 +221,7 @@ enum ERR_CODES scanner_get_token(struct TOKEN *tokenPointer) {
             break;
 
         case SCANNER_STRING_END:
-            tokenPointer->type = TOKEN_STRING;
+            tokenPointer->type = TOKEN_STRING_LITERAL;
             return scanner_end(input, &nextCharacter, tokenPointer, string_index);
 
         case SCANNER_ESCAPE_SEQ: {
@@ -358,7 +358,7 @@ enum ERR_CODES scanner_get_token(struct TOKEN *tokenPointer) {
                 } else if (input == 'e' || input == 'E') {
                     state = SCANNER_EXP_BASE;
                 } else {
-                    tokenPointer->type = TOKEN_I32;
+                    tokenPointer->type = TOKEN_INTEGER_LITERAL;
                     return scanner_end(input, &nextCharacter, tokenPointer, string_index);
                 }
             }
@@ -376,7 +376,7 @@ enum ERR_CODES scanner_get_token(struct TOKEN *tokenPointer) {
                 if (input == 'e' || input == 'E') {
                     state = SCANNER_EXP_BASE;
                 } else {
-                    tokenPointer->type = TOKEN_F64;
+                    tokenPointer->type = TOKEN_FLOAT_LITERAL;
                     return scanner_end(input, &nextCharacter, tokenPointer, string_index);
                 }
             }
@@ -387,7 +387,7 @@ enum ERR_CODES scanner_get_token(struct TOKEN *tokenPointer) {
                 if (input == 'e' || input == 'E') {
                     state = SCANNER_EXP_BASE;
                 } else {
-                    tokenPointer->type = TOKEN_F64;
+                    tokenPointer->type = TOKEN_FLOAT_LITERAL;
                     return scanner_end(input, &nextCharacter, tokenPointer, string_index);
                 }
             }
@@ -413,7 +413,7 @@ enum ERR_CODES scanner_get_token(struct TOKEN *tokenPointer) {
 
         case SCANNER_EXP:
             if (!(isDigit(input))) {
-                tokenPointer->type = TOKEN_F64;
+                tokenPointer->type = TOKEN_FLOAT_LITERAL;
                 return scanner_end(input, &nextCharacter, tokenPointer, string_index);
             }
             break;

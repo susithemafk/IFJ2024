@@ -31,7 +31,30 @@ enum TOKEN_TYPE negateOperand(enum TOKEN_TYPE operand) {
     }
 }
 
-// Function to print out a human-readable error code with colors
+bool isLiteral(enum TOKEN_TYPE type) {
+    switch(type) {
+        case TOKEN_INTEGER_LITERAL:
+        case TOKEN_STRING_LITERAL:
+        case TOKEN_FLOAT_LITERAL:
+        case TOKEN_NULL:
+            return true;
+        default:
+            return false;
+    }
+} // Function to print out a human-readable error code with colors
+
+bool isDataType(enum TOKEN_TYPE type) {
+    switch(type) {
+        case TOKEN_I32:
+        case TOKEN_F64:
+        case TOKEN_U8:
+        case TOKEN_VOID:
+            return true;
+        default:
+            return false;
+    }
+}
+
 void printErrCode(enum ERR_CODES errCode) {
     char errStr[100];
     const char *color = COLOR_RESET; // Default color
@@ -132,12 +155,17 @@ unsigned int hashString(const char* str) {
 enum DATA_TYPES covertTokneDataType(enum TOKEN_TYPE type) {
 
     switch (type) {
+        case TOKEN_VOID:
+        case TOKEN_NULL:
+            return dTypeVoid;
         case TOKEN_I32:
+        case TOKEN_INTEGER_LITERAL:
             return dTypeI32;
         case TOKEN_F64:
+        case TOKEN_FLOAT_LITERAL:
             return dTypeF64;
-        case TOKEN_STRING: // lexer is wierd, and sometimes returns string as a type of strign literal
         case TOKEN_U8:
+        case TOKEN_STRING_LITERAL:
             return dTypeU8;
         default:
             return dTypeNone;
@@ -186,7 +214,7 @@ void printTokenType(enum TOKEN_TYPE token) {
         case TOKEN_NOTEQUAL:
             printf("Token -> %sNOTEQUAL%s\n", COLOR_WARN, COLOR_RESET);
             break;
-        case TOKEN_STRING:
+        case TOKEN_STRING_LITERAL:
             printf("Token -> %sSTRING%s\n", COLOR_WARN, COLOR_RESET);
             break;
         case TOKEN_CONCATENATE:

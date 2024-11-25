@@ -27,105 +27,103 @@
  * They are used as return values
  */
 enum ERR_CODES {
-    SUCCESS = 0, /*
-        no error
-    */
-    E_LEXICAL = 1, /*
-        lexical error
-    */
-    E_SYNTAX = 2, /*
-        syntax error
-    */
-    E_SEMANTIC_UND_FUNC_OR_VAR = 3, /*
-        undefined function or variable
-    */
-    E_SEMANTIC_INVALID_FUN_PARAM = 4, /*
-        wrong count/type of function parameters, bad type or forbitten
-        throw away of function return value
-    */
-    E_SEMANTIC_REDIFINITION = 5, /*
-        redefinition of function or variable, assignment to imutable variable
-    */
-    E_SEMANTIC_BAD_FUNC_RETURN = 6, /*
-        missing or to many return values, when returning from a function
-    */
-    E_SEMANTIC_INCOMPATABLE_TYPES = 7, /*
-        semantic mistake in compatability of types in arithmetic, string or relational
-        expressions, incompatable type (eg. assigning string to int)
-    */
-    E_SEMANTIC_UNKNOWN_TYPE = 8,       /*
-              the type of a variable is not defined, and cannot be deduced form the context
-              form the used expression
-          */
-    E_SEMANTIC_UNUSED_VAR = 9,         /*
-                unused variable in their function scope, modifiable variable without the
-                possibility of modifiing their value, after their initialization
-            */
-    E_SEMANTIC_OTHER = 10,             /*
-                    just other semantic errors, not covered by the previous categories
-                */
-    E_NONE = 11,                        /*
-                    No Error, used internally
-                */
+    /* no error */
+    SUCCESS = 0,
 
-    E_INTERNAL = 99                    /*
-                           internal error of the compiler, that is a mistake, not caused by the source code
-                           eg. memory allocation error, accesing out of bounds, etc.
-                       */
+    /* lexical error */
+    E_LEXICAL = 1,
+
+    /* syntax error */
+    E_SYNTAX = 2,
+
+    /* undefined function or variable */
+    E_SEMANTIC_UND_FUNC_OR_VAR = 3,
+
+    /* wrong count/type of function parameters, bad type or forbidden
+       throw away of function return value */
+    E_SEMANTIC_INVALID_FUN_PARAM = 4,
+
+    /* redefinition of function or variable, assignment to immutable variable */
+    E_SEMANTIC_REDIFINITION = 5,
+
+    /* missing or too many return values, when returning from a function */
+    E_SEMANTIC_BAD_FUNC_RETURN = 6,
+
+    /* semantic mistake in compatibility of types in arithmetic, string or relational
+       expressions, incompatible type (e.g., assigning string to int) */
+    E_SEMANTIC_INCOMPATABLE_TYPES = 7,
+
+    /* the type of a variable is not defined, and cannot be deduced from the context
+       from the used expression */
+    E_SEMANTIC_UNKNOWN_TYPE = 8,
+
+    /* unused variable in their function scope, modifiable variable without the
+       possibility of modifying their value, after their initialization */
+    E_SEMANTIC_UNUSED_VAR = 9,
+
+    /* other semantic errors, not covered by the previous categories */
+    E_SEMANTIC_OTHER = 10,
+
+    /* No Error, used internally */
+    E_NONE = 11,
+
+    /* internal error of the compiler, that is a mistake, not caused by the source code
+       e.g., memory allocation error, accessing out of bounds, etc. */
+    E_INTERNAL = 99
 };
 
+enum TOKEN_TYPE {
+    TOKEN_NONE,       // 0. No token
+    TOKEN_IDENTIFIER, // 1. Název proměnné, funkce, ...
+    TOKEN_EOF,        // 2. End of file
 
-enum TOKEN_TYPE
-{
-	TOKEN_NONE,		  // 0. No token
-	TOKEN_IDENTIFIER, // 1. Název proměnné, funkce, ...
-	TOKEN_EOF,		  // 2. End of file
+    TOKEN_PLUS,     // 3. +
+    TOKEN_MINUS,    // 4. -
+    TOKEN_DIVIDE,   // 5. /
+    TOKEN_MULTIPLY, // 6. *
+    TOKEN_EQUALS,   // 7. ==
 
-	TOKEN_PLUS,		// 3. +
-	TOKEN_MINUS,	// 4. -
-	TOKEN_DIVIDE,	// 5. /
-	TOKEN_MULTIPLY, // 6. *
-	TOKEN_EQUALS,	// 7. ==
+    TOKEN_LESSTHAN,       // 8. <
+    TOKEN_LESSOREQUAL,    // 9. <=
+    TOKEN_GREATERTHAN,    // 10. >
+    TOKEN_GREATEROREQUAL, // 11. >=
+    TOKEN_NOTEQUAL,       // 12. !=
 
-	TOKEN_LESSTHAN,		  // 8. <
-	TOKEN_LESSOREQUAL,	  // 9. <=
-	TOKEN_GREATERTHAN,	  // 10. >
-	TOKEN_GREATEROREQUAL, // 11. >=
-	TOKEN_NOTEQUAL,		  // 12. !=
+    TOKEN_STRING_LITERAL,  // 13. "string"
+    TOKEN_INTEGER_LITERAL, // 14. 123
+    TOKEN_FLOAT_LITERAL,   // 15. 123.456
 
-	TOKEN_STRING, // 13. "string"
+    TOKEN_CONCATENATE,   // 16. .
+    TOKEN_ASSIGN,        // 17. =
+    TOKEN_COLON,         // 18. :
+    TOKEN_COMMA,         // 19. ,
+    TOKEN_LPAR,          // 20. (
+    TOKEN_RPAR,          // 21. )
+    TOKEN_LBRACE,        // 22. {
+    TOKEN_RBRACE,        // 23. }
+    TOKEN_SEMICOLON,     // 24. ;
+    TOKEN_PIPE,          // 25. |
+    TOKEN_AT,            // 26. @
+    TOKEN_DELETE_VALUE,  // 27. delete value ('_')
+    TOKEN_QUESTION_MARK, // 28. question mark ('?')
 
-	TOKEN_CONCATENATE, // 14. .
-	TOKEN_ASSIGN,	   // 15. =
-	TOKEN_COLON,	   // 16. :
-	TOKEN_COMMA,	   // 17. ,
-	TOKEN_LPAR,		   // 18. (
-	TOKEN_RPAR,		   // 19. )
-	TOKEN_LBRACE,	   // 20. {
-	TOKEN_RBRACE,	   // 21. }
-	TOKEN_SEMICOLON,   // 22. ;
+    /**
+     * Keywords: const, else, fn, if, i32, f64, null, pub, return, u8, var, void, while
+     */
+    TOKEN_VAR,    // 29. var
+    TOKEN_CONST,  // 30. const
+    TOKEN_IF,     // 31. if
+    TOKEN_ELSE,   // 32. else
+    TOKEN_RETURN, // 33. return
+    TOKEN_WHILE,  // 34. while
+    TOKEN_FN,     // 35. fn
+    TOKEN_NULL,   // 36. null
+    TOKEN_PUB,    // 37. pub
 
-	/**
-	 * Keywords: const, else, fn, if, i32, f64, null, pub, return, u8, var, void, while
-	 */
-	TOKEN_CONST,  // 23. const
-	TOKEN_ELSE,	  // 24. else
-	TOKEN_FN,	  // 25. fn
-	TOKEN_IF,	  // 26. if
-	TOKEN_I32,	  // 27. i32
-	TOKEN_F64,	  // 28. f64
-	TOKEN_NULL,	  // 29. null
-	TOKEN_PUB,	  // 30. pub
-	TOKEN_RETURN, // 31. return
-	TOKEN_U8,	  // 32. u8
-	TOKEN_VAR,	  // 33. var
-	TOKEN_VOID,	  // 34. void
-	TOKEN_WHILE,  // 35. while
-    TOKEN_DELETE_VALUE, // 36 delte value ('_')
-    TOKEN_QUESTION_MARK, // 37 question mark ('?')
-
-    TOKEN_PIPE, // 38. |
-    TOKEN_AT, // 39. @
+    TOKEN_VOID, // 38. void
+    TOKEN_I32,  // 39. i32
+    TOKEN_F64,  // 40. f64
+    TOKEN_U8,   // 41. []u8
 };
 
 typedef struct TOKEN {
@@ -133,31 +131,47 @@ typedef struct TOKEN {
     enum TOKEN_TYPE type; // Token type
 } *TOKEN_PTR;
 
-
 enum DATA_TYPES {
     dTypeUndefined, // 0. Undefined data type (used internaly to indacate ignoring of the tyep)
-    dTypeNone, // 1. No data type
-    dTypeI32, // 2. Integer 32 bit
-    dTypeF64, // 3. Float 64 bit
-    dTypeU8, // 4. Unsigned 8 bit
-    dTypeVoid, // 5. Void
-    dTypeBool // 6. Boolean (used internaly)
+    dTypeNone,      // 1. No data type
+    dTypeI32,       // 2. Integer 32 bit
+    dTypeF64,       // 3. Float 64 bit
+    dTypeU8,        // 4. Unsigned 8 bit
+    dTypeVoid,      // 5. Void
+    dTypeBool,      // 6. Boolean (used internaly)
 };
 
 /**
  * Function to negate a comparason operand
- * 
+ *
  * @param operand - token type to negate
  * @return The negated token type
-*/
+ */
 enum TOKEN_TYPE negateOperand(enum TOKEN_TYPE operand);
 
 /**
- * Function to convert a token type to a data type
+ * @brief Checks if the given token type is a literal.
  * 
+ * @param type The token type to check.
+ * @return true if the token type is a literal, false otherwise.
+ */
+bool isLiteral(enum TOKEN_TYPE type);
+
+
+/**
+ * @brief Checks if the given token type is a data type.
+ * 
+ * @param type The token type to check.
+ * @return true if the token type is a data type, false otherwise.
+ */
+bool isDataType(enum TOKEN_TYPE type);
+
+/**
+ * Function to convert a token type to a data type
+ *
  * @param type The token type to convert
  * @return The converted data type
-*/
+ */
 enum DATA_TYPES covertTokneDataType(enum TOKEN_TYPE type);
 
 // Debug macro
@@ -165,11 +179,11 @@ enum DATA_TYPES covertTokneDataType(enum TOKEN_TYPE type);
 
 /**
  * Function to print out a debug message
- * 
+ *
  * @param file_name The name of the file
  * @param message The message to print
  * @return void
-*/
+ */
 void printDebug(const char *file_name, const char *function_name, const char *message);
 
 /**
@@ -180,8 +194,7 @@ void printDebug(const char *file_name, const char *function_name, const char *me
  */
 unsigned int hashString(const char *str);
 
-typedef struct TestInstance
-{
+typedef struct TestInstance {
     char *testName;
     unsigned int testNumber;
     unsigned int fails;
@@ -212,11 +225,12 @@ void finishTestInstance(TestInstancePtr testInstance);
  * @param testResultPassMsg The message to print if the test passes
  * @param testResultFailMsg The message to print if the test fails
  */
-void testCase(TestInstancePtr testInstance, bool testResult, char *testName, char *testResultPassMsg, char *testResultFailMsg);
+void testCase(TestInstancePtr testInstance, bool testResult, char *testName,
+              char *testResultPassMsg, char *testResultFailMsg);
 
 /**
  * Function to print the error code
- * 
+ *
  * @param errCode The error code to print
  * @return void
  */
@@ -224,7 +238,7 @@ void printErrCode(enum ERR_CODES errCode);
 
 /**
  * Function to print the token type
- * 
+ *
  * @param token The token to print
  * @return void
  */

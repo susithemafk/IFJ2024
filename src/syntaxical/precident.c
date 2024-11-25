@@ -14,15 +14,8 @@
 #include <string.h>
 
 // Precedent table
-const char precedentTable[7][8] = {
-    "><<><>>", 
-    ">><><>>", 
-    "<<<=<< ",
-    ">> > >>", 
-    ">> > >>", 
-    "<<<><>>", 
-    "<<< <<$"
-};
+const char precedentTable[7][8] = {"><<><>>", ">><><>>", "<<<=<< ", ">> > >>",
+                                   ">> > >>", "<<<><>>", "<<< <<$"};
 
 void removeStack(LinkedList **stack) {
     int size = getSize(*stack);
@@ -50,9 +43,9 @@ int _getPrecedentIndex(enum TOKEN_TYPE token) {
     case TOKEN_RPAR:
         return 3;
     case TOKEN_IDENTIFIER:
-    case TOKEN_I32:
-    case TOKEN_F64:
-    case TOKEN_U8:
+    case TOKEN_INTEGER_LITERAL:
+    case TOKEN_FLOAT_LITERAL:
+    case TOKEN_STRING_LITERAL:
     case TOKEN_NULL:
         return 4;
     case TOKEN_EQUALS:
@@ -110,7 +103,8 @@ enum TOKEN_TYPE _findActiveElement(LinkedList *stack, int *index) {
     return -1;
 }
 
-// Function to find the index of the < form the right of the stack, returns the index of element right after <
+// Function to find the index of the < form the right of the stack, returns the index of element
+// right after <
 int _findStartIndexForRedux(LinkedList *stack) {
 
     unsigned int size = getSize(stack);
@@ -151,10 +145,10 @@ StackItemPtr __createStackItem(enum StackItemType type, int enumType) {
         item->content.stateTruthExpression = (enum STATE_TRUTH_EXPRESSION)enumType;
         break;
     default:
-        #ifdef DEBUG
+#ifdef DEBUG
         DEBUG_MSG("Invalid stack item type");
         printf("type: %d\n", type);
-        #endif
+#endif
         free(item);
         return NULL;
     }
@@ -220,8 +214,10 @@ void printStack(LinkedList *stack) {
     printf("]\n");
 }
 
-// Function to start the precedent analysis (doExpresion is true, handeling expression, false -> truth expression)
-enum ERR_CODES startPrecedentAnalysis(LinkedList *buffer, unsigned int *startIdx, bool doExpresion, Expression *expr) {
+// Function to start the precedent analysis (doExpresion is true, handeling expression, false ->
+// truth expression)
+enum ERR_CODES startPrecedentAnalysis(LinkedList *buffer, unsigned int *startIdx, bool doExpresion,
+                                      Expression *expr) {
 
     // internal err check
     if (buffer == NULL)
@@ -237,17 +233,17 @@ enum ERR_CODES startPrecedentAnalysis(LinkedList *buffer, unsigned int *startIdx
     struct TOKEN endOfStack = {.value = "", .type = TOKEN_NONE};
 
     if (!insertNodeAtIndex(stack, (void *)none, -1)) {
-        #ifdef DEBUG
+#ifdef DEBUG
         DEBUG_MSG("Failed to insert the first element to the stack");
-        #endif
+#endif
         free(none);
         removeStack(&stack);
         return E_INTERNAL;
     }
 
-    #ifdef DEBUG
+#ifdef DEBUG
     DEBUG_MSG("Starting the precedent analysis");
-    #endif
+#endif
 
     int count = 1;
     bool end = false;
@@ -257,13 +253,15 @@ enum ERR_CODES startPrecedentAnalysis(LinkedList *buffer, unsigned int *startIdx
     // go through the buffer
     while (1) {
 
-        if (!end) token = (TOKEN_PTR)getDataAtIndex(buffer, *startIdx);
-        if (token == NULL) break;
+        if (!end)
+            token = (TOKEN_PTR)getDataAtIndex(buffer, *startIdx);
+        if (token == NULL)
+            break;
 
-        #ifdef DEBUG
+#ifdef DEBUG
         DEBUG_MSG("Cycle start\n");
         printStack(stack);
-        #endif
+#endif
 
         // end detection check
         if (doExpresion) {
@@ -290,7 +288,7 @@ enum ERR_CODES startPrecedentAnalysis(LinkedList *buffer, unsigned int *startIdx
         enum TOKEN_TYPE stackItem = _findActiveElement(stack, &index);
         enum PRECEDENT_RULE rule = _getPrecedentRule(stackItem, token->type);
 
-        #ifdef DEBUG
+#ifdef DEBUG
         DEBUG_MSG("Rule checking reuslt:");
         printf("- stack item: ");
         printTokenType(stackItem);
@@ -313,9 +311,10 @@ enum ERR_CODES startPrecedentAnalysis(LinkedList *buffer, unsigned int *startIdx
             printf("- rule: ERROR\n");
             break;
         }
-        #endif
+#endif
 
-        if (rule == ERROR || index == -1) { // thie -1 problebly does not need to be here, but just to make sure
+        if (rule == ERROR ||
+            index == -1) { // thie -1 problebly does not need to be here, but just to make sure
             removeStack(&stack);
             return E_SYNTAX;
         }
@@ -328,20 +327,24 @@ enum ERR_CODES startPrecedentAnalysis(LinkedList *buffer, unsigned int *startIdx
 
                 StackItemPtr less = __createStackItem(STACK_ITEM_OPERATION, (int)LESS);
 
-                if (!insertNodeAtIndex(stack, (void *)less, (getSize(stack) - 1 == (unsigned int)index) ? -1 : index + 1)) {
+                if (!insertNodeAtIndex(stack, (void *)less,
+                                       (getSize(stack) - 1 == (unsigned int)index) ? -1
+                                                                                   : index + 1)) {
                     free(less);
                     removeStack(&stack);
                     return E_INTERNAL;
                 }
 
-                #ifdef DEBUG
+#ifdef DEBUG
                 DEBUG_MSG("Shifting the < after the active element");
                 printStack(stack);
-                #endif
+#endif
             }
 
-            if (!end) (*startIdx)++;
-            if (token->type == TOKEN_NONE) continue;
+            if (!end)
+                (*startIdx)++;
+            if (token->type == TOKEN_NONE)
+                continue;
 
             // adding the token to the stack
             StackItemPtr newToken = __createStackItem(STACK_ITEM_TOKEN, (int)token->type);
@@ -366,21 +369,23 @@ enum ERR_CODES startPrecedentAnalysis(LinkedList *buffer, unsigned int *startIdx
                 }
             }
 
-            if (token->type == TOKEN_I32 || token->type == TOKEN_F64) {
+            if (isLiteral(token->type)) {
                 newToken->ast_node.expr_type = LiteralExpressionType;
                 newToken->ast_node.data.literal.value = copyString(token->value);
-                newToken->ast_node.data_type.data_type = (token->type == TOKEN_I32) ? dTypeI32 : dTypeF64;
-                newToken->ast_node.data.literal.data_type = newToken->ast_node.data_type;
                 if (newToken->ast_node.data.literal.value == NULL) {
                     removeStack(&stack);
                     return E_INTERNAL;
                 }
+                
+                newToken->ast_node.data_type.is_nullable = token->type == TOKEN_NULL;
+                newToken->ast_node.data_type.data_type = covertTokneDataType(token->type);
+                newToken->ast_node.data.literal.data_type = newToken->ast_node.data_type;
             }
 
-            #ifdef DEBUG
+#ifdef DEBUG
             DEBUG_MSG("Inserted the token to the stack");
             printStack(stack);
-            #endif
+#endif
             continue;
         }
 
@@ -389,9 +394,9 @@ enum ERR_CODES startPrecedentAnalysis(LinkedList *buffer, unsigned int *startIdx
 
             int ruleStartIdx = _findStartIndexForRedux(stack);
 
-            #ifdef DEBUG
+#ifdef DEBUG
             DEBUG_MSG("Doing the redux");
-            #endif
+#endif
 
             if (ruleStartIdx == -1) {
                 removeStack(&stack);
@@ -417,12 +422,13 @@ enum ERR_CODES startPrecedentAnalysis(LinkedList *buffer, unsigned int *startIdx
                 return err;
             }
 
-            #ifdef DEBUG
+#ifdef DEBUG
             DEBUG_MSG("Redux done");
             printStack(stack);
-            #endif
+#endif
 
-            skipEndCheck = true; // we need to preform the end cycle again, with the same token, after we did the redux
+            skipEndCheck = true; // we need to preform the end cycle again, with the same token,
+                                 // after we did the redux
             continue;
         }
 
@@ -434,19 +440,23 @@ enum ERR_CODES startPrecedentAnalysis(LinkedList *buffer, unsigned int *startIdx
 
             StackItemPtr last = (StackItemPtr)getDataAtIndex(stack, 1);
 
-            // since Vanesa added the end rule here, we need to check if the last item is E fro expresion and R for truth expresion, otherwise it is an error
+            // since Vanesa added the end rule here, we need to check if the last item is E fro
+            // expresion and R for truth expresion, otherwise it is an error
             if (doExpresion && last->type != STACK_ITEM_EXPRESSION) {
                 removeStack(&stack);
                 return E_SYNTAX;
             }
 
-            if (!doExpresion && ((last->type == STACK_ITEM_TRUTH_EXPRESSION && last->content.stateTruthExpression != STATE_TEX_R) || last->type != STACK_ITEM_TRUTH_EXPRESSION)) {
+            if (!doExpresion && ((last->type == STACK_ITEM_TRUTH_EXPRESSION &&
+                                  last->content.stateTruthExpression != STATE_TEX_R) ||
+                                 last->type != STACK_ITEM_TRUTH_EXPRESSION)) {
                 removeStack(&stack);
                 return E_SYNTAX;
             }
 
             // correct check for expresion syntax
-            if (expr) *expr = last->ast_node;
+            if (expr)
+                *expr = last->ast_node;
             removeList(&stack);
             return SUCCESS;
         }
@@ -469,28 +479,25 @@ enum ERR_CODES _applyRulesExpresion(LinkedList *stack, unsigned int ruleStartIdx
     StackItemPtr item3 = (StackItemPtr)getDataAtIndex(stack, ruleStartIdx + 2);
 
     // E -> E operand E
-    if (
-        item1 != NULL && item1->type == STACK_ITEM_EXPRESSION && item1->content.stateExpression == STATE_EX_E && 
-        item2 != NULL && item2->type == STACK_ITEM_TOKEN && item3 != NULL &&
-        item3->type == STACK_ITEM_EXPRESSION && item3->content.stateExpression == STATE_EX_E
-    ) {
-        #if DEBUG
+    if (item1 != NULL && item1->type == STACK_ITEM_EXPRESSION &&
+        item1->content.stateExpression == STATE_EX_E && item2 != NULL &&
+        item2->type == STACK_ITEM_TOKEN && item3 != NULL && item3->type == STACK_ITEM_EXPRESSION &&
+        item3->content.stateExpression == STATE_EX_E) {
+#if DEBUG
         DEBUG_MSG("E -> E operand E");
-        #endif
+#endif
         // we have to check if the operand is + - * /
-        if (
-            item2->content.operation != TOKEN_PLUS && 
-            item2->content.operation != TOKEN_MINUS && 
-            item2->content.operation != TOKEN_MULTIPLY && 
-            item2->content.operation != TOKEN_DIVIDE
-        )
+        if (item2->content.operation != TOKEN_PLUS && item2->content.operation != TOKEN_MINUS &&
+            item2->content.operation != TOKEN_MULTIPLY && item2->content.operation != TOKEN_DIVIDE)
             return E_SYNTAX; // invalid operand
 
         Expression *left = malloc(sizeof(Expression));
-        if (left == NULL) return E_INTERNAL;
+        if (left == NULL)
+            return E_INTERNAL;
 
         Expression *right = malloc(sizeof(Expression));
-        if (right == NULL) return E_INTERNAL;
+        if (right == NULL)
+            return E_INTERNAL;
 
         *left = item1->ast_node;
         *right = item3->ast_node;
@@ -500,20 +507,22 @@ enum ERR_CODES _applyRulesExpresion(LinkedList *stack, unsigned int ruleStartIdx
         item1->ast_node.data.binary_expr.operation = item2->content.operation;
         item1->ast_node.expr_type = BinaryExpressionType;
 
-        if (!removeNodeAtIndex(stack, ruleStartIdx + 1)) return E_INTERNAL;
-        if (!removeNodeAtIndex(stack, ruleStartIdx + 1)) return E_INTERNAL;
+        if (!removeNodeAtIndex(stack, ruleStartIdx + 1))
+            return E_INTERNAL;
+        if (!removeNodeAtIndex(stack, ruleStartIdx + 1))
+            return E_INTERNAL;
         return SUCCESS;
     }
 
     // E -> (E)
-    if (
-        item1 != NULL && item1->type == STACK_ITEM_TOKEN && item1->content.operation == TOKEN_LPAR && 
-        item2 != NULL && item2->type == STACK_ITEM_EXPRESSION && item2->content.stateExpression == STATE_EX_E && 
-        item3 != NULL && item3->type == STACK_ITEM_TOKEN && item3->content.operation == TOKEN_RPAR
-    ) {
-        #if DEBUG
+    if (item1 != NULL && item1->type == STACK_ITEM_TOKEN &&
+        item1->content.operation == TOKEN_LPAR && item2 != NULL &&
+        item2->type == STACK_ITEM_EXPRESSION && item2->content.stateExpression == STATE_EX_E &&
+        item3 != NULL && item3->type == STACK_ITEM_TOKEN &&
+        item3->content.operation == TOKEN_RPAR) {
+#if DEBUG
         DEBUG_MSG("E -> (E)");
-        #endif
+#endif
         item1->content.stateExpression = STATE_EX_E;
         item1->type = STACK_ITEM_EXPRESSION;
 
@@ -527,18 +536,12 @@ enum ERR_CODES _applyRulesExpresion(LinkedList *stack, unsigned int ruleStartIdx
     }
 
     // E -> id
-    if (
-        item1 != NULL && item1->type == STACK_ITEM_TOKEN &&
-        (item1->content.operation == TOKEN_IDENTIFIER || 
-        item1->content.operation == TOKEN_I32 || 
-        item1->content.operation == TOKEN_F64 || 
-        item1->content.operation == TOKEN_U8 ||
-        item1->content.operation == TOKEN_NULL) &&
-        item2 == NULL && item3 == NULL
-    ) {
-        #if DEBUG
+    if (item1 != NULL && item1->type == STACK_ITEM_TOKEN &&
+        (item1->content.operation == TOKEN_IDENTIFIER || isLiteral(item1->content.operation)) &&
+        item2 == NULL && item3 == NULL) {
+#if DEBUG
         DEBUG_MSG("E -> id");
-        #endif
+#endif
         item1->content.stateExpression = STATE_EX_E;
         item1->type = STACK_ITEM_EXPRESSION;
 
@@ -560,30 +563,26 @@ enum ERR_CODES _applyRulesTruthExpression(LinkedList *stack, unsigned int ruleSt
     StackItemPtr item3 = (StackItemPtr)getDataAtIndex(stack, ruleStartIdx + 2);
 
     // E -> id
-    if (
-        item1 != NULL && item1->type == STACK_ITEM_TOKEN && 
-        (item1->content.operation == TOKEN_IDENTIFIER || 
-        item1->content.operation == TOKEN_I32 || 
-        item1->content.operation == TOKEN_F64) &&
-        item2 == NULL && item3 == NULL
-    ) {
-        #if DEBUG
+    if (item1 != NULL && item1->type == STACK_ITEM_TOKEN &&
+        (item1->content.operation == TOKEN_IDENTIFIER || isLiteral(item1->content.operation)) &&
+        item2 == NULL && item3 == NULL) {
+#if DEBUG
         DEBUG_MSG("E -> id");
-        #endif
+#endif
         item1->type = STACK_ITEM_TRUTH_EXPRESSION;
         item1->content.stateTruthExpression = STATE_TEX_E;
         return SUCCESS;
     }
 
     // E -> (E)
-    if (
-        item1 != NULL && item1->type == STACK_ITEM_TOKEN && item1->content.operation == TOKEN_LPAR && 
-        item2 != NULL && item2->type == STACK_ITEM_TRUTH_EXPRESSION && item2->content.stateTruthExpression == STATE_TEX_E && 
-        item3 != NULL && item3->type == STACK_ITEM_TOKEN && item3->content.operation == TOKEN_RPAR
-    ) {
-        #if DEBUG
+    if (item1 != NULL && item1->type == STACK_ITEM_TOKEN &&
+        item1->content.operation == TOKEN_LPAR && item2 != NULL &&
+        item2->type == STACK_ITEM_TRUTH_EXPRESSION &&
+        item2->content.stateTruthExpression == STATE_TEX_E && item3 != NULL &&
+        item3->type == STACK_ITEM_TOKEN && item3->content.operation == TOKEN_RPAR) {
+#if DEBUG
         DEBUG_MSG("E -> (E)");
-        #endif
+#endif
         item3->type = STACK_ITEM_TRUTH_EXPRESSION;
         item3->content.stateTruthExpression = STATE_TEX_E;
 
@@ -598,18 +597,16 @@ enum ERR_CODES _applyRulesTruthExpression(LinkedList *stack, unsigned int ruleSt
     }
 
     // E -> E operand E
-    if (
-        item1 != NULL && item1->type == STACK_ITEM_TRUTH_EXPRESSION && item1->content.stateTruthExpression == STATE_TEX_E && 
-        item2 != NULL && item2->type == STACK_ITEM_TOKEN && (
-            item2->content.operation == TOKEN_PLUS || 
-            item2->content.operation == TOKEN_MINUS || 
-            item2->content.operation == TOKEN_MULTIPLY || 
-            item2->content.operation == TOKEN_DIVIDE) && 
-        item3 != NULL && item3->type == STACK_ITEM_TRUTH_EXPRESSION && item3->content.stateTruthExpression == STATE_TEX_E
-    ) {
-        #if DEBUG
+    if (item1 != NULL && item1->type == STACK_ITEM_TRUTH_EXPRESSION &&
+        item1->content.stateTruthExpression == STATE_TEX_E && item2 != NULL &&
+        item2->type == STACK_ITEM_TOKEN &&
+        (item2->content.operation == TOKEN_PLUS || item2->content.operation == TOKEN_MINUS ||
+         item2->content.operation == TOKEN_MULTIPLY || item2->content.operation == TOKEN_DIVIDE) &&
+        item3 != NULL && item3->type == STACK_ITEM_TRUTH_EXPRESSION &&
+        item3->content.stateTruthExpression == STATE_TEX_E) {
+#if DEBUG
         DEBUG_MSG("E -> E operand E");
-        #endif
+#endif
         // we have to check if the operand is + - * /
 
         Expression *left = malloc(sizeof(Expression));
@@ -636,17 +633,16 @@ enum ERR_CODES _applyRulesTruthExpression(LinkedList *stack, unsigned int ruleSt
     }
 
     // R -> E truth operand E
-    if (
-        item1 != NULL && item1->type == STACK_ITEM_TRUTH_EXPRESSION && item1->content.stateTruthExpression == STATE_TEX_E && item2 != NULL && 
-        item2->type == STACK_ITEM_TOKEN && (
-            item2->content.operation == TOKEN_LESSTHAN || 
-            item2->content.operation == TOKEN_GREATERTHAN || 
-            item2->content.operation == TOKEN_LESSOREQUAL ||
-            item2->content.operation == TOKEN_GREATEROREQUAL || 
-            item2->content.operation == TOKEN_NOTEQUAL || 
-            item2->content.operation == TOKEN_EQUALS) &&
-        item3 != NULL && item3->type == STACK_ITEM_TRUTH_EXPRESSION && item3->content.stateTruthExpression == STATE_TEX_E
-    ) {
+    if (item1 != NULL && item1->type == STACK_ITEM_TRUTH_EXPRESSION &&
+        item1->content.stateTruthExpression == STATE_TEX_E && item2 != NULL &&
+        item2->type == STACK_ITEM_TOKEN &&
+        (item2->content.operation == TOKEN_LESSTHAN ||
+         item2->content.operation == TOKEN_GREATERTHAN ||
+         item2->content.operation == TOKEN_LESSOREQUAL ||
+         item2->content.operation == TOKEN_GREATEROREQUAL ||
+         item2->content.operation == TOKEN_NOTEQUAL || item2->content.operation == TOKEN_EQUALS) &&
+        item3 != NULL && item3->type == STACK_ITEM_TRUTH_EXPRESSION &&
+        item3->content.stateTruthExpression == STATE_TEX_E) {
         item3->content.stateTruthExpression = STATE_TEX_R;
 
         Expression *left = malloc(sizeof(Expression));
@@ -672,9 +668,9 @@ enum ERR_CODES _applyRulesTruthExpression(LinkedList *stack, unsigned int ruleSt
         return SUCCESS;
     }
 
-    #ifdef DEBUG
+#ifdef DEBUG
     DEBUG_MSG("Invalid rule");
-    #endif
+#endif
 
     return E_SYNTAX;
 }
