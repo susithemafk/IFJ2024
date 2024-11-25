@@ -1,6 +1,7 @@
 /** AUTHOR
  * 
  * @author <247581> Martin Mendl
+ * @author <253171> Vanesa Zimmermannová
  * @file enumerations.c
  * @date 28.9. 2024
  * @brief Test file for the linked list implementation
@@ -136,10 +137,6 @@ void printDebug(const char *file_name, const char *function_name, const char *me
             COLOR_RESET,      // Reset color after "msg->"
             message);         // The actual message
 }
-
-
-
-
 
 // Function to hash a string
 unsigned int hashString(const char* str) {

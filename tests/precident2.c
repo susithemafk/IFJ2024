@@ -1,7 +1,8 @@
 /** AUTHOR
  * 
- * @author  <247581> Martin Mendl  <xsvobov00> Veronika Svobodová
- * @file test_precident.c
+ * @author  <247581> Martin Mendl  
+ * @author <xsvobov00> Veronika Svobodová
+ * @file precident2.c
  * @date 17.11. 2024
  * @brief test file for the precedent analysis
  */

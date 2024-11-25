@@ -1,9 +1,10 @@
 /** AUTHOR
  * 
- * @author  <247581> Martin Mendl  <xsvobov00> Veronika Svobodová
- * @file parser.h
+ * @author  <247581> Martin Mendl  
+ * @author <xsvobov00> Veronika Svobodová
+ * @file parser_pass1.h
  * @date 17.11. 2024
- * @brief header file for the syntaxical parser
+ * @brief header file for the first pass of the syntaxical parser
  */
 
 #ifndef PARSER_PASS1_H

@@ -1,3 +1,13 @@
+/** AUTHOR
+ *
+ * @author <xsucha18> Marek Sucharda 
+ * @author <253171> Vanesa Zimmermannová
+ * @author <247581> Martin Mendl   
+ * @file precident.c
+ * @date 17.11. 2024
+ * @brief main src file for the precedent analysis
+ */
+
 #include "syntaxical/parser.h"
 #include "syntaxical/precident.h"
 #include "utility/my_utils.h"

@@ -1,7 +1,8 @@
 /** AUTHOR
  *
- * @author  <247581> Martin Mendl  <xsvobov00> Veronika Svobodová
- * @file parser.c
+ * @author  <247581> Martin Mendl  
+ * @author <xsvobov00> Veronika Svobodová
+ * @file syntax_pass1.c
  * @date 17.11. 2024
  * @brief main src file for the syntaxical parser
  */

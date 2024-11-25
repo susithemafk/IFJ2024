@@ -1,3 +1,13 @@
+/** AUTHOR
+ * 
+ * @author <247581> Martin Mendl
+ * @author <253171> Vanesa Zimmermannová
+ * @file sem_analyzer.h
+ * @date 20.10. 2024
+ * @brief main header file for the semantical analyzer
+ */
+
+
 #ifndef SEM_ANALYZER_H
 #define SEM_ANALYZER_H
 

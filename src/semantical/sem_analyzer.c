@@ -1,3 +1,12 @@
+/** AUTHOR
+ * 
+ * @author <247581> Martin Mendl
+ * @author <253171> Vanesa Zimmermannová
+ * @file sem_analyzer.c
+ * @date 20.10. 2024
+ * @brief main src file for the semantical analyzer
+ */
+
 #include <stdlib.h>
 #include <string.h>
 #include "semantical/sem_analyzer.h"

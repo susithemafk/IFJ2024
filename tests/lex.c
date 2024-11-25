@@ -1,7 +1,8 @@
-/**
- * @file lexical_test.c
- * @date 9.10. 2024
+/** AUTHOR
+ * 
  * @author <247581> Martin Mendl
+ * @file lex.c
+ * @date 9.10. 2024
  * @brief Test file for the lexical analysis
  */
 

@@ -1,7 +1,7 @@
 /** AUTHOR
  * 
  * @author <247581> Martin Mendl
- * @file test_list.c
+ * @file list.c
  * @date 28.9. 2024
  * @brief Test file for the linked list implementation
  */

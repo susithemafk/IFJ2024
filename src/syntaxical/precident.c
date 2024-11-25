@@ -1,6 +1,8 @@
 /** AUTHOR
  *
- * @author  <247581> Martin Mendl   <xsvobov00> Veronika Svobodová
+ * @author <247581> Martin Mendl   
+ * @author <xsvobov00> Veronika Svobodová
+ * @author <253171> Vanesa Zimmermannová
  * @file precident.c
  * @date 17.11. 2024
  * @brief main src file for the precedent analysis
