@@ -1,4 +1,13 @@
 #!/bin/bash
+#!/bin/bash
+# /** AUTHOR
+#  * 
+#  * @author <247581> Martin Mendl
+#  * @file run_test.sh
+#  * @date 25.11. 2024
+#  * @brief This script runs unit tests, as well as integration tests for the given translator binary.
+#  * @note this script is run by the Makefile
+#  */
 
 # ANSI escape codes for colored output
 RESET="\033[0m"

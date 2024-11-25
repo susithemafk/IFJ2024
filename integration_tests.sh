@@ -1,4 +1,12 @@
 #!/bin/bash
+# /** AUTHOR
+#  * 
+#  * @author <247581> Martin Mendl
+#  * @file integration_tests.sh
+#  * @date 25.11. 2024
+#  * @brief This script runs integration tests for the given translator binary.
+#  * @note this script is run by the run_test.sh
+#  */
 
 # Define color constants
 COLOR_WARN="\033[1;33m"   # Yellow

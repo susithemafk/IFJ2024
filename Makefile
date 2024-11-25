@@ -1,3 +1,11 @@
+# /** AUTHOR
+#  * 
+#  * @author <247581> Martin Mendl
+#  * @file Makefile
+#  * @date 25.11. 2024
+#  * @brief Makefile for IFJ project
+#  */
+
 # Compiler settings
 CC = gcc
 CFLAGS = -std=c99 -Wall -Wextra -pedantic -fcommon
