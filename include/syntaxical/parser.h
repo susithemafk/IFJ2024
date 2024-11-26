@@ -35,8 +35,7 @@ void freeBuffer(LinkedList **buffer);
 bool saveNewToken(struct TOKEN token, LinkedList *buffer);
 
 
-enum ERR_CODES parser_init(SymTable *tbl);
-void parser_cleanup(void);
+enum ERR_CODES parser_init(SymTable *tbl, LinkedList *buf);
 enum ERR_CODES parser_parse(FILE *input, Program *program);
 
 bool match(enum TOKEN_TYPE tokenType);

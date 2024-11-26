@@ -21,6 +21,64 @@ static struct TOKEN token;
 // udelat parser dle good_asts.c
 // todo return bez leve zavorky ve funkci
 
+// Function to save a new token
+// Function to save a new token to the buffer
+bool saveNewToken(struct TOKEN token, LinkedList *buffer) {
+    
+    // create a new token
+    TOKEN_PTR newToken = (TOKEN_PTR)malloc(sizeof(struct TOKEN));
+    if (newToken == NULL) return false;
+
+    newToken->type = token.type;    
+    newToken->value = token.value;
+    
+    // save the token to the buffer
+    if (!insertNodeAtIndex(buffer, (void *)newToken, -1)) return false;
+    return true;
+}
+
+// Function to free the buffer
+void freeBuffer(LinkedList ** buffer) {
+
+    unsigned int size = getSize(*buffer);
+    for (unsigned int i = 0; i < size; i++) {
+        TOKEN_PTR oneToken = (TOKEN_PTR)getDataAtIndex(*buffer, i);
+
+        free(oneToken->value);
+        free(oneToken);
+    }
+
+    removeList(buffer);
+}
+
+TOKEN_PTR currentToken(void) {
+    return (TOKEN_PTR)getDataAtIndex(buffer, tokenIndex);
+}
+
+TOKEN_PTR getNextToken(void) {
+    tokenIndex++;
+    return (TOKEN_PTR)getDataAtIndex(buffer, tokenIndex);
+}
+
+enum ERR_CODES parser_init(SymTable *tbl, LinkedList *buf) {
+    buffer = buf;
+    table = tbl;
+
+    if (!buffer) {
+        freeBuffer(&buffer);
+        DEBUG_PRINT("Error in parser init");
+        return E_INTERNAL;
+    }
+
+    return SUCCESS;
+}
+
+void parser_cleanup(void) {
+    if (buffer)
+        freeBuffer(&buffer);
+    if (table)
+        symTableFree(&table);
+}
 
 // Functio to do the first pass over the program
 enum ERR_CODES firstPass(FILE *input, LinkedList *buffer) {
@@ -43,64 +101,6 @@ enum ERR_CODES firstPass(FILE *input, LinkedList *buffer) {
     // check, if we have the main function
     if (getSize(buffer) == 0) return E_SYNTAX;
     return SUCCESS;
-}
-
-void freeBuffer(LinkedList **buffer) {
-
-    if (buffer == NULL || *buffer == NULL) return;
-
-    for (unsigned int i = 0; i < getSize(*buffer); i++) {
-        TOKEN_PTR token = (TOKEN_PTR)getDataAtIndex(*buffer, i);
-        free(token->value);
-        free(token);
-    }
-
-    removeList(buffer);
-}
-
-// Function to save a new token to the buffer
-bool saveNewToken(struct TOKEN token, LinkedList *buffer) {
-    
-    // create a new token
-    TOKEN_PTR newToken = (TOKEN_PTR)malloc(sizeof(struct TOKEN));
-    if (newToken == NULL) return false;
-
-    newToken->type = token.type;    
-    newToken->value = token.value;
-    
-    // save the token to the buffer
-    if (!insertNodeAtIndex(buffer, (void *)newToken, -1)) return false;
-    return true;
-}
-
-
-TOKEN_PTR currentToken(void) {
-    return (TOKEN_PTR)getDataAtIndex(buffer, tokenIndex);
-}
-
-TOKEN_PTR getNextToken(void) {
-    tokenIndex++;
-    return (TOKEN_PTR)getDataAtIndex(buffer, tokenIndex);
-}
-
-enum ERR_CODES parser_init(SymTable *tbl) {
-    buffer = initLinkedList(false);
-    table = tbl;
-
-    if (!buffer) {
-        freeBuffer(&buffer);
-        DEBUG_PRINT("Error in parser init");
-        return E_INTERNAL;
-    }
-
-    return SUCCESS;
-}
-
-void parser_cleanup(void) {
-    if (buffer)
-        freeBuffer(&buffer);
-    if (table)
-        symTableFree(&table);
 }
 
 enum ERR_CODES parser_parse(FILE *input, struct Program *program) {
@@ -231,7 +231,7 @@ bool parse_function(struct Function *function) {
 
     DEBUG_PRINT("Function name: %s\n", currentToken()->value);
 
-    function->id.name = currentToken()->value; // no need to double alocate, just copy the pointer
+    function->id.name = currentToken()->value;
     if (!function->id.name)
         return false;
     getNextToken();
@@ -320,7 +320,7 @@ bool parse_parameter(Param *param) {
     }
 
     DEBUG_PRINT("Parameter name: %s\n", currentToken()->value);
-    param->id.name = currentToken()->value; // no need to double alocate, just copy the pointer
+    param->id.name = currentToken()->value;
     if (!param->id.name)
         return false;
 
@@ -384,7 +384,7 @@ bool parse_func_call_param(Expression *expr) {
         DEBUG_PRINT("Data type: %s\n", currentToken()->value);
 
         expr->expr_type = LiteralExpressionType;
-        expr->data.literal.value =  currentToken()->value; // no need to double alocate, just copy the pointer
+        expr->data.literal.value = currentToken()->value;
         if (!expr->data.literal.value)
             return false;
 
@@ -400,7 +400,7 @@ bool parse_func_call_param(Expression *expr) {
         DEBUG_PRINT("Identifier: %s\n", currentToken()->value);
 
         expr->expr_type = IdentifierExpressionType;
-        expr->data.identifier.name = currentToken()->value; // no need to double alocate, just copy the pointer
+        expr->data.identifier.name = currentToken()->value;
         if (!expr->data.identifier.name)
             return false;
 
@@ -414,7 +414,7 @@ bool parse_func_call_param(Expression *expr) {
         DEBUG_PRINT("String: %s\n", currentToken()->value);
 
         expr->expr_type = LiteralExpressionType;
-        expr->data.literal.value = currentToken()->value; // no need to double alocate, just copy the pointer
+        expr->data.literal.value = currentToken()->value;
         if (!expr->data.literal.value)
             return false;
 
@@ -495,6 +495,8 @@ bool parse_body_content(struct Statement *statement) {
     TOKEN_PTR token = currentToken();
     TOKEN_PTR nextToken;
 
+    // printf("Deciding on token: \t%s\n", token->value);
+
     switch (token->type) {
     case TOKEN_CONST:
     case TOKEN_VAR:
@@ -528,7 +530,7 @@ bool parse_body_content(struct Statement *statement) {
         return parse_var_assign(&statement->data.assigment_statement);
 
     default:
-        DEBUG_PRINT("Syntax error: unexpected token %s\n, expected: const, var, if, while, return, "
+        printf("Syntax error: unexpected token %s\n, expected: const, var, if, while, return, "
                "identifier, ifj, _",
                token->value);
         return false;
@@ -571,7 +573,7 @@ bool parse_var_def(VariableDefinitionStatement *variable_definition_statement) {
     if (currentToken()->type != TOKEN_IDENTIFIER)
         return false;
 
-    variable_definition_statement->id.name = currentToken()->value; // no need to double alocate, just copy the pointer
+    variable_definition_statement->id.name = currentToken()->value;
     if (!variable_definition_statement->id.name)
         return false;
 
@@ -619,7 +621,7 @@ bool parse_if(IfStatement *if_statement) {
         DEBUG_PRINT("Handeling if (a) |na| {...}\n");
         // save the current token into the expression ..
         if_statement->condition.expr_type = IdentifierExpressionType;
-        if_statement->condition.data.identifier.name = curToken->value; // no need to double alocate, just copy the pointer
+        if_statement->condition.data.identifier.name = curToken->value;
         if (!if_statement->condition.data.identifier.name)
             return false;
         tokenIndex++;
@@ -630,7 +632,7 @@ bool parse_if(IfStatement *if_statement) {
             return false;
         tokenIndex--;
         // saving the not nullable var name
-        if_statement->non_nullable.name = currentToken()->value; // no need to double alocate, just copy the pointer
+        if_statement->non_nullable.name = currentToken()->value;
         if (!if_statement->non_nullable.name)
             return false;
         tokenIndex++;
@@ -698,7 +700,7 @@ bool parse_while(WhileStatement *while_statement) {
 
         // save the current token into the expression ..
         while_statement->condition.expr_type = IdentifierExpressionType;
-        while_statement->condition.data.identifier.name = curToken->value; // no need to double alocate, just copy the pointer
+        while_statement->condition.data.identifier.name = curToken->value;
         if (!while_statement->condition.data.identifier.name)
             return false;
         tokenIndex++;
@@ -709,7 +711,7 @@ bool parse_while(WhileStatement *while_statement) {
             return false;
         tokenIndex--;
         // saving the not nullable var name
-        while_statement->non_nullable.name = currentToken()->value; // no need to double alocate, just copy the pointer
+        while_statement->non_nullable.name = currentToken()->value;
         if (!while_statement->non_nullable.name)
             return false;
         tokenIndex++;
@@ -774,13 +776,8 @@ bool parse_native_func_call(FunctionCall *function_call) {
     strcpy(func_name, "ifj_");
     strcat(func_name, currentToken()->value);
 
-    // Free the old value of the token
     free(currentToken()->value);
-
-    // Replace the token's value with the new function name
     currentToken()->value = func_name;
-
-    // here replace the current tokens value with the new name, and free the old one
 
     getNextToken();
 
@@ -807,7 +804,7 @@ bool parse_user_func_call(FunctionCall *function_call) {
     if (currentToken()->type != TOKEN_IDENTIFIER)
         return false;
 
-    function_call->func_id.name = currentToken()->value; // no need to double alocate, just copy the pointer
+    function_call->func_id.name = currentToken()->value;
     if (!function_call->func_id.name)
         return false;
 
@@ -861,8 +858,7 @@ bool parse_var_assign(AssigmentStatement *assign_statement) {
     if (currentToken()->type != TOKEN_IDENTIFIER && currentToken()->type != TOKEN_DELETE_VALUE)
         return false;
 
-    assign_statement->id.name = currentToken()->value; // no need to double alocate, just copy the pointer
-
+    assign_statement->id.name = currentToken()->value;
     if (!assign_statement->id.name)
         return false;
 
@@ -912,7 +908,7 @@ bool parse_truth_expr(Expression *expr) {
 
     enum ERR_CODES err = startPrecedentAnalysis(buffer, &tokenIndex, false, expr);
     if (err != SUCCESS) {
-        DEBUG_PRINT("Error in startPrecedentAnalysis: %d\n", err);
+        printf("Error in startPrecedentAnalysis: %d\n", err);
         return false;
     }
 
