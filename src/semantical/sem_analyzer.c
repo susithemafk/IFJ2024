@@ -634,14 +634,24 @@ enum ERR_CODES analyzeBinaryExpression(BinaryExpression *binary_expr, SymTable *
     err = analyzeExpression(binary_expr->right, table, &rightType, &rightNullable);
     if (err != SUCCESS) return err;
 
-    // in here, we know, theat these two types, are valid by themselfs, need to check, if they are compatible
+    // we can compare ?U8 and null
     if (
-        leftType == dTypeU8 || 
-        rightType == dTypeU8
+        (leftType == dTypeU8  && leftNullable && rightType != dTypeVoid) || 
+        (rightType == dTypeU8 && rightNullable && leftType != dTypeVoid) 
     ) return E_SEMANTIC_INCOMPATABLE_TYPES;
+
+    // we can compare null == null
+    if (leftType == dTypeVoid && rightType == dTypeVoid) {
+        *returnType = dTypeBool;
+        *resultNullable = true;
+        return SUCCESS;
+    }
 
     // check for unkown types at compile time
     if (leftType == dTypeNone || rightType == dTypeNone) return E_SEMANTIC_UNKNOWN_TYPE;
+
+    // we cant compare u8 with anything else, even u8
+    if (leftType == dTypeU8 || rightType == dTypeU8) return E_SEMANTIC_INCOMPATABLE_TYPES;
 
     // handle not allowd operators between nullable types
     switch(binary_expr->operation) {
@@ -695,6 +705,8 @@ enum ERR_CODES analyzeBinaryExpression(BinaryExpression *binary_expr, SymTable *
         if (flag == CONV_TO_FLOAT) binary_expr->right->conversion = FloatToInt;
         return E_INTERNAL; 
     }
+
+    // we can compare:
 
     // two variables, not the same type
     if (leftType != rightType && binary_expr->left->expr_type == IdentifierExpressionType && binary_expr->right->expr_type == IdentifierExpressionType) {
