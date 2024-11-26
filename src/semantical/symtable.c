@@ -60,8 +60,8 @@ void symFreeFuncDefinition(SymFunctionPtr *func) {
     if (func == NULL || *func == NULL)
         return;
 
-    if ((*func)->funcName != NULL)
-        free((*func)->funcName);
+    //if ((*func)->funcName != NULL)
+    //    free((*func)->funcName); // not needed, since all the names are build in or from the token buffer
     if ((*func)->paramaters != NULL)
         removeList(&(*func)->paramaters);
 
@@ -103,37 +103,25 @@ bool symAddParamToFunc(SymFunctionPtr func, enum DATA_TYPES type, bool nullable)
 }
 
 // Function to edit a function definition
-bool symEditFuncDef(SymFunctionPtr func, char *name, enum DATA_TYPES returnType, int nullable) {
+bool symEditFuncDef(SymFunctionPtr func, char *name, enum DATA_TYPES returnType, bool nullable) {
 
     // check if the call is valid
-    if (func == NULL)
-        return false;
-    if ((name == NULL && returnType == dTypeUndefined && nullable == -1))
-        return false;
+    if (func == NULL) return false;
 
     // handle name
-    if (name != NULL) {
-        if (func->funcName != NULL)
-            return false;
-        func->funcName = malloc(sizeof(char) * (strlen(name) + 1));
-        if (func->funcName == NULL)
-            return false;
-        strcpy(func->funcName, name);
-    }
+    DEBUG_PRINT("adding name: %s", name);
+    if (func->funcName != NULL) return false;
+    func->funcName = name;
 
     // handle return type
-    if (returnType != dTypeUndefined) {
-        if (func->returnType != dTypeUndefined)
-            return false;
-        func->returnType = returnType;
-    }
+    DEBUG_PRINT("adding return type: %d", returnType);
+    if (func->returnType != dTypeUndefined) return false;
+    func->returnType = returnType;
 
     // handle nullable
-    if (nullable != -1) {
-        if (func->nullableReturn != false)
-            return false;
-        func->nullableReturn = (nullable == 1) ? true : false;
-    }
+    DEBUG_PRINT("adding nullable: %d", nullable);
+    DEBUG_PRINT("nullable: %d", func->nullableReturn);
+    func->nullableReturn = nullable;
 
     return true;
 }
@@ -189,10 +177,13 @@ SymFunctionPtr symTableFindFunction(SymTable *table, char *name) {
     unsigned int size = getSize(sameHashFuncs);
     for (unsigned int i = 0; i < size; i++) {
         SymFunctionPtr func = (SymFunctionPtr)getDataAtIndex(sameHashFuncs, i);
-        if (func != NULL && strcmp(func->funcName, name) == 0)
+        if (func != NULL && strcmp(func->funcName, name) == 0) {
+            DEBUG_PRINT("Function found: %s\nreturnType: %d\nReturn Nullable: %d\namount of args: %d", name, func->returnType, func->nullableReturn, getSize(func->paramaters));
             return func;
+        }
     }
 
+    DEBUG_PRINT("function with name: %s not found", name);
     return NULL;
 }
 
@@ -462,13 +453,8 @@ SymVariable *symTableDeclareVariable(SymTable *table, char *name, enum DATA_TYPE
         return NULL;
     }
 
-    // Allocate memory for the name and copy it
-    newVariable->name = (char *)malloc(strlen(name) + 1);
-    if (newVariable->name == NULL) {
-        free(newVariable); // Cleanup if malloc fails
-        return NULL;
-    }
-    strcpy(newVariable->name, name);
+    // save the name of the variable
+    newVariable->name = name;
 
     table->varCount++; // Increment the variable count
 
@@ -551,14 +537,7 @@ SymVariable *symTableFindVariable(SymTable *table, char *name) {
 
             variable->accesed = true; // Mark, that the variable was accessed
 
-            #ifdef DEBUG
-            printf("Variable %s found in scope %d\n", name, currentScope->key);
-            printf("Variable ID: %d\n", variable->id);
-            printf("Variable name: %s\n", variable->name);
-            printf("Variable type: %d\n", variable->type);
-            printf("Variable mutable: %d\n", variable->mutable);
-            printf("Variable nullable: %d\n", variable->nullable);
-            #endif
+            DEBUG_PRINT("Variable %s found in scope %d\nVariable ID: %d\nVariable name: %s\nVariable type: %d\nVariable mutable: %d\nVariable nullable: %d\n", name, currentScope->key, variable->id, variable->name, variable->type, variable->mutable, variable->nullable);
             return variable;
         }
 
@@ -608,10 +587,9 @@ bool symTableFree(SymTable **table) {
     // free the variables
     for (unsigned int i = 0; i < getSize(tTable->data); i++) {
         SymVariable *variable = (SymVariable *)getDataAtIndex(tTable->data, i);
-        if (variable == NULL) {
-            return false;
-        }
-        free(variable->name);
+        if (variable == NULL) return false;
+        //since all the names, are from the token buffer, or created in the inbuild functions, we dont need to free them
+        if (variable->id == 0) free(variable->name); 
         free(variable);
     }
 

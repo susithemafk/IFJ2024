@@ -20,31 +20,63 @@ enum ERR_CODES analyzeProgram(Program *program, SymTable *table) {
     if (!program) return E_INTERNAL;
 
     enum ERR_CODES err;
-    DEBUG_PRINT("Analyzing functions");
-    // go function by function
+    DEBUG_PRINT("Gettinf function definitions");
+    // go function by function, add the definitions
     unsigned int size = getSize(program->functions);
     for (unsigned int i = 0; i < size; i++) {
         Function *function = (Function *)getDataAtIndex(program->functions, i);
-        SymFunctionPtr funDef = symTableFindFunction(table, function->id.name);
+        SymFunctionPtr funDef = symInitFuncDefinition();
         if (!funDef) return E_INTERNAL;
+        DEBUG_PRINT("Function name: %s\nFunction return type: %d\nFunftion return nullable: %d", function->id.name, function->returnType.data_type, function->returnType.is_nullable);
+        bool result = symEditFuncDef(funDef, function->id.name, function->returnType.data_type, (function->returnType.is_nullable) ? 1 : 0);
+        if (!result) return E_INTERNAL;
+        DEBUG_PRINT_IF(!result, "Function edit failed");
+        DEBUG_PRINT("Function edit error: %d", err);
+
+        // go thorougt the params, and add them to the function
+        unsigned int size1 = getSize(function->params);
+        for (unsigned int j = 0; j < size1; j++) {
+            Param *param = (Param *)getDataAtIndex(function->params, j);
+            bool result = symAddParamToFunc(funDef, param->type.data_type, param->type.is_nullable);
+            if (!result) return E_INTERNAL;
+        }
+       
+        // add the function to the symbol table
+        err = symTableAddFunction(table, funDef);
+        if (err != SUCCESS) return err;
+    }
+
+    // need to find the main function, it is is missing, return error
+    SymFunctionPtr mainFunc = symTableFindFunction(table, "main");
+    if (!mainFunc) return E_SEMANTIC_UND_FUNC_OR_VAR;
+
+    // if the main has paramaters, or return type is not void, return error 4
+    if (getSize(mainFunc->paramaters) != 0 || mainFunc->returnType != dTypeVoid) return E_SEMANTIC_BAD_FUNC_RETURN;
+
+    DEBUG_PRINT("Analyzing function bodies");
+
+    // go througt the function bodies
+    for (unsigned int i = 0; i < size; i++) {
+
+        Function *function = (Function *)getDataAtIndex(program->functions, i);
+        DEBUG_PRINT("analyzing body of function %s", function->id.name);
+        SymFunctionPtr funDef = symTableFindFunction(table, function->id.name);
 
         // enter the function scope
         if (!symTableMoveScopeDown(table, SYM_FUNCTION)) return E_INTERNAL;
 
         unsigned int size1 = getSize(function->params);
-        DEBUG_PRINT("Analyzing function %s", function->id.name);
+        DEBUG_PRINT("Adding args to symtable: %s", function->id.name);
         for (unsigned int j = 0; j < size1; j++) {
             // add the params to the function scope
             Param *param = (Param *)getDataAtIndex(function->params, j);
-            SymFunctionParamPtr arg = (SymFunctionParamPtr)getDataAtIndex(funDef->paramaters, j);
-            err = analyzeParam(param, table, arg);
+            err = analyzeParam(param, table);
             if (err != SUCCESS) return err;
         }
 
         int retCount = 0;   
         err = analyzeBody(&function->body, table, funDef, &retCount);
         if (err != SUCCESS) return err;
-
 
         // invalid amount of returns
         if (strcmp(funDef->funcName, "main") != 0) {
@@ -59,21 +91,21 @@ enum ERR_CODES analyzeProgram(Program *program, SymTable *table) {
 }
 
 // function to analyze a paramater
-enum ERR_CODES analyzeParam(Param *param, SymTable *table, SymFunctionParamPtr arg) {
+enum ERR_CODES analyzeParam(Param *param, SymTable *table) {
     if (!param || !table) return E_INTERNAL;
 
-    DEBUG_PRINT("Analyzing param %s", param->id.name);
+    DEBUG_PRINT("Analyzing param %s\n type of param: %d\nparam nullable: %d", param->id.name, param->type.data_type, param->type.is_nullable);
     
     SymVariable *var = symTableDeclareVariable(
         table, 
         param->id.name, 
-        arg->type,
+        param->type.data_type,
         false, 
-        arg->nullable
+        param->type.is_nullable
     );
-
-    param->id.var = var;
     if (!var) return E_SEMANTIC_REDIFINITION;
+    param->id.var = var;
+
     DEBUG_PRINT("Param %s declared\n", param->id.name); 
     return SUCCESS;
 }
@@ -193,6 +225,7 @@ enum ERR_CODES analyzeFunctionCall(FunctionCall *function_call, SymTable *table)
             // null compatability
             SymVariable *var = symTableFindVariable(table, param->data.identifier.name);
             param->data.identifier.var = var;
+
             if (!var) return E_SEMANTIC_UND_FUNC_OR_VAR;
             if (defParam->type == dTypeNone) return SUCCESS;
             if (!nullCompatabilityCheck(defParam->nullable, var->nullable)) {
@@ -262,8 +295,8 @@ enum ERR_CODES analyzeWhileStatement(WhileStatement *while_statement, SymTable *
         // need to somehow find the variable in the while scope?
         char * varName = while_statement->condition.data.identifier.name;
         SymVariable *var = symTableFindVariable(table, varName);
-        while_statement->condition.data.identifier.var = var;
         if (!var) return E_SEMANTIC_UND_FUNC_OR_VAR;
+        while_statement->condition.data.identifier.var = var;
 
         DEBUG_PRINT_IF(!var->nullable, "Variable %s is not nullable", varName);
         DEBUG_PRINT_IF(var->type == dTypeNone, "Variable %s has no type", varName);
@@ -279,11 +312,12 @@ enum ERR_CODES analyzeWhileStatement(WhileStatement *while_statement, SymTable *
             false, // this war will not exist after the while loop, so it should be const
             false
         );
-
+     
         DEBUG_PRINT_IF(!nonNullVar, "Variable %s redifined", while_statement->non_nullable.name);
         DEBUG_PRINT("While non nullable var valid");
 
         if (!nonNullVar) return E_SEMANTIC_REDIFINITION;
+
         while_statement->non_nullable.var = nonNullVar;
 
     } else {
@@ -329,8 +363,8 @@ enum ERR_CODES analyzeIfStatement(IfStatement *if_statement, SymTable *table, Sy
         // need to somehow find the variable in the while scope?
         char * varName = if_statement->condition.data.identifier.name;
         SymVariable *var = symTableFindVariable(table, varName);
-        if_statement->condition.data.identifier.var = var;
         if (!var) return E_SEMANTIC_UND_FUNC_OR_VAR;
+        if_statement->condition.data.identifier.var = var;
 
         DEBUG_PRINT_IF(!var->nullable, "Variable %s is not nullable", varName);
         DEBUG_PRINT_IF(var->type == dTypeNone, "Variable %s has no type", varName);
@@ -351,7 +385,9 @@ enum ERR_CODES analyzeIfStatement(IfStatement *if_statement, SymTable *table, Sy
         DEBUG_PRINT("If non nullable var valid");
 
         if (!nonNullVar) return E_SEMANTIC_REDIFINITION;
+
         if_statement->non_nullable.var = nonNullVar;
+
     } else {
 
         DEBUG_PRINT("Analyzing if (truthExp) {...}");
@@ -390,8 +426,9 @@ enum ERR_CODES analyzeAssigmentStatement(AssigmentStatement *statement, SymTable
     enum ERR_CODES err;
 
     SymVariable *var = symTableFindVariable(table, statement->id.name);
-    statement->var = var;
     if (!var) return E_SEMANTIC_UND_FUNC_OR_VAR;
+
+    statement->var = var;
 
     DEBUG_PRINT_IF(!var->mutable && var->id != 0, "Variable %s is not mutable", statement->id.name);
     DEBUG_PRINT_IF(var->id == 0, "Variable %s is global", statement->id.name);
@@ -462,12 +499,13 @@ enum ERR_CODES analyzeVariableDefinitionStatement(VariableDefinitionStatement *s
         !statement->isConst,
         statement->type.is_nullable
     );
-    statement->id.var = var;
 
     DEBUG_PRINT_IF(!var, "Variable %s redifined", statement->id.name);
     DEBUG_PRINT("Var declare valid");
 
     if (!var) return E_SEMANTIC_REDIFINITION;
+
+    statement->id.var = var;
 
     bool nullable;
     enum DATA_TYPES type;
@@ -521,6 +559,7 @@ enum ERR_CODES analyzeExpression(Expression *expr, SymTable *table, enum DATA_TY
             err = analyzeFunctionCall(&expr->data.function_call, table);
             // try to find the defintion and the return type and set then
             fncDef = symTableFindFunction(table, expr->data.function_call.func_id.name);
+            DEBUG_PRINT_IF(!fncDef, "Function %s not found", expr->data.function_call.func_id.name);
             if (!fncDef) return E_SEMANTIC_UND_FUNC_OR_VAR;
             *returnType = fncDef->returnType;
             *resultNullable = fncDef->nullableReturn;
@@ -545,9 +584,10 @@ enum ERR_CODES analyzeExpression(Expression *expr, SymTable *table, enum DATA_TY
                 break;
             } // null
             var = symTableFindVariable(table, expr->data.identifier.name);
-            expr->data.identifier.var = var;
             // check for NULL i guess, since null is and identifier
             if (!var) return E_SEMANTIC_UND_FUNC_OR_VAR;
+            expr->data.identifier.var = var;
+
             *returnType = var->type;
             *resultNullable = var->nullable;
             break;
@@ -618,14 +658,24 @@ enum ERR_CODES analyzeBinaryExpression(BinaryExpression *binary_expr, SymTable *
     err = analyzeExpression(binary_expr->right, table, &rightType, &rightNullable);
     if (err != SUCCESS) return err;
 
-    // in here, we know, theat these two types, are valid by themselfs, need to check, if they are compatible
+    // we can compare ?U8 and null
     if (
-        leftType == dTypeU8 || 
-        rightType == dTypeU8
+        (leftType == dTypeU8  && leftNullable && rightType != dTypeVoid) || 
+        (rightType == dTypeU8 && rightNullable && leftType != dTypeVoid) 
     ) return E_SEMANTIC_INCOMPATABLE_TYPES;
+
+    // we can compare null == null
+    if (leftType == dTypeVoid && rightType == dTypeVoid) {
+        *returnType = dTypeBool;
+        *resultNullable = true;
+        return SUCCESS;
+    }
 
     // check for unkown types at compile time
     if (leftType == dTypeNone || rightType == dTypeNone) return E_SEMANTIC_UNKNOWN_TYPE;
+
+    // we cant compare u8 with anything else, even u8
+    if (leftType == dTypeU8 || rightType == dTypeU8) return E_SEMANTIC_INCOMPATABLE_TYPES;
 
     // handle not allowd operators between nullable types
     switch(binary_expr->operation) {
@@ -679,6 +729,8 @@ enum ERR_CODES analyzeBinaryExpression(BinaryExpression *binary_expr, SymTable *
         if (flag == CONV_TO_FLOAT) binary_expr->right->conversion = FloatToInt;
         return E_INTERNAL; 
     }
+
+    // we can compare:
 
     // two variables, not the same type
     if (leftType != rightType && binary_expr->left->expr_type == IdentifierExpressionType && binary_expr->right->expr_type == IdentifierExpressionType) {

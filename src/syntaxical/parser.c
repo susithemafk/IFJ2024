@@ -15,10 +15,41 @@
 static unsigned int tokenIndex = 0;
 static LinkedList *buffer = NULL;
 static SymTable *table = NULL; // TODO: vhodit do mainu table, pak parser, pak v mainu free
+static struct TOKEN token;
 
 // vnoreny funkce resi first pass
 // udelat parser dle good_asts.c
 // todo return bez leve zavorky ve funkci
+
+// Function to save a new token
+// Function to save a new token to the buffer
+bool saveNewToken(struct TOKEN token, LinkedList *buffer) {
+    
+    // create a new token
+    TOKEN_PTR newToken = (TOKEN_PTR)malloc(sizeof(struct TOKEN));
+    if (newToken == NULL) return false;
+
+    newToken->type = token.type;    
+    newToken->value = token.value;
+    
+    // save the token to the buffer
+    if (!insertNodeAtIndex(buffer, (void *)newToken, -1)) return false;
+    return true;
+}
+
+// Function to free the buffer
+void freeBuffer(LinkedList ** buffer) {
+
+    unsigned int size = getSize(*buffer);
+    for (unsigned int i = 0; i < size; i++) {
+        TOKEN_PTR oneToken = (TOKEN_PTR)getDataAtIndex(*buffer, i);
+
+        free(oneToken->value);
+        free(oneToken);
+    }
+
+    removeList(buffer);
+}
 
 TOKEN_PTR currentToken(void) {
     return (TOKEN_PTR)getDataAtIndex(buffer, tokenIndex);
@@ -29,8 +60,8 @@ TOKEN_PTR getNextToken(void) {
     return (TOKEN_PTR)getDataAtIndex(buffer, tokenIndex);
 }
 
-enum ERR_CODES parser_init(SymTable *tbl) {
-    buffer = initLinkedList(false);
+enum ERR_CODES parser_init(SymTable *tbl, LinkedList *buf) {
+    buffer = buf;
     table = tbl;
 
     if (!buffer) {
@@ -49,10 +80,33 @@ void parser_cleanup(void) {
         symTableFree(&table);
 }
 
+// Functio to do the first pass over the program
+enum ERR_CODES firstPass(FILE *input, LinkedList *buffer) {
+
+    scanner_init(input);
+    enum ERR_CODES status = SUCCESS;
+    while (status == SUCCESS) {
+        // get the token
+        status = scanner_get_token(&token);
+        if (status != SUCCESS) return status;
+        if (status != SUCCESS) return E_INTERNAL;
+        if (token.type == TOKEN_EOF) {
+            if (!saveNewToken(token, buffer)) return E_INTERNAL;
+            break;
+        }
+        // save the token
+        if (!saveNewToken(token, buffer)) return E_INTERNAL;
+    }
+
+    // check, if we have the main function
+    if (getSize(buffer) == 0) return E_SYNTAX;
+    return SUCCESS;
+}
+
 enum ERR_CODES parser_parse(FILE *input, struct Program *program) {
     DEBUG_PRINT("parser_parse");
 
-    enum ERR_CODES err = firstPass(table, input, buffer);
+    enum ERR_CODES err = firstPass(input, buffer);
     if (err != SUCCESS) {
         DEBUG_PRINT("Error in first pass");
         DEBUG_PRINT("Error code: %d\n", err);
@@ -177,7 +231,7 @@ bool parse_function(struct Function *function) {
 
     DEBUG_PRINT("Function name: %s\n", currentToken()->value);
 
-    function->id.name = copyString(currentToken()->value); //
+    function->id.name = currentToken()->value;
     if (!function->id.name)
         return false;
     getNextToken();
@@ -266,7 +320,7 @@ bool parse_parameter(Param *param) {
     }
 
     DEBUG_PRINT("Parameter name: %s\n", currentToken()->value);
-    param->id.name = copyString(currentToken()->value);
+    param->id.name = currentToken()->value;
     if (!param->id.name)
         return false;
 
@@ -330,7 +384,7 @@ bool parse_func_call_param(Expression *expr) {
         DEBUG_PRINT("Data type: %s\n", currentToken()->value);
 
         expr->expr_type = LiteralExpressionType;
-        expr->data.literal.value = copyString(currentToken()->value);
+        expr->data.literal.value = currentToken()->value;
         if (!expr->data.literal.value)
             return false;
 
@@ -346,7 +400,7 @@ bool parse_func_call_param(Expression *expr) {
         DEBUG_PRINT("Identifier: %s\n", currentToken()->value);
 
         expr->expr_type = IdentifierExpressionType;
-        expr->data.identifier.name = copyString(currentToken()->value);
+        expr->data.identifier.name = currentToken()->value;
         if (!expr->data.identifier.name)
             return false;
 
@@ -360,7 +414,7 @@ bool parse_func_call_param(Expression *expr) {
         DEBUG_PRINT("String: %s\n", currentToken()->value);
 
         expr->expr_type = LiteralExpressionType;
-        expr->data.literal.value = copyString(currentToken()->value);
+        expr->data.literal.value = currentToken()->value;
         if (!expr->data.literal.value)
             return false;
 
@@ -519,7 +573,7 @@ bool parse_var_def(VariableDefinitionStatement *variable_definition_statement) {
     if (currentToken()->type != TOKEN_IDENTIFIER)
         return false;
 
-    variable_definition_statement->id.name = copyString(currentToken()->value);
+    variable_definition_statement->id.name = currentToken()->value;
     if (!variable_definition_statement->id.name)
         return false;
 
@@ -567,7 +621,7 @@ bool parse_if(IfStatement *if_statement) {
         DEBUG_PRINT("Handeling if (a) |na| {...}\n");
         // save the current token into the expression ..
         if_statement->condition.expr_type = IdentifierExpressionType;
-        if_statement->condition.data.identifier.name = copyString(curToken->value);
+        if_statement->condition.data.identifier.name = curToken->value;
         if (!if_statement->condition.data.identifier.name)
             return false;
         tokenIndex++;
@@ -578,7 +632,7 @@ bool parse_if(IfStatement *if_statement) {
             return false;
         tokenIndex--;
         // saving the not nullable var name
-        if_statement->non_nullable.name = copyString(currentToken()->value);
+        if_statement->non_nullable.name = currentToken()->value;
         if (!if_statement->non_nullable.name)
             return false;
         tokenIndex++;
@@ -646,7 +700,7 @@ bool parse_while(WhileStatement *while_statement) {
 
         // save the current token into the expression ..
         while_statement->condition.expr_type = IdentifierExpressionType;
-        while_statement->condition.data.identifier.name = copyString(curToken->value);
+        while_statement->condition.data.identifier.name = curToken->value;
         if (!while_statement->condition.data.identifier.name)
             return false;
         tokenIndex++;
@@ -657,7 +711,7 @@ bool parse_while(WhileStatement *while_statement) {
             return false;
         tokenIndex--;
         // saving the not nullable var name
-        while_statement->non_nullable.name = copyString(currentToken()->value);
+        while_statement->non_nullable.name = currentToken()->value;
         if (!while_statement->non_nullable.name)
             return false;
         tokenIndex++;
@@ -722,6 +776,9 @@ bool parse_native_func_call(FunctionCall *function_call) {
     strcpy(func_name, "ifj_");
     strcat(func_name, currentToken()->value);
 
+    free(currentToken()->value);
+    currentToken()->value = func_name;
+
     getNextToken();
 
     function_call->func_id.name = func_name;
@@ -747,7 +804,7 @@ bool parse_user_func_call(FunctionCall *function_call) {
     if (currentToken()->type != TOKEN_IDENTIFIER)
         return false;
 
-    function_call->func_id.name = copyString(currentToken()->value);
+    function_call->func_id.name = currentToken()->value;
     if (!function_call->func_id.name)
         return false;
 
@@ -801,8 +858,7 @@ bool parse_var_assign(AssigmentStatement *assign_statement) {
     if (currentToken()->type != TOKEN_IDENTIFIER && currentToken()->type != TOKEN_DELETE_VALUE)
         return false;
 
-    assign_statement->id.name = copyString(
-        currentToken()->value); // even for _ copy identifier (no need to change code generation)
+    assign_statement->id.name = currentToken()->value;
     if (!assign_statement->id.name)
         return false;
 

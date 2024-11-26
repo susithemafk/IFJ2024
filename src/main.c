@@ -16,6 +16,7 @@ int main(void) {
     enum ERR_CODES status;
     
     SymTable *table = symTableInit();
+    LinkedList *buffer = initLinkedList(false);
 
     DEBUG_PRINT_IF(!table, "Table not created");
     DEBUG_PRINT("Table created");
@@ -23,7 +24,7 @@ int main(void) {
     if (!table) return E_INTERNAL;
 
     // init parser
-    status = parser_init(table);
+    status = parser_init(table, buffer);
     if (status != SUCCESS) {
         DEBUG_PRINT("Error in parser init");
         return status;
@@ -38,8 +39,8 @@ int main(void) {
 
     if (status != SUCCESS) {
         DEBUG_PRINT("cleaning up");
-        parser_cleanup();
-        DEBUG_PRINT("cleaning ast");
+        freeBuffer(&buffer);
+        symTableFree(&table);
         freeProgram(&program);
         return status;
     }
@@ -49,7 +50,9 @@ int main(void) {
 
     status = analyzeProgram(&program, table);
     if (status != SUCCESS) {
-        parser_cleanup();
+        DEBUG_PRINT("cleaning up");
+        freeBuffer(&buffer);
+        symTableFree(&table);
         freeProgram(&program);
         return status;
     }
@@ -59,7 +62,9 @@ int main(void) {
 
     generateCodeProgram(&program);
 
-    parser_cleanup();
+    // clean up
+    freeBuffer(&buffer);
+    symTableFree(&table);
     freeProgram(&program);
     return SUCCESS;
 }

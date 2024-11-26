@@ -1,6 +1,5 @@
 #include "lexical/scanner.h"
 #include "semantical/symtable.h"
-#include "syntaxical/parser_pass1.h"
 #include "utility/enumerations.h"
 #include "utility/linked_list.h"
 #include <stdbool.h>
@@ -10,8 +9,33 @@
 
 #include "syntaxical/ast.h"
 
-enum ERR_CODES parser_init(SymTable *tbl);
-void parser_cleanup(void);
+/** 
+ * Function to do the first pass over the program
+ * @param symtable - the symbol table
+ * @return the buffer of tokens
+ */
+enum ERR_CODES firstPass(FILE *input, LinkedList *buffer);
+
+/**
+ * Function to parse a function call
+ * 
+ * @param buffer - the buffer of tokens
+ * @param table - the symbol table
+ * @return enum ERR_CODES
+*/
+void freeBuffer(LinkedList **buffer);
+
+/**
+ * Function to save a new token to the buffer
+ * 
+ * @param token - the token to save
+ * @param buffer - the buffer to save the token to
+ * @return bool - if the token was saved correctly
+ */
+bool saveNewToken(struct TOKEN token, LinkedList *buffer);
+
+
+enum ERR_CODES parser_init(SymTable *tbl, LinkedList *buf);
 enum ERR_CODES parser_parse(FILE *input, Program *program);
 
 bool match(enum TOKEN_TYPE tokenType);

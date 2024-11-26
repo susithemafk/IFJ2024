@@ -18,7 +18,7 @@ void freeDataType(DataType *data_type) {
 void freeIdentifier(Identifier *identifier) {
     DEBUG_PRINT("Freeing identifier");
     if (!identifier) return;
-    free(identifier->name);
+    // free(identifier->name); // not needed, stuff freed in the buffer
 }
 
 void freeFunctionCall(FunctionCall *func_call) {
@@ -65,5 +65,5 @@ void freeExpression(Expression *expr) {
 void freeLiteral(Literal *literal) {
     DEBUG_PRINT("Freeing literal");
     if (!literal) return;
-    free(literal->value);
+    // free(literal->value); // not needed, stuff freed in the buffer
 }

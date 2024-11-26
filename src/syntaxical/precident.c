@@ -331,7 +331,7 @@ enum ERR_CODES startPrecedentAnalysis(LinkedList *buffer, unsigned int *startIdx
 
             if (token->type == TOKEN_IDENTIFIER) {
                 newToken->ast_node.expr_type = IdentifierExpressionType;
-                newToken->ast_node.data.identifier.name = copyString(token->value);
+                newToken->ast_node.data.identifier.name = token->value;
                 if (newToken->ast_node.data.identifier.name == NULL) {
                     removeStack(&stack);
                     return E_INTERNAL;
@@ -340,7 +340,7 @@ enum ERR_CODES startPrecedentAnalysis(LinkedList *buffer, unsigned int *startIdx
 
             if (isLiteral(token->type)) {
                 newToken->ast_node.expr_type = LiteralExpressionType;
-                newToken->ast_node.data.literal.value = copyString(token->value);
+                newToken->ast_node.data.literal.value = token->value;
                 if (newToken->ast_node.data.literal.value == NULL) {
                     removeStack(&stack);
                     return E_INTERNAL;
