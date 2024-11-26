@@ -15,6 +15,7 @@ pub fn main() void {
     } else {
         ifj.write("Chyba pri nacitani celeho cisla!\n");
     }
+    _ = inp; //error 10 - zbytečné zahození lokální proměnné
 }
 // Pomocna funkce pro dekrementaci celeho cisla o zadane cislo
 pub fn decrement(n: i32, m: i32) i32 {
