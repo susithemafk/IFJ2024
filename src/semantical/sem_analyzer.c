@@ -71,6 +71,8 @@ enum ERR_CODES analyzeParam(Param *param, SymTable *table, SymFunctionParamPtr a
         false, 
         arg->nullable
     );
+
+    param->id.var = var;
     if (!var) return E_SEMANTIC_REDIFINITION;
     DEBUG_PRINT("Param %s declared\n", param->id.name); 
     return SUCCESS;
@@ -144,6 +146,10 @@ enum ERR_CODES analyzeFunctionCall(FunctionCall *function_call, SymTable *table)
     SymFunctionPtr SymFunction = symTableFindFunction(table, function_call->func_id.name);
     if (!SymFunction) return E_SEMANTIC_UND_FUNC_OR_VAR;
 
+    function_call->func = SymFunction;
+    function_call->return_type.data_type = SymFunction->returnType;
+    function_call->return_type.is_nullable = SymFunction->nullableReturn;
+
     unsigned int defSize = getSize(SymFunction->paramaters);
     unsigned int size = getSize(function_call->arguments);
 
@@ -186,6 +192,7 @@ enum ERR_CODES analyzeFunctionCall(FunctionCall *function_call, SymTable *table)
         if (param->expr_type == IdentifierExpressionType) {
             // null compatability
             SymVariable *var = symTableFindVariable(table, param->data.identifier.name);
+            param->data.identifier.var = var;
             if (!var) return E_SEMANTIC_UND_FUNC_OR_VAR;
             if (defParam->type == dTypeNone) return SUCCESS;
             if (!nullCompatabilityCheck(defParam->nullable, var->nullable)) {
@@ -255,6 +262,7 @@ enum ERR_CODES analyzeWhileStatement(WhileStatement *while_statement, SymTable *
         // need to somehow find the variable in the while scope?
         char * varName = while_statement->condition.data.identifier.name;
         SymVariable *var = symTableFindVariable(table, varName);
+        while_statement->condition.data.identifier.var = var;
         if (!var) return E_SEMANTIC_UND_FUNC_OR_VAR;
 
         DEBUG_PRINT_IF(!var->nullable, "Variable %s is not nullable", varName);
@@ -276,7 +284,7 @@ enum ERR_CODES analyzeWhileStatement(WhileStatement *while_statement, SymTable *
         DEBUG_PRINT("While non nullable var valid");
 
         if (!nonNullVar) return E_SEMANTIC_REDIFINITION;
-        while_statement->non_nullable_var = nonNullVar;
+        while_statement->non_nullable.var = nonNullVar;
 
     } else {
         DEBUG_PRINT("Analyzing while (truthExp) {...}");
@@ -321,6 +329,7 @@ enum ERR_CODES analyzeIfStatement(IfStatement *if_statement, SymTable *table, Sy
         // need to somehow find the variable in the while scope?
         char * varName = if_statement->condition.data.identifier.name;
         SymVariable *var = symTableFindVariable(table, varName);
+        if_statement->condition.data.identifier.var = var;
         if (!var) return E_SEMANTIC_UND_FUNC_OR_VAR;
 
         DEBUG_PRINT_IF(!var->nullable, "Variable %s is not nullable", varName);
@@ -342,7 +351,7 @@ enum ERR_CODES analyzeIfStatement(IfStatement *if_statement, SymTable *table, Sy
         DEBUG_PRINT("If non nullable var valid");
 
         if (!nonNullVar) return E_SEMANTIC_REDIFINITION;
-        if_statement->non_nullable_var = nonNullVar;
+        if_statement->non_nullable.var = nonNullVar;
     } else {
 
         DEBUG_PRINT("Analyzing if (truthExp) {...}");
@@ -381,6 +390,7 @@ enum ERR_CODES analyzeAssigmentStatement(AssigmentStatement *statement, SymTable
     enum ERR_CODES err;
 
     SymVariable *var = symTableFindVariable(table, statement->id.name);
+    statement->var = var;
     if (!var) return E_SEMANTIC_UND_FUNC_OR_VAR;
 
     DEBUG_PRINT_IF(!var->mutable && var->id != 0, "Variable %s is not mutable", statement->id.name);
@@ -452,6 +462,7 @@ enum ERR_CODES analyzeVariableDefinitionStatement(VariableDefinitionStatement *s
         !statement->isConst,
         statement->type.is_nullable
     );
+    statement->id.var = var;
 
     DEBUG_PRINT_IF(!var, "Variable %s redifined", statement->id.name);
     DEBUG_PRINT("Var declare valid");
@@ -534,6 +545,7 @@ enum ERR_CODES analyzeExpression(Expression *expr, SymTable *table, enum DATA_TY
                 break;
             } // null
             var = symTableFindVariable(table, expr->data.identifier.name);
+            expr->data.identifier.var = var;
             // check for NULL i guess, since null is and identifier
             if (!var) return E_SEMANTIC_UND_FUNC_OR_VAR;
             *returnType = var->type;
@@ -545,6 +557,10 @@ enum ERR_CODES analyzeExpression(Expression *expr, SymTable *table, enum DATA_TY
             err = E_INTERNAL;
             break;
     }
+
+    expr->data_type.data_type = *returnType;
+    expr->data_type.is_nullable = *resultNullable;
+
     return err;
 }
 

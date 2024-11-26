@@ -59,7 +59,8 @@ enum ERR_CODES scanner_init(FILE *input) {
     return SUCCESS;
 }
 
-enum ERR_CODES scanner_end(char input, int *nextCharacter, struct TOKEN *tokenPointer, int string_index) {
+enum ERR_CODES scanner_end(char input, int *nextCharacter, struct TOKEN *tokenPointer,
+                           int string_index) {
     tokenPointer->value[string_index] = '\0';
     *nextCharacter = input;
     return SUCCESS;
@@ -186,7 +187,8 @@ enum ERR_CODES scanner_get_token(struct TOKEN *tokenPointer) {
                 if (isspace(input))
                     // white space znaky
                     continue;
-                else if ((input >= 'A' && input <= 'Z') || (input >= 'a' && input <= 'z') || input == '_') {
+                else if ((input >= 'A' && input <= 'Z') || (input >= 'a' && input <= 'z') ||
+                         input == '_') {
                     // identifikátor
                     state = SCANNER_IDENTIFIER;
                 } else if (isDigit(input)) {
@@ -198,9 +200,10 @@ enum ERR_CODES scanner_get_token(struct TOKEN *tokenPointer) {
             break;
 
         case SCANNER_STRING_START:
-            if (input == '"')
+            if (input == '"') {
+                assign_value = false; // poslední uvozovka se neuloží
                 state = SCANNER_STRING_END;
-            else if (input == '\\') {
+            } else if (input == '\\') {
                 state = SCANNER_ESCAPE_SEQ;
                 assign_value = false;
             } else if (input >= ' ')
@@ -259,7 +262,8 @@ enum ERR_CODES scanner_get_token(struct TOKEN *tokenPointer) {
                     hex2 = getc(file);
                     if (isxdigit(hex2)) {
                         assign_value = false;
-                        tokenPointer->value[string_index++] = (char)((hex_to_int(hex1) << 4) | hex_to_int(hex2));
+                        tokenPointer->value[string_index++] =
+                            (char)((hex_to_int(hex1) << 4) | hex_to_int(hex2));
                         state = SCANNER_STRING_VALUE;
                     } else
                         return E_LEXICAL;
@@ -444,9 +448,11 @@ enum ERR_CODES scanner_get_token(struct TOKEN *tokenPointer) {
             return scanner_end(input, &nextCharacter, tokenPointer, string_index);
 
         case SCANNER_IDENTIFIER:
-            if (!((input >= 'A' && input <= 'Z') || (input >= 'a' && input <= 'z') || input == '_' || (isDigit(input)))) {
+            if (!((input >= 'A' && input <= 'Z') || (input >= 'a' && input <= 'z') ||
+                  input == '_' || (isDigit(input)))) {
                 /**
-                 * Keywords: const, else, fn, if, i32, f64, null, pub, return, []u8, var, void, while
+                 * Keywords: const, else, fn, if, i32, f64, null, pub, return, []u8, var, void,
+                 * while
                  */
                 tokenPointer->value[string_index] = '\0';
                 nextCharacter = input;
@@ -476,8 +482,8 @@ enum ERR_CODES scanner_get_token(struct TOKEN *tokenPointer) {
                     tokenPointer->type = TOKEN_WHILE;
                 } else if (!strcmp(tokenPointer->value, "_")) {
                     tokenPointer->type = TOKEN_DELETE_VALUE;
-                
-                // Identifikátor je poslední, jelikož se nejedná o rezervované slovo
+
+                    // Identifikátor je poslední, jelikož se nejedná o rezervované slovo
                 } else {
                     tokenPointer->type = TOKEN_IDENTIFIER;
                 }

@@ -76,16 +76,13 @@ enum ERR_CODES pubfn(LinkedList *buffer, SymTable *table) {
     if (!saveNewToken(token, buffer)) return E_INTERNAL;
     if (token.type != TOKEN_LPAR) return E_SYNTAX;
 
-    bool first = true;
-
     while (1) {
         
         // ) or Identifier
         status = scanner_get_token(&token);
         if (status != SUCCESS) return status;
         if (!saveNewToken(token, buffer)) return E_INTERNAL;
-        if (token.type == TOKEN_RPAR && first) break;
-        first = false;
+        if (token.type == TOKEN_RPAR) break;
         if (token.type != TOKEN_IDENTIFIER) return E_SYNTAX;
 
         // :
@@ -98,12 +95,22 @@ enum ERR_CODES pubfn(LinkedList *buffer, SymTable *table) {
         status = scanner_get_token(&token);
         if (status != SUCCESS) return status;
         if (!saveNewToken(token, buffer)) return E_INTERNAL;
+
+        int nullable = 0;
+
+        if(token.type == TOKEN_QUESTION_MARK){
+            nullable = 1;
+            status = scanner_get_token(&token);
+            if (status != SUCCESS) return status;
+            if (!saveNewToken(token, buffer)) return E_INTERNAL;
+        }
+
         if (token.type != TOKEN_I32 && token.type != TOKEN_F64 && token.type != TOKEN_U8) {
             DEBUG_PRINT("Expected i32 or f64 or u8 but got: %s", token.value);
             return E_SYNTAX;
         }
 
-        symAddParamToFunc(symFunction, covertTokneDataType(token.type) , 0); // save the param
+        symAddParamToFunc(symFunction, covertTokneDataType(token.type) , nullable); // save the param
 
         // now can be , or )
         status = scanner_get_token(&token);
