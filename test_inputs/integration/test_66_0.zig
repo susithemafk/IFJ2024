@@ -1,6 +1,8 @@
 const ifj = @import("ifj24.zig");
 
 pub fn main() void {
-    const str = \\xAG; //error - chybí ; (zadaný se bere jako string)
+    const str = \\text1
+    \\text2
+    ;
     ifj.write(str);
 }
