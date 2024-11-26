@@ -10,12 +10,23 @@
 #include "code_generation/builtin_generator.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #define PRINTLN(...)                                                                               \
     do {                                                                                           \
         printf(__VA_ARGS__);                                                                       \
         printf("\n");                                                                              \
     } while (0)
+
+void printFuncCallName(char *name) {
+
+    char *dot = strchr(name, '.');
+    if (dot) {
+        PRINTLN("ifj_%s", dot + 1);
+    } else {
+        PRINTLN("%s", name);
+    }
+}
 
 void generateCodeProgram(Program *program) {
     PRINTLN(".IFJcode24");
@@ -213,7 +224,8 @@ void generateCodeFunctionCall(FunctionCall *function_call) {
         generateCodeExpression(expr);
     }
 
-    PRINTLN("CALL function_%s", function_call->func_id.name);
+    printf("CALL function_");
+    printFuncCallName(function_call->func_id.name);
 }
 
 void generateCodeIdentifier(Identifier *identifier) {

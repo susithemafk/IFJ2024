@@ -773,7 +773,7 @@ bool parse_native_func_call(FunctionCall *function_call) {
     if (!func_name)
         return false;
 
-    strcpy(func_name, "ifj_");
+    strcpy(func_name, "ifj.");
     strcat(func_name, currentToken()->value);
 
     free(currentToken()->value);
