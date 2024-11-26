@@ -107,7 +107,7 @@ bool symAddParamToFunc(SymFunctionPtr func, enum DATA_TYPES type, bool nullable)
  * @param nullable - if the return value can be null
  * @return true, if the name was successfully added, false otherwise
 */
-bool symEditFuncDef(SymFunctionPtr func, char *name, enum DATA_TYPES returnType, int nullable);
+bool symEditFuncDef(SymFunctionPtr func, char *name, enum DATA_TYPES returnType, bool nullable);
 
 typedef struct SymVariable {
     unsigned int id; // id of the variable (id is valid, inside of the scope)

@@ -53,59 +53,59 @@ void fillInBuildInFuncions(SymTable* table) {
 
     //pub fn ifj.readstr() ?[]u8;
     readstr = symInitFuncDefinition();
-    symEditFuncDef(readstr, "ifj.readstr", dTypeU8, 1);
+    symEditFuncDef(readstr, "ifj.readstr", dTypeU8, true);
     symTableAddFunction(table, readstr);
 
     //pub fn ifj.readi32() ?i32;
     readi32 = symInitFuncDefinition();
-    symEditFuncDef(readi32, "ifj.readi32", dTypeI32, 1);
+    symEditFuncDef(readi32, "ifj.readi32", dTypeI32, true);
     symTableAddFunction(table, readi32);
    
     //pub fn ifj.readf64() ?f64;
     readf64 = symInitFuncDefinition();
-    symEditFuncDef(readf64, "ifj.readf64", dTypeF64, 1);
+    symEditFuncDef(readf64, "ifj.readf64", dTypeF64, true);
     symTableAddFunction(table, readf64);
 
     //pub fn ifj.write(term) void;
     write = symInitFuncDefinition();
-    symEditFuncDef(write, "ifj.write", dTypeVoid, 0);
+    symEditFuncDef(write, "ifj.write", dTypeVoid, false);
     symAddParamToFunc(write, dTypeNone, false);
     symTableAddFunction(table, write);
 
     //pub fn ifj.i2f(term: i32) f64;
     i2f = symInitFuncDefinition();
-    symEditFuncDef(i2f, "ifj.i2f", dTypeF64, 0);
+    symEditFuncDef(i2f, "ifj.i2f", dTypeF64, false);
     symAddParamToFunc(i2f, dTypeI32, false);
     symTableAddFunction(table, i2f);
 
     //pub fn ifj.f2i(term: f64) i32;
     f2i = symInitFuncDefinition();
-    symEditFuncDef(f2i, "ifj.f2i", dTypeI32, 0);
+    symEditFuncDef(f2i, "ifj.f2i", dTypeI32, false);
     symAddParamToFunc(f2i, dTypeF64, false);
     symTableAddFunction(table, f2i);
    
     //pub fn ifj.string(term) []u8;
     string = symInitFuncDefinition();
-    symEditFuncDef(string, "ifj.string", dTypeU8, 0);
+    symEditFuncDef(string, "ifj.string", dTypeU8, false);
     symAddParamToFunc(string, dTypeNone, false);
     symTableAddFunction(table, string);
 
     //pub fn ifj.length(s: []u8) i32;
     length = symInitFuncDefinition();
-    symEditFuncDef(length, "ifj.length", dTypeI32, 0);
+    symEditFuncDef(length, "ifj.length", dTypeI32, false);
     symAddParamToFunc(length, dTypeU8, false);
     symTableAddFunction(table, length);
 
     //pub fn ifj.concat(s1: []u8, s2: []u8) []u8;
     concat = symInitFuncDefinition();
-    symEditFuncDef(concat, "ifj.concat", dTypeU8, 0);
+    symEditFuncDef(concat, "ifj.concat", dTypeU8, false);
     symAddParamToFunc(concat, dTypeU8, false);
     symAddParamToFunc(concat, dTypeU8, false);
     symTableAddFunction(table, concat);
    
     //pub fn ifj.substring(s: []u8, i: i32, j: i32) ?[]u8;
     substring = symInitFuncDefinition();
-    symEditFuncDef(substring, "ifj.substring", dTypeU8, 1);
+    symEditFuncDef(substring, "ifj.substring", dTypeU8, false);
     symAddParamToFunc(substring, dTypeU8, false);
     symAddParamToFunc(substring, dTypeI32, false);
     symAddParamToFunc(substring, dTypeI32, false);
@@ -113,21 +113,21 @@ void fillInBuildInFuncions(SymTable* table) {
   
     //pub fn ifj.strcmp(s1: []u8, s2: []u8) i32;
     Strcmp = symInitFuncDefinition();
-    symEditFuncDef(Strcmp, "ifj.strcmp", dTypeI32, 0);
+    symEditFuncDef(Strcmp, "ifj.strcmp", dTypeI32, false);
     symAddParamToFunc(Strcmp, dTypeU8, false);
     symAddParamToFunc(Strcmp, dTypeU8, false);
     symTableAddFunction(table, Strcmp);
 
     //pub fn ifj.ord(s: []u8, i: i32) i32;
     ord = symInitFuncDefinition();
-    symEditFuncDef(ord, "ifj.ord", dTypeI32, 0);
+    symEditFuncDef(ord, "ifj.ord", dTypeI32, false);
     symAddParamToFunc(ord, dTypeU8, false);
     symAddParamToFunc(ord, dTypeI32, false);
     symTableAddFunction(table, ord);
    
     //pub fn ifj.chr(i: i32) []u8;
     chr = symInitFuncDefinition();
-    symEditFuncDef(chr, "ifj.chr", dTypeU8, 0);
+    symEditFuncDef(chr, "ifj.chr", dTypeU8, false);
     symAddParamToFunc(chr, dTypeI32, false);
     symTableAddFunction(table, chr);
    

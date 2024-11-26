@@ -20,31 +20,63 @@ enum ERR_CODES analyzeProgram(Program *program, SymTable *table) {
     if (!program) return E_INTERNAL;
 
     enum ERR_CODES err;
-    DEBUG_PRINT("Analyzing functions");
-    // go function by function
+    DEBUG_PRINT("Gettinf function definitions");
+    // go function by function, add the definitions
     unsigned int size = getSize(program->functions);
     for (unsigned int i = 0; i < size; i++) {
         Function *function = (Function *)getDataAtIndex(program->functions, i);
-        SymFunctionPtr funDef = symTableFindFunction(table, function->id.name);
+        SymFunctionPtr funDef = symInitFuncDefinition();
         if (!funDef) return E_INTERNAL;
+        DEBUG_PRINT("Function name: %s\nFunction return type: %d\nFunftion return nullable: %d", function->id.name, function->returnType.data_type, function->returnType.is_nullable);
+        bool result = symEditFuncDef(funDef, function->id.name, function->returnType.data_type, (function->returnType.is_nullable) ? 1 : 0);
+        if (!result) return E_INTERNAL;
+        DEBUG_PRINT_IF(!result, "Function edit failed");
+        DEBUG_PRINT("Function edit error: %d", err);
+
+        // go thorougt the params, and add them to the function
+        unsigned int size1 = getSize(function->params);
+        for (unsigned int j = 0; j < size1; j++) {
+            Param *param = (Param *)getDataAtIndex(function->params, j);
+            bool result = symAddParamToFunc(funDef, param->type.data_type, param->type.is_nullable);
+            if (!result) return E_INTERNAL;
+        }
+       
+        // add the function to the symbol table
+        err = symTableAddFunction(table, funDef);
+        if (err != SUCCESS) return err;
+    }
+
+    // need to find the main function, it is is missing, return error
+    SymFunctionPtr mainFunc = symTableFindFunction(table, "main");
+    if (!mainFunc) return E_SEMANTIC_UND_FUNC_OR_VAR;
+
+    // if the main has paramaters, or return type is not void, return error 4
+    if (getSize(mainFunc->paramaters) != 0 || mainFunc->returnType != dTypeVoid) return E_SEMANTIC_BAD_FUNC_RETURN;
+
+    DEBUG_PRINT("Analyzing function bodies");
+
+    // go througt the function bodies
+    for (unsigned int i = 0; i < size; i++) {
+
+        Function *function = (Function *)getDataAtIndex(program->functions, i);
+        DEBUG_PRINT("analyzing body of function %s", function->id.name);
+        SymFunctionPtr funDef = symTableFindFunction(table, function->id.name);
 
         // enter the function scope
         if (!symTableMoveScopeDown(table, SYM_FUNCTION)) return E_INTERNAL;
 
         unsigned int size1 = getSize(function->params);
-        DEBUG_PRINT("Analyzing function %s", function->id.name);
+        DEBUG_PRINT("Adding args to symtable: %s", function->id.name);
         for (unsigned int j = 0; j < size1; j++) {
             // add the params to the function scope
             Param *param = (Param *)getDataAtIndex(function->params, j);
-            SymFunctionParamPtr arg = (SymFunctionParamPtr)getDataAtIndex(funDef->paramaters, j);
-            err = analyzeParam(param, table, arg);
+            err = analyzeParam(param, table);
             if (err != SUCCESS) return err;
         }
 
         int retCount = 0;   
         err = analyzeBody(&function->body, table, funDef, &retCount);
         if (err != SUCCESS) return err;
-
 
         // invalid amount of returns
         if (strcmp(funDef->funcName, "main") != 0) {
@@ -59,17 +91,17 @@ enum ERR_CODES analyzeProgram(Program *program, SymTable *table) {
 }
 
 // function to analyze a paramater
-enum ERR_CODES analyzeParam(Param *param, SymTable *table, SymFunctionParamPtr arg) {
+enum ERR_CODES analyzeParam(Param *param, SymTable *table) {
     if (!param || !table) return E_INTERNAL;
 
-    DEBUG_PRINT("Analyzing param %s", param->id.name);
+    DEBUG_PRINT("Analyzing param %s\n type of param: %d\nparam nullable: %d", param->id.name, param->type.data_type, param->type.is_nullable);
     
     SymVariable *var = symTableDeclareVariable(
         table, 
         param->id.name, 
-        arg->type,
+        param->type.data_type,
         false, 
-        arg->nullable
+        param->type.is_nullable
     );
     if (!var) return E_SEMANTIC_REDIFINITION;
     DEBUG_PRINT("Param %s declared\n", param->id.name); 

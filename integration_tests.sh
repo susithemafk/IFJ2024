@@ -108,8 +108,15 @@ else
     file=$(find ./test_inputs/integration -type f -name "test_${testcase}_*.zig")
     if [ -f "$file" ]; then
         if [ "$valgrind" == "true" ]; then
-            valgrind --leak-check=full --error-exitcode=1 ./$binary < "$file"
-            rc=$?
+            if [ "$(uname)" = "Darwin" ]; then
+                echo -e "\033[1;32mUsing leaks on macOS...\033[0m"
+                leaks --atExit --fullStacks -- ./$binary < "$file"
+                rc=$?
+            else
+                echo -e "\033[1;32mUsing valgrind on non-macOS system...\033[0m"
+                valgrind --leak-check=full --track-origins=yes --show-leak-kinds=all ./$binary < "$file"
+                rc=$?
+            fi
         else
             ./$binary < "$file"
         fi

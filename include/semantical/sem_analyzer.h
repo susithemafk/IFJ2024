@@ -39,7 +39,7 @@ enum ERR_CODES analyzeProgram(Program *program, SymTable *table);
  * @param arg - the current arg form the symtable
  * @return enum ERR_CODES - the error code
  */
-enum ERR_CODES analyzeParam(Param *param, SymTable *table, SymFunctionParamPtr arg);
+enum ERR_CODES analyzeParam(Param *param, SymTable *table);
 
 /**
  * Function to analyze a body
