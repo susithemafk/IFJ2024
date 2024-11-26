@@ -198,6 +198,8 @@ enum ERR_CODES analyzeFunctionCall(FunctionCall *function_call, SymTable *table)
 
             if (defParam->type == dTypeNone) return SUCCESS;
 
+            if (param->data.literal.data_type.data_type == dTypeU8) return E_SEMANTIC_INVALID_FUN_PARAM;
+
             enum COVERSION_FLAGS flag = canCovertLiteral(&param->data.literal, defParam->type);
             if (flag == CONV_NOT_POSSIBLE) {
                 return E_SEMANTIC_INVALID_FUN_PARAM;

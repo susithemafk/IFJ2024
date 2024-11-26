@@ -63,7 +63,20 @@ prepare:
 	@$(printCmd) "\033[1;36m==================================\033[0m"
 	@$(printCmd) "Preparing test environment ..."
 	@chmod +x run_test.sh
+	@chmod +x code_gen_test.sh
+	@chmod +x integration_tests.sh
 	@$(printCmd) "\033[1;36mPermisions granted\033[0m"
+	@$(printCmd) "\033[1;36m==================================\033[0m"
+
+# test the code generation
+test_code_gen:
+	@$(printCmd) "\033[1;36m==================================\033[0m"
+	@$(printCmd) "Testing code generation ..."
+	@$(printCmd) "\033[1;36m==================================\033[0m"
+	@$(CC) $(CFLAGS) $(INCLUDES) $(SRC_FILES) $(SRC_DIR)/main.c -o main
+	./code_gen_test.sh main
+	@$(printCmd) "\033[1;36m==================================\033[0m"
+	@$(printCmd) "\033[1;32mCode generation tests done!   \033[0m"
 	@$(printCmd) "\033[1;36m==================================\033[0m"
 
 # Build test target (build only, no execution)
@@ -125,6 +138,8 @@ help:
 	@$(printCmd) "\033[1;36m| \033[1;33mCommand                        					\033[1;36m| \033[1;33mDescription                                           \033[1;36m| \033[1;33mExample      			        	\033[1;36m|\033[0m"
 	@$(printCmd) "\033[1;36m+-----------------------------------------------------------------------+-------------------------------------------------------+-----------------------------------------------+\033[0m"
 	@$(printCmd) "\033[1;36m| \033[1;32mmake\033[2;37m                           					\033[0m\033[1;36m| \033[0mCompile the main program                              \033[1;36m| \033[1;35mmake                     			\033[1;36m|\033[0m"
+	@$(printCmd) "\033[1;36m| \033[1;32mmake\033[2;37m prepare                     					\033[0m\033[1;36m| \033[0mPrepare the test environment                          \033[1;36m| \033[1;35mmake prepare             			\033[1;36m|\033[0m"
+	@$(printCmd) "\033[1;36m| \033[1;32mmake\033[2;37m test_code_gen               					\033[0m\033[1;36m| \033[0mRun code generation tests                             \033[1;36m| \033[1;35mmake test_code_gen         			\033[1;36m|\033[0m"
 	@$(printCmd) "\033[1;36m| \033[1;32mmake\033[2;37m run                    						\033[0m\033[1;36m| \033[0mRun a file (provide file=<test_name>)                 \033[1;36m| \033[1;35mmake run file=test1.c    			\033[1;36m|\033[0m"
 	@$(printCmd) "\033[1;36m| \033[1;32mmake\033[2;37m test                      					\033[0m\033[1;36m| \033[0mRun a file with debug macros enabled                  \033[1;36m| \033[1;35mmake test file=test1.c   			\033[1;36m|\033[0m"
 	@$(printCmd) "\033[1;36m| \033[1;32mmake\033[2;37m valgrind                  					\033[0m\033[1;36m| \033[0mRun a file under Valgrind (provide file=<test_name>)  \033[1;36m| \033[1;35mmake valgrind file=test1.c			\033[1;36m|\033[0m"

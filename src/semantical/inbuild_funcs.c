@@ -118,7 +118,7 @@ void fillInBuildInFuncions(SymTable* table) {
    
     //pub fn ifj.substring(s: []u8, i: i32, j: i32) ?[]u8;
     substring = symInitFuncDefinition();
-    symEditFuncDef(substring, substring_name, dTypeU8, false);
+    symEditFuncDef(substring, substring_name, dTypeU8, true);
     symAddParamToFunc(substring, dTypeU8, false);
     symAddParamToFunc(substring, dTypeI32, false);
     symAddParamToFunc(substring, dTypeI32, false);
