@@ -9,18 +9,19 @@
 #include "code_generation/code_generator.h"
 #include "code_generation/builtin_generator.h"
 #include <stdio.h>
+#include <stdlib.h>
 
-#define PRINTLN(...)                                                                                                                                                                                   \
-    do {                                                                                                                                                                                               \
-        printf(__VA_ARGS__);                                                                                                                                                                           \
-        printf("\n");                                                                                                                                                                                  \
+#define PRINTLN(...)                                                                               \
+    do {                                                                                           \
+        printf(__VA_ARGS__);                                                                       \
+        printf("\n");                                                                              \
     } while (0)
 
 void generateCodeProgram(Program *program) {
     PRINTLN(".IFJcode24");
 
     PRINTLN("DEFVAR GF@_");
-    PRINTLN("CRAETEFARME\n");
+    PRINTLN("CREATEFRAME\n");
 
     PRINTLN("CALL function_main");
     PRINTLN("EXIT int@0\n");
@@ -88,16 +89,18 @@ void generateCodeStatement(Statement *statement) {
 }
 
 void generateCodeParam(Param *param) {
-    PRINTLN("DEFVAR LF@%s", param->id.name);
-    PRINTLN("POPS LF@%s", param->id.name);
+    PRINTLN("DEFVAR LF@%s_%d", param->id.name, param->id.var->id);
+    PRINTLN("POPS LF@%s_%d", param->id.name, param->id.var->id);
 }
 
 void generateCodeVariableDefinitionStatement(VariableDefinitionStatement *statement) {
-    if (!statement->code_gen_defined)
-        PRINTLN("DEFVAR LF@%s", statement->id.name);
+    if (!statement->code_gen_defined) {
+        PRINTLN("DEFVAR LF@%s_%d", statement->id.name, statement->id.var->id);
+        statement->code_gen_defined = true;
+    }
 
     generateCodeExpression(&statement->value);
-    PRINTLN("POPS LF@%s", statement->id.name);
+    PRINTLN("POPS LF@%s_%d", statement->id.name, statement->id.var->id);
 }
 
 void generateCodeAssigmentStatement(AssigmentStatement *statement) {
@@ -106,7 +109,7 @@ void generateCodeAssigmentStatement(AssigmentStatement *statement) {
     if (statement->discard)
         PRINTLN("POPS GF@_");
     else
-        PRINTLN("POPS LF@%s", statement->id.name);
+        PRINTLN("POPS LF@%s_%d", statement->id.name, statement->var->id);
 }
 
 void generateCodeIfStatement(IfStatement *statement) {
@@ -116,11 +119,16 @@ void generateCodeIfStatement(IfStatement *statement) {
     generateCodeExpression(&statement->condition);
     PRINTLN("POPS GF@_");
 
-    PRINTLN("JUMPIFEQ $if_%d_else GF@_ %s", if_id, statement->non_nullable.name ? "nil@nil" : "bool@false");
+    PRINTLN("JUMPIFEQ $if_%d_else GF@_ %s", if_id,
+            statement->non_nullable.name ? "nil@nil" : "bool@false");
     if (statement->non_nullable.name) {
-        if (!statement->code_gen_defined)
-            PRINTLN("DEFVAR LF@%s", statement->non_nullable.name);
-        PRINTLN("MOVE LF@%s GF@_", statement->non_nullable.name);
+        if (!statement->code_gen_defined) {
+            PRINTLN("DEFVAR LF@%s_%d", statement->non_nullable.name,
+                    statement->non_nullable.var->id);
+            statement->code_gen_defined = true;
+        }
+        PRINTLN("MOVE LF@%s_%d GF@_", statement->non_nullable.name,
+                statement->non_nullable.var->id);
     }
     generateCodeBody(&statement->if_body);
     PRINTLN("JUMP $if_%d_end", if_id);
@@ -138,11 +146,24 @@ void generateCodeWhileStatement(WhileStatement *statement) {
 
     preGenerateBody(&statement->body);
 
+    if (statement->non_nullable.name) {
+        if (!statement->code_gen_defined) {
+            PRINTLN("DEFVAR LF@%s_%d", statement->non_nullable.name,
+                    statement->non_nullable.var->id);
+            statement->code_gen_defined = true;
+        }
+    }
     PRINTLN("LABEL $while_%d_start", while_id);
     generateCodeExpression(&statement->condition);
     PRINTLN("POPS GF@_");
 
-    PRINTLN("JUMPIFNEQ $while_%d_end GF@_ bool@true", while_id);
+    PRINTLN("JUMPIFEQ $while_%d_end GF@_ %s", while_id,
+            statement->non_nullable.name ? "nil@nil" : "bool@false");
+    if (statement->non_nullable.name) {
+        PRINTLN("MOVE LF@%s_%d GF@_", statement->non_nullable.name,
+                statement->non_nullable.var->id);
+    }
+
     generateCodeBody(&statement->body);
     PRINTLN("JUMP $while_%d_start", while_id);
 
@@ -196,7 +217,7 @@ void generateCodeFunctionCall(FunctionCall *function_call) {
 }
 
 void generateCodeIdentifier(Identifier *identifier) {
-    PRINTLN("PUSHS LF@%s", identifier->name);
+    PRINTLN("PUSHS LF@%s_%d", identifier->name, identifier->var->id);
 }
 
 void generateCodeLiteral(Literal *literal) {
@@ -204,25 +225,37 @@ void generateCodeLiteral(Literal *literal) {
     case dTypeI32:
         PRINTLN("PUSHS int@%s", literal->value);
         break;
-    case dTypeF64:
-        PRINTLN("PUSHS float@%s", literal->value);
-        break;
+    case dTypeF64: {
+        double d = strtod(literal->value, NULL);
+        PRINTLN("PUSHS float@%a", d);
+    }
+
+    break;
     case dTypeU8:
-        PRINTLN("PUSHS string@%s", literal->value);
+        printf("PUSHS string@");
+        for (char *c = literal->value; *c; c++) {
+            if (*c <= 32 || *c == 35 || *c == 92) {
+                printf("\\%03d", *c);
+            } else {
+                printf("%c", *c);
+            }
+        }
+        printf("\n");
         break;
     case dTypeBool:
         PRINTLN("PUSHS bool@%s", literal->value);
         break;
-    case dTypeUndefined:
     case dTypeVoid:
+        PRINTLN("PUSHS nil@nil");
+    case dTypeUndefined:
     case dTypeNone:
         break;
     }
 }
 
 void generateCodeBinaryExpression(BinaryExpression *binary_expression) {
-    generateCodeExpression(binary_expression->right);
     generateCodeExpression(binary_expression->left);
+    generateCodeExpression(binary_expression->right);
 
     switch (binary_expression->operation) {
     case TOKEN_PLUS:
@@ -235,7 +268,11 @@ void generateCodeBinaryExpression(BinaryExpression *binary_expression) {
         PRINTLN("MULS");
         break;
     case TOKEN_DIVIDE:
-        PRINTLN("DIVS");
+        if (binary_expression->left->data_type.data_type == dTypeI32 &&
+            binary_expression->right->data_type.data_type == dTypeI32)
+            PRINTLN("IDIVS");
+        else
+            PRINTLN("DIVS");
         break;
     case TOKEN_EQUALS:
         PRINTLN("EQS");
@@ -289,13 +326,13 @@ void preGenerateStatement(Statement *statement) {
 }
 
 void preGenerateVariableDefinitionStatement(VariableDefinitionStatement *statement) {
-    PRINTLN("DEFVAR LF@%s", statement->id.name);
+    PRINTLN("DEFVAR LF@%s_%d", statement->id.name, statement->id.var->id);
     statement->code_gen_defined = true;
 }
 
 void preGenerateIfStatement(IfStatement *statement) {
     if (statement->non_nullable.name) {
-        PRINTLN("DEFVAR LF@%s", statement->non_nullable.name);
+        PRINTLN("DEFVAR LF@%s_%d", statement->non_nullable.name, statement->non_nullable.var->id);
         statement->code_gen_defined = true;
     }
     preGenerateBody(&statement->if_body);
@@ -304,7 +341,7 @@ void preGenerateIfStatement(IfStatement *statement) {
 
 void preGenerateWhileStatement(WhileStatement *statement) {
     if (statement->non_nullable.name) {
-        PRINTLN("DEFVAR LF@%s", statement->non_nullable.name);
+        PRINTLN("DEFVAR LF@%s_%d", statement->non_nullable.name, statement->non_nullable.var->id);
         statement->code_gen_defined = true;
     }
     preGenerateBody(&statement->body);

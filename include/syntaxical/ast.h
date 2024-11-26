@@ -40,7 +40,6 @@ typedef struct WhileStatement {
     struct Body body;
 
     struct Identifier non_nullable;
-    SymVariable *non_nullable_var;
     bool code_gen_defined; // if the identifier is defined in generated code
 } WhileStatement;
 
@@ -50,7 +49,6 @@ typedef struct IfStatement {
     struct Body else_body;
 
     struct Identifier non_nullable;
-    SymVariable *non_nullable_var;
     bool code_gen_defined; // if the identifier is defined in generated code
 } IfStatement;
 
@@ -64,7 +62,6 @@ typedef struct AssigmentStatement {
 typedef struct VariableDefinitionStatement {
     struct Identifier id;
     struct DataType type;
-    SymVariable *var;
     bool isConst;
     struct Expression value;
     bool code_gen_defined; // if the identifier is defined in generated code
@@ -73,7 +70,6 @@ typedef struct VariableDefinitionStatement {
 typedef struct Param {
     struct Identifier id;
     struct DataType type;
-    SymVariable *var;
 } Param;
 
 typedef struct Function {

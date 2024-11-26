@@ -14,6 +14,15 @@ void generateFuncWrite(void);
 void generateFuncReadStr(void);
 void generateFuncReadInt(void);
 void generateFuncReadFloat(void);
+void generateFuncInt2Float(void);
+void generateFuncFloat2Int(void);
+void generateFuncString(void);
+void generateFuncLength(void);
+void generateFuncConcat(void);
+void generateFuncSubStr(void);
+void generateFuncStrCompare(void);
+void generateFuncStrOrd(void);
+void generateFuncStrChr(void);
 
 void generateBuiltins(void);
 
