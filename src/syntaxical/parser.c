@@ -1,1019 +1,929 @@
 /** AUTHOR
  *
- * @author  <xsucha18> Marek Sucharda
- * @file parser.c
- * @date 16.11.2024
- * @brief main src file parsing
+ * @author <xsucha18> Marek Sucharda 
+ * @author <253171> Vanesa Zimmermannová
+ * @author <247581> Martin Mendl   
+ * @file precident.c
+ * @date 17.11. 2024
+ * @brief main src file for the precedent analysis
  */
 
+#ifdef USE_CUSTOM_STRUCTURE
 #include "syntaxical/parser.h"
 #include "syntaxical/precident.h"
+#include "utility/my_utils.h"
+#else
+#include "parser.h"
+#include "precident.h"
+#include "my_utils.h"
+#endif
 
-static int tokenIndex = 0;
+static unsigned int tokenIndex = 0;
 static LinkedList *buffer = NULL;
 static SymTable *table = NULL; // TODO: vhodit do mainu table, pak parser, pak v mainu free
-static LinkedList *astList = NULL;
-static enum ERR_CODES err;
+static struct TOKEN token;
 
 // vnoreny funkce resi first pass
 // udelat parser dle good_asts.c
-// vracet error kody
+// todo return bez leve zavorky ve funkci
 
-TOKEN_PTR currentToken(void)
-{
-	return (TOKEN_PTR)getDataAtIndex(buffer, tokenIndex);
+TOKEN_PTR currentToken(void) {
+    return (TOKEN_PTR)getDataAtIndex(buffer, tokenIndex);
 }
 
-TOKEN_PTR getNextToken(void)
-{
-	tokenIndex++;
-	return (TOKEN_PTR)getDataAtIndex(buffer, tokenIndex);
+TOKEN_PTR getNextToken(void) {
+    tokenIndex++;
+    return (TOKEN_PTR)getDataAtIndex(buffer, tokenIndex);
 }
 
-enum ERR_CODES parser_init(FILE *input)
-{
-#ifdef DEBUG
-	puts("parser_init");
-#endif
+bool match(enum TOKEN_TYPE tokenType) {
+    TOKEN_PTR token = currentToken();
 
-	table = symTableInit();
-	buffer = initLinkedList(false);
-	astList = initLinkedList(false);
+    if (!token || token->type != tokenType) {
+        DEBUG_PRINT("Expected token type: ");
+        printTokenType(tokenType);
+        DEBUG_PRINT(" but got: ");
 
-	if (!table || !buffer || !astList)
-	{
-#ifdef DEBUG
-		puts("Error in parser init");
-#endif
-		return E_INTERNAL;
-	}
+        if (token) {
+            printTokenType(currentToken()->type);
+        } else {
+            DEBUG_PRINT("No token");
+        }
 
-	return parser_parse(input);
+        return false;
+    }
+
+    DEBUG_PRINT("Matched token: \t%s\n", token->value);
+    getNextToken();
+    return true;
 }
 
-enum ERR_CODES parser_parse(FILE *input)
-{
-#ifdef DEBUG
-	puts("parser_parse");
-#endif
+// Function to save a new token
+// Function to save a new token to the buffer
+bool saveNewToken(struct TOKEN token, LinkedList *buffer) {
+    
+    // create a new token
+    TOKEN_PTR newToken = (TOKEN_PTR)malloc(sizeof(struct TOKEN));
+    if (newToken == NULL) return false;
 
-	enum ERR_CODES err = firstPass(table, input, buffer);
-	if (err != SUCCESS)
-	{
-#ifdef DEBUG
-		puts("Error in first pass");
-#endif
-		return err;
-	}
+    newToken->type = token.type;    
+    newToken->value = token.value;
 
-#ifdef DEBUG
-	puts("parser_second_pass");
-#endif
-
-#ifdef DEBUG
-	printf("Current token: %s\n", currentToken()->value);
-#endif
-
-	if (!parse_program())
-	{
-#ifdef DEBUG
-		puts("Error in second pass");
-#endif
-		return E_SYNTAX;
-	}
-
-	freeBuffer(&buffer);
-	symTableFree(&table);
-
-// #ifdef DEBUG
-	printf("Successfully parsed program, error code: %d\n", err);
-// #endif
-	return SUCCESS;
+    DEBUG_PRINT("SAVING TOKEN: %s\n", newToken->value);
+    
+    // save the token to the buffer
+    if (!insertNodeAtIndex(buffer, (void *)newToken, -1)) return false;
+    return true;
 }
 
-bool match(enum TOKEN_TYPE tokenType)
-{
-	TOKEN_PTR token = currentToken();
+// Function to free the buffer
+void freeBuffer(LinkedList ** buffer) {
 
-	if (!token || token->type != tokenType)
-	{
-#ifdef DEBUG
-		DEBUG_MSG("Expected token type: ");
-		printTokenType(tokenType);
-		DEBUG_MSG(" but got: ");
-		if (token)
-		{
-			printTokenType(currentToken()->type);
-		}
-		else
-		{
-			DEBUG_MSG("No token");
-		}
-#endif
-		return false;
-	}
+    unsigned int size = getSize(*buffer);
+    for (unsigned int i = 0; i < size; i++) {
+        TOKEN_PTR oneToken = (TOKEN_PTR)getDataAtIndex(*buffer, i);
 
-#ifdef DEBUG
-	printf("Matched token: \t%s\n", token->value);
-#endif
-	getNextToken();
-	return true;
+        free(oneToken->value);
+        free(oneToken);
+    }
+
+    removeList(buffer);
 }
 
-bool is_truth_expr(void)
-{
-	TOKEN_PTR nextToken = getDataAtIndex(buffer, tokenIndex + 1);
+enum ERR_CODES parser_init(SymTable *tbl, LinkedList *buf) {
+    buffer = buf;
+    table = tbl;
 
-	if (nextToken->type == TOKEN_RPAR)
-	{
-		return false;
-	}
+    if (!buffer) {
+        freeBuffer(&buffer);
+        DEBUG_PRINT("Error in parser init");
+        return E_INTERNAL;
+    }
 
-	return true;
+    return SUCCESS;
 }
 
-bool parse_program(void)
-{
-#ifdef DEBUG
-	printf("Parsing <program>\n");
-#endif
-	if (!parse_prolog())
-		return false;
-	if (!parse_functions())
-		return false;
-	if (!match(TOKEN_EOF))
-		return false;
-
-#ifdef DEBUG
-	printf("Successfully parsed <program>\n");
-#endif
-	return true;
+void parser_cleanup(void) {
+    if (buffer)
+        freeBuffer(&buffer);
+    if (table)
+        symTableFree(&table);
 }
 
-bool parse_prolog(void)
-{
-#ifdef DEBUG
-	printf("Parsing <prolog>\n");
-#endif
-	if (!match(TOKEN_CONST))
-		return false;
-	if (!match(TOKEN_IFJ))
-		return false;
-	if (!match(TOKEN_ASSIGN))
-		return false;
-	if (!match(TOKEN_AT))
-		return false;
-	if (!match(TOKEN_IMPORT))
-		return false;
-	if (!match(TOKEN_LPAR))
-		return false;
-	if (!match(TOKEN_STRING))
-		return false;
-	if (!match(TOKEN_RPAR))
-		return false;
-	if (!match(TOKEN_SEMICOLON))
-		return false;
-#ifdef DEBUG
-	printf("Successfully parsed <prolog>\n");
-#endif
-	return true;
+// Functio to do the first pass over the program
+enum ERR_CODES firstPass(FILE *input, LinkedList *buffer) {
+
+    scanner_init(input);
+    enum ERR_CODES status = SUCCESS;
+    while (status == SUCCESS) {
+        // get the token
+        status = scanner_get_token(&token);
+        if (status != SUCCESS) return status;
+        if (status != SUCCESS) return E_INTERNAL;
+        if (token.type == TOKEN_EOF) {
+            if (!saveNewToken(token, buffer)) return E_INTERNAL;
+            break;
+        }
+        // save the token
+        if (!saveNewToken(token, buffer)) return E_INTERNAL;
+    }
+
+    // check, if we have the main function
+    if (getSize(buffer) == 0) return E_SYNTAX;
+    return SUCCESS;
 }
 
-bool parse_functions(void)
-{
-#ifdef DEBUG
-	printf("Parsing <functions>\n");
-#endif
+enum ERR_CODES parser_parse(FILE *input, struct Program *program) {
+    DEBUG_PRINT("parser_parse");
 
-	if (!parse_function())
-		return false;
+    enum ERR_CODES err = firstPass(input, buffer);
+    if (err != SUCCESS) {
+        DEBUG_PRINT("Error in first pass");
+        DEBUG_PRINT("Error code: %d\n", err);
+        return err;
+    }
 
-	while (parse_next_function())
-	{
-		if (!parse_function())
-			break;
-	}
+    DEBUG_PRINT("parser_second_pass");
+    DEBUG_PRINT("Current token: %s\n", currentToken()->value);
 
-#ifdef DEBUG
-	printf("Successfully parsed <functions>\n");
-#endif
-	return true;
+    if (!parse_program(program)) {
+        puts("Error in second pass");
+        return E_SYNTAX;
+    }
+
+    return SUCCESS;
 }
 
-bool parse_function(void)
-{
-#ifdef DEBUG
-	printf("Parsing <function>\n");
-#endif
 
-	if (!match(TOKEN_PUB))
-		return false;
 
-	if (!match(TOKEN_FN))
-		return false;
+bool parse_program(struct Program *program) {
+    DEBUG_PRINT("Parsing <program>\n");
 
-	if (currentToken()->type != TOKEN_IDENTIFIER)
-		return false;
-#ifdef DEBUG
-	printf("Function name: %s\n", currentToken()->value);
-#endif
-	getNextToken();
+    program->functions = initLinkedList(true);
+    if (!program->functions)
+        return false;
 
-	if (!match(TOKEN_LPAR))
-		return false;
+    if (!parse_prolog())
+        return false;
 
-	if (!parse_params())
-		return false;
+    if (!parse_functions(program->functions))
+        return false;
 
-	if (!match(TOKEN_RPAR))
-		return false;
+    if (!match(TOKEN_EOF))
+        return false;
 
-	if (!parse_data_type())
-		return false;
-
-	if (!match(TOKEN_LBRACE))
-		return false;
-
-	if (!parse_func_body())
-		return false;
-
-	if (!match(TOKEN_RBRACE))
-		return false;
-
-#ifdef DEBUG
-	printf("Successfully parsed <function>\n");
-#endif
-	return true;
+    DEBUG_PRINT("Successfully parsed <program>\n");
+    return true;
 }
 
-bool parse_next_function(void)
-{
-#ifdef DEBUG
-	printf("Parsing <next_function>\n");
-#endif
+bool parse_prolog(void) {
+    DEBUG_PRINT("Parsing <prolog>\n");
 
-	if (currentToken()->type == TOKEN_EOF)
-	{
-#ifdef DEBUG
-		printf("End of tokens reached, end the program.\n");
-#endif
-		return false;
-	}
+    if (!match(TOKEN_CONST))
+        return false; // const
+    if (!match(TOKEN_IDENTIFIER))
+        return false; // const identifier
+    if (!match(TOKEN_ASSIGN))
+        return false; // const identifier =
+    if (!match(TOKEN_AT))
+        return false; // const identifier = @
+    if (!match(TOKEN_IDENTIFIER))
+        return false; // const identifier = @identifier
+    if (!match(TOKEN_LPAR))
+        return false; // const identifier = @identifier(
+    if (!match(TOKEN_STRING_LITERAL))
+        return false; // const identifier = @identifier("string")
+    if (!match(TOKEN_RPAR))
+        return false; // const identifier = @identifier("string")
+    if (!match(TOKEN_SEMICOLON))
+        return false; // const identifier = @identifier("string");
 
-	if (currentToken()->type == TOKEN_PUB)
-		return true;
+    DEBUG_PRINT("Successfully parsed <prolog>\n");
 
-#ifdef DEBUG
-	printf("Successfully parsed <next_function> (empty)\n");
-#endif
-	return false;
+    return true;
 }
 
-bool parse_params()
-{
-#ifdef DEBUG
-	printf("Parsing <params>\n");
-#endif
+bool parse_functions(LinkedList *functions) {
+    DEBUG_PRINT("Parsing <functions>\n");
 
-	// empty params
-	if (currentToken()->type == TOKEN_RPAR)
-	{
-#ifdef DEBUG
-		printf("Successfully parsed <params> (empty)\n");
-#endif
-		return true;
-	}
+    while (parse_next_function()) {
 
-	if (!parse_parameter())
-	{
-		return false;
-	}
+        Function *function = malloc(sizeof(struct Function));
+        if (!function)
+            return false;
+        memset(function, 0, sizeof(struct Function));
 
-	if (!parse_parameter_next())
-	{
-		return false;
-	}
+        function->params = initLinkedList(true);
+        if (!function->params)
+            return false;
 
-#ifdef DEBUG
-	printf("Successfully parsed <params>\n");
-#endif
-	return true;
+        if (!insertNodeAtIndex(functions, (void *)function, -1))
+            return false;
+
+        if (!parse_function(function))
+            return false;
+    }
+
+    DEBUG_PRINT("Successfully parsed <functions>\n");
+    return true;
 }
 
-bool parse_parameter(void)
-{
-#ifdef DEBUG
-	printf("Parsing <parameter>\n");
-#endif
+bool parse_function(struct Function *function) {
+    DEBUG_PRINT("Parsing <function>\n");
 
-	// empty parameter
-	if (currentToken()->type == TOKEN_RPAR)
-	{
-#ifdef DEBUG
-		printf("Successfully parsed <parameter> (empty)\n");
-#endif
-		return true;
-	}
+    if (!match(TOKEN_PUB))
+        return false; // pub
+    if (!match(TOKEN_FN))
+        return false; // pub fn
 
-	// question mark
-	if (currentToken()->type == TOKEN_QUESTION_MARK)
-	{
-		getNextToken();
-	}
+    if (currentToken()->type != TOKEN_IDENTIFIER)
+        return false; // pub fn identifier
 
-	if (currentToken()->type == TOKEN_IDENTIFIER)
-	{
-#ifdef DEBUG
-		printf("Parameter name: %s\n", currentToken()->value);
-#endif
-		getNextToken(); // consume identifier
+    DEBUG_PRINT("Function name: %s\n", currentToken()->value);
 
-		if (!match(TOKEN_COLON))
-		{
-			return false;
-		}
+    function->id.name = currentToken()->value;
+    if (!function->id.name)
+        return false;
+    getNextToken();
 
-		if (!parse_data_type())
-		{
-			return false;
-		}
+    if (!match(TOKEN_LPAR))
+        return false; // pub fn identifier(
 
-		return true;
-	}
-	else
-	{
-		return false;
-	}
+    if (!parse_params(function->params))
+        return false; // pub fn identifier(params
 
-#ifdef DEBUG
-	printf("Successfully parsed <parameter>\n");
-#endif
-	return true;
+    if (!match(TOKEN_RPAR))
+        return false; // pub fn identifier(params)
+
+    if (!parse_data_type(&function->returnType))
+        return false; // pub fn identifier(params) ret_type
+
+    if (!match(TOKEN_LBRACE))
+        return false; // pub fn identifier(params) ret_type {
+
+    if (!parse_func_body(&function->body))
+        return false; // pub fn identifier(params) ret_type { ...
+
+    if (!match(TOKEN_RBRACE))
+        return false; // pub fn identifier(params) ret_type { ... }
+
+    DEBUG_PRINT("Successfully parsed <function>\n");
+
+    return true;
 }
 
-bool parse_parameter_next(void)
-{
-#ifdef DEBUG
-	printf("Parsing <parameter_next>\n");
-#endif
+bool parse_next_function(void) {
+    DEBUG_PRINT("Parsing <next_function>\n");
 
-	if (currentToken()->type != TOKEN_COMMA)
-	{
-#ifdef DEBUG
-		printf("Successfully parsed <parameter_next> (empty)\n");
-#endif
-		return true;
-	}
+    if (currentToken()->type == TOKEN_EOF) {
+        DEBUG_PRINT("End of tokens reached, end the program.\n");
+        return false;
+    }
 
-	getNextToken(); // consume comma
-	if (!parse_parameter())
-	{
-		return false;
-	}
+    if (currentToken()->type == TOKEN_PUB)
+        return true;
 
-	if (!parse_parameter_next())
-	{
-		return false;
-	}
+    DEBUG_PRINT("Successfully parsed <next_function> (empty)\n");
+    return false;
+}
 
-#ifdef DEBUG
-	printf("Successfully parsed <parameter_next>\n");
-#endif
-	return true;
+bool parse_params(LinkedList *params) {
+    DEBUG_PRINT("Parsing <params>\n");
+
+    // Handle empty params case
+    if (currentToken()->type == TOKEN_RPAR) {
+        DEBUG_PRINT("Successfully parsed <params> (empty)\n");
+        return true;
+    }
+
+    bool param_enabled = true;
+
+    while (param_enabled) {
+        Param *param = malloc(sizeof(Param));
+        if (!param)
+            return false;
+        memset(param, 0, sizeof(Param));
+
+        if (!insertNodeAtIndex(params, (void *)param, -1))
+            return false;
+        if (!parse_parameter(param))
+            return false;
+
+        if (currentToken()->type == TOKEN_COMMA) {
+            getNextToken();
+        } else {
+            param_enabled = false;
+        }
+    }
+
+    DEBUG_PRINT("Successfully parsed <params>\n");
+    return true;
+}
+
+bool parse_parameter(Param *param) {
+    DEBUG_PRINT("Parsing <parameter>\n");
+
+    // Handle empty parameter case
+    if (currentToken()->type != TOKEN_IDENTIFIER) {
+        DEBUG_PRINT("Successfully parsed <parameter> (empty)\n");
+        return true;
+    }
+
+    DEBUG_PRINT("Parameter name: %s\n", currentToken()->value);
+    param->id.name = currentToken()->value;
+    if (!param->id.name)
+        return false;
+
+    getNextToken(); // consume identifier
+
+    // todo nepovinny, nejspis staci jen vnorit parse_data_type nez hned returnovat false
+    if (!match(TOKEN_COLON))
+        return false;
+    if (!parse_data_type(&param->type))
+        return false;
+
+    DEBUG_PRINT("Successfully parsed <parameter>\n");
+    return true;
 }
 
 // Tam může jít i32 f64 []u8 nebo identifier nebo taky nic nebo string
-bool parse_arguments(void)
-{
-#ifdef DEBUG
-	printf("Parsing <arguments>\n");
-#endif
+// TODO: pridat do LL gramatiky a podle ni pak upravit
+bool parse_func_call_params(LinkedList *attributes) {
+    DEBUG_PRINT("Parsing <function_call_params>\n");
 
-	// empty arguments
-	if (currentToken()->type == TOKEN_RPAR)
-	{
-#ifdef DEBUG
-		printf("Successfully parsed <arguments> (empty)\n");
-#endif
-		return true;
-	}
+    if (currentToken()->type == TOKEN_RPAR) {
+        DEBUG_PRINT("Successfully parsed function parameters (empty)\n");
+        return true;
+    }
 
-	if (!parse_argument())
-	{
-		return false;
-	}
+    bool param_enabled = true;
 
-	if (!parse_argument_next())
-	{
-		return false;
-	}
+    while (param_enabled) {
+        Expression *expr = malloc(sizeof(Expression));
+        if (!expr)
+            return false;
 
-#ifdef DEBUG
-	printf("Successfully parsed <arguments>\n");
-#endif
-	return true;
+        memset(expr, 0, sizeof(Expression));
+
+        if (!insertNodeAtIndex(attributes, (void *)expr, -1))
+            return false;
+        if (!parse_func_call_param(expr))
+            return false;
+
+        if (currentToken()->type == TOKEN_COMMA) {
+            getNextToken();
+        } else {
+            param_enabled = false;
+        }
+    }
+
+    DEBUG_PRINT("Successfully parsed <function_call_params>\n");
+    return true;
 }
 
-bool parse_argument(void)
-{
-#ifdef DEBUG
-	printf("Parsing <argument>\n");
-#endif
+bool parse_func_call_param(Expression *expr) {
+    DEBUG_PRINT("Parsing <function_call_param>\n");
 
-	// empty argument
-	if (currentToken()->type == TOKEN_RPAR)
-	{
-#ifdef DEBUG
-		printf("Successfully parsed <argument> (empty)\n");
-#endif
-		return true;
-	}
+    // empty params
+    if (currentToken()->type == TOKEN_RPAR) {
+        DEBUG_PRINT("Successfully parsed <function_call_params> (empty)\n");
+        return true;
+    }
 
-	if (currentToken()->type == TOKEN_I32 || currentToken()->type == TOKEN_F64 || currentToken()->type == TOKEN_U8 || TOKEN_IDENTIFIER || TOKEN_STRING)
-	{
-#ifdef DEBUG
-		printf("Argument: %s\n", currentToken()->value);
-#endif
-		getNextToken();
-		return true;
-	}
-	else
-	{
-		return false;
-	}
+    if (isLiteral(currentToken()->type)) {
+        DEBUG_PRINT("Data type: %s\n", currentToken()->value);
 
-#ifdef DEBUG
-	printf("Successfully parsed <argument>\n");
-#endif
-	return true;
+        expr->expr_type = LiteralExpressionType;
+        expr->data.literal.value = currentToken()->value;
+        if (!expr->data.literal.value)
+            return false;
+
+        expr->data_type.data_type = covertTokneDataType(currentToken()->type);
+        expr->data.literal.data_type = expr->data_type;
+
+        getNextToken();
+        return true;
+    }
+
+    if (currentToken()->type == TOKEN_IDENTIFIER) {
+
+        DEBUG_PRINT("Identifier: %s\n", currentToken()->value);
+
+        expr->expr_type = IdentifierExpressionType;
+        expr->data.identifier.name = currentToken()->value;
+        if (!expr->data.identifier.name)
+            return false;
+
+        // TODO fill data_type
+
+        getNextToken();
+        return true;
+    }
+
+    if (currentToken()->type == TOKEN_STRING_LITERAL) {
+        DEBUG_PRINT("String: %s\n", currentToken()->value);
+
+        expr->expr_type = LiteralExpressionType;
+        expr->data.literal.value = currentToken()->value;
+        if (!expr->data.literal.value)
+            return false;
+
+        expr->data_type.data_type = dTypeU8;
+        expr->data.literal.data_type = expr->data_type;
+        // TODO fill data_type
+
+        getNextToken();
+        return true;
+    }
+
+    DEBUG_PRINT("Successfully parsed <function_call_param>\n");
+    return false;
 }
 
-bool parse_argument_next(void)
-{
-#ifdef DEBUG
-	printf("Parsing <argument_next>\n");
-#endif
+bool parse_data_type(DataType *data_type) {
+    DEBUG_PRINT("Parsing <data_type>\n");
 
-	if (currentToken()->type != TOKEN_COMMA)
-	{
-#ifdef DEBUG
-		printf("Successfully parsed <argument_next> (empty)\n");
-#endif
-		return true;
-	}
+    if (currentToken()->type == TOKEN_QUESTION_MARK) {
+        data_type->is_nullable = true;
+        getNextToken();
+    }
 
-	getNextToken(); // consume comma
-	if (!parse_argument())
-	{
-		return false;
-	}
+    if (!isDataType(currentToken()->type)) {
+        DEBUG_PRINT("Expected data type but got: %s\n", currentToken()->value);
+        return false;
+    }
+    data_type->data_type = covertTokneDataType(currentToken()->type);
 
-	if (!parse_argument_next())
-	{
-		return false;
-	}
+    getNextToken();
 
-#ifdef DEBUG
-	printf("Successfully parsed <argument_next>\n");
-#endif
-	return true;
+    DEBUG_PRINT("Successfully parsed <data_type>: %d\n", data_type->data_type);
+    return true;
 }
 
-bool parse_data_type(void)
-{
-#ifdef DEBUG
-	printf("Parsing <data_type>\n");
-#endif
+bool parse_func_body(Body *body) {
+    DEBUG_PRINT("Parsing <func_body>\n");
+    if (!parse_body(body))
+        return false;
 
-	// bool isNullable = false;
-	// enum DATA_TYPES dataType = dTypeUndefined;
-
-	if (currentToken()->type == TOKEN_QUESTION_MARK)
-	{
-		// isNullable = true;
-		getNextToken();
-	}
-
-	// switch (currentToken()->type)
-	// {
-	// case TOKEN_I32:
-	// 	dataType = dTypeI32;
-	// 	break;
-	// case TOKEN_F64:
-	// 	dataType = dTypeF64;
-	// 	break;
-	// case TOKEN_U8:
-	// 	dataType = dTypeU8;
-	// 	break;
-	// case TOKEN_VOID:
-	// 	dataType = dTypeVoid;
-	// 	break;
-	// default:
-	// 	printf("Expected data type but got: %s\n", currentToken()->value);
-	// 	printf("Data type: %d\n", dataType);
-	// 	return false;
-	// }
-
-	getNextToken();
-
-// #ifdef DEBUG
-	// printf("Successfully parsed <data_type>: %d\n", dataType);
-// #endif
-	return true;
+    DEBUG_PRINT("Successfully parsed <func_body>\n");
+    return true;
 }
 
-bool parse_func_body(void)
-{
-#ifdef DEBUG
-	printf("Parsing <func_body>\n");
-#endif
-	if (!parse_body())
-		return false;
+bool parse_body(Body *body) {
+    DEBUG_PRINT("Parsing <body>\n");
 
-#ifdef DEBUG
-	printf("Successfully parsed <func_body>\n");
-#endif
-	return true;
+    // empty body
+    if (currentToken()->type == TOKEN_RBRACE) {
+        DEBUG_PRINT("Successfully parsed <body> (empty)\n");
+        return true;
+    }
+
+    body->statements = initLinkedList(true);
+    if (!body->statements)
+        return false;
+
+    while (parse_body_content_next()) {
+        Statement *statement = malloc(sizeof(Statement));
+        if (!statement)
+            return false;
+
+        memset(statement, 0, sizeof(Statement));
+
+        if (!insertNodeAtIndex(body->statements, (void *)statement, -1))
+            return false;
+        if (!parse_body_content(statement))
+            return false;
+    }
+
+    DEBUG_PRINT("Successfully parsed <body>\n");
+    return true;
 }
 
-bool parse_body(void)
-{
-#ifdef DEBUG
-	printf("Parsing <body>\n");
-#endif
+bool parse_body_content(struct Statement *statement) {
+    DEBUG_PRINT("Parsing <body_content>\n");
 
-	// empty body
-	if (currentToken()->type == TOKEN_RBRACE)
-	{
-#ifdef DEBUG
-		printf("Successfully parsed <body> (empty)\n");
-#endif
-		return true;
-	}
+    TOKEN_PTR token = currentToken();
+    TOKEN_PTR nextToken;
 
-	if (!parse_body_content())
-		return false;
-	if (!parse_body_content_next())
-		return false;
+    // printf("Deciding on token: \t%s\n", token->value);
 
-#ifdef DEBUG
-	printf("Successfully parsed <body>\n");
-#endif
-	return true;
+    switch (token->type) {
+    case TOKEN_CONST:
+    case TOKEN_VAR:
+        statement->type = VariableDefinitionStatementType;
+        return parse_var_def(&statement->data.variable_definition_statement);
+    case TOKEN_IF:
+        statement->type = IfStatementType;
+        return parse_if(&statement->data.if_statement);
+    case TOKEN_WHILE:
+        statement->type = WhileStatementType;
+        return parse_while(&statement->data.while_statement);
+    case TOKEN_RETURN:
+        statement->type = ReturnStatementType;
+        getNextToken(); // Consume 'return'
+        if (!parse_ret_value(&statement->data.return_statement))
+            return false;
+        return match(TOKEN_SEMICOLON);
+
+    case TOKEN_IDENTIFIER:
+        nextToken = getDataAtIndex(buffer, tokenIndex + 1);
+        if (nextToken && nextToken->type == TOKEN_ASSIGN) {
+            statement->type = AssigmentStatementType;
+            return parse_var_assign(&statement->data.assigment_statement);
+        }
+
+        statement->type = FunctionCallStatementType;
+        return parse_func_call_statement(&statement->data.function_call_statement);
+
+    case TOKEN_DELETE_VALUE:
+        statement->type = AssigmentStatementType;
+        return parse_var_assign(&statement->data.assigment_statement);
+
+    default:
+        printf("Syntax error: unexpected token %s\n, expected: const, var, if, while, return, "
+               "identifier, ifj, _",
+               token->value);
+        return false;
+    }
+
+    return true;
 }
 
-bool parse_body_content(void)
-{
-#ifdef DEBUG
-	printf("Parsing <body_content>\n");
-#endif
-
-	TOKEN_PTR token = currentToken();
-	TOKEN_PTR nextToken;
-
-#ifdef DEBUG
-	printf("Deciding on token: \t%s\n", token->value);
-#endif
-
-	switch (token->type)
-	{
-	case TOKEN_CONST:
-	case TOKEN_VAR:
-		return parse_var_def();
-	case TOKEN_IF:
-		return parse_if();
-	case TOKEN_WHILE:
-		return parse_while();
-	case TOKEN_RETURN:
-		return parse_ret_value();
-	case TOKEN_IFJ:
-		return parse_native_func_call();
-	case TOKEN_IDENTIFIER:
-		token = currentToken();
-		nextToken = getDataAtIndex(buffer, tokenIndex + 1);
-
-		if (nextToken->type == TOKEN_LPAR)
-		{
-			return parse_func_call();
-		}
-		else if (nextToken->type == TOKEN_ASSIGN)
-		{
-			return parse_var_assign();
-		}
-		else
-			return false;
-
-	case TOKEN_UNDERSCORE:
-		return parse_var_assign();
-
-	default:
-		printf("Unexpected token %s\n, expected: const, var, if, while, return, identifier, ifj, _", token->value);
-		return false;
-	}
-
-	return true;
+bool parse_body_content_next(void) {
+    switch (currentToken()->type) {
+    case TOKEN_IDENTIFIER:
+    case TOKEN_CONST:
+    case TOKEN_IF:
+    case TOKEN_RETURN:
+    case TOKEN_VAR:
+    case TOKEN_WHILE:
+    case TOKEN_DELETE_VALUE:
+        return true;
+    default:
+        return false;
+    }
 }
 
-bool parse_body_content_next(void)
-{
-#ifdef DEBUG
-	printf("Parsing <body_content_next>\n");
-#endif
+bool parse_var_def(VariableDefinitionStatement *variable_definition_statement) {
+    DEBUG_PRINT("Parsing <var_def>\n");
 
-	// Check if we have more body content
-	TOKEN_PTR token = currentToken();
-	if (token->type == TOKEN_RBRACE)
-	{
-#ifdef DEBUG
-		printf("End of body content reached\n");
-#endif
-		return true;
-	}
+    // Check if it starts with 'const' or 'var'
+    if (currentToken()->type != TOKEN_CONST && currentToken()->type != TOKEN_VAR)
+        return false;
 
-	if (!parse_body_content())
-		return false;
-	if (!parse_body_content_next())
-		return false;
+    if (currentToken()->type == TOKEN_CONST) {
+        variable_definition_statement->isConst = true;
+    } else {
+        variable_definition_statement->isConst = false;
+    }
 
-#ifdef DEBUG
-	printf("Successfully parsed <body_content_next>\n");
-#endif
-	return true;
+    getNextToken();
+
+    // Variable identifier
+    if (currentToken()->type != TOKEN_IDENTIFIER)
+        return false;
+
+    variable_definition_statement->id.name = currentToken()->value;
+    if (!variable_definition_statement->id.name)
+        return false;
+
+    getNextToken();
+
+    if (currentToken()->type == TOKEN_COLON) {
+        if (!match(TOKEN_COLON))
+            return false;
+        if (!parse_data_type(&variable_definition_statement->type))
+            return false;
+    } else {
+        variable_definition_statement->type.data_type = dTypeNone;
+        variable_definition_statement->type.is_nullable = false;
+    }
+
+    if (!match(TOKEN_ASSIGN))
+        return false;
+
+    // <var_def> -> const <var_id> : <data_type> = <no_truth_expr>;
+    // <var_def> -> const <var_id> : <data_type> = <func_call>;
+    if (!parse_no_truth_expr(&variable_definition_statement->value))
+        return false;
+    if (!match(TOKEN_SEMICOLON))
+        return false;
+
+    DEBUG_PRINT("Successfully parsed <var_def>\n");
+    return true;
 }
 
-bool parse_var_def(void)
-{
-#ifdef DEBUG
-	printf("Parsing <var_def>\n");
-#endif
+bool parse_if(IfStatement *if_statement) {
+    DEBUG_PRINT("Parsing <if>\n");
 
-	if (currentToken()->type != TOKEN_CONST && currentToken()->type != TOKEN_VAR)
-		return false;
-	getNextToken();
+    if (!match(TOKEN_IF))
+        return false;
+    if (!match(TOKEN_LPAR))
+        return false;
+    TOKEN_PTR curToken = currentToken();
+    TOKEN_PTR nextToken = getNextToken();
 
-	if (!match(TOKEN_IDENTIFIER))
-		return false;
+    DEBUG_PRINT("Current token: %s\n", curToken->value);
+    DEBUG_PRINT("Next token: %s\n", nextToken->value);
 
-	if (currentToken()->type == TOKEN_COLON)
-	{
-		getNextToken();
-		if (!parse_data_type())
-			return false;
-	}
+    // handeling if (a) |na| {...}
+    if (curToken->type == TOKEN_IDENTIFIER && nextToken->type == TOKEN_RPAR) {
+        DEBUG_PRINT("Handeling if (a) |na| {...}\n");
+        // save the current token into the expression ..
+        if_statement->condition.expr_type = IdentifierExpressionType;
+        if_statement->condition.data.identifier.name = curToken->value;
+        if (!if_statement->condition.data.identifier.name)
+            return false;
+        tokenIndex++;
 
-	if (!match(TOKEN_ASSIGN))
-		return false;
+        if (!match(TOKEN_PIPE))
+            return false;
+        if (!match(TOKEN_IDENTIFIER))
+            return false;
+        tokenIndex--;
+        // saving the not nullable var name
+        if_statement->non_nullable.name = currentToken()->value;
+        if (!if_statement->non_nullable.name)
+            return false;
+        tokenIndex++;
+        if (!match(TOKEN_PIPE))
+            return false;
+        DEBUG_PRINT("Successfully parsed if (a) |na|\n");
 
-	// <var_def> -> const <var_id> : <data_type> = <no_truth_expr>;
-	// <var_def> -> const <var_id> : <data_type> = <func_call>;
-	TOKEN_PTR token = currentToken();
-	TOKEN_PTR nextToken = getNextToken();
-	if (token->type == TOKEN_IDENTIFIER && nextToken->type == TOKEN_SEMICOLON)
-	{
-		tokenIndex--;
-		if (!parse_var_assign())
-		{
-			return false;
-		}
-	}
-	else if (token->type == TOKEN_STRING && nextToken->type == TOKEN_SEMICOLON)
-	{
-		tokenIndex--;
-		if (!parse_var_assign())
-		{
-			return false;
-		}
-	}
-	else if (token->type == TOKEN_IDENTIFIER && nextToken->type == TOKEN_LPAR)
-	{
-		tokenIndex--;
-		if (!parse_func_call())
-		{
-			return false;
-		}
-		return true;
-	}
-	else if (token->type == TOKEN_IFJ && nextToken->type == TOKEN_CONCATENATE)
-	{
-		tokenIndex--;
-		if (!parse_native_func_call())
-		{
-			return false;
-		}
-		return true;
-	}
-	else
-	{
-		tokenIndex--;
-		if (!parse_no_truth_expr())
-		{
-			return false;
-		}
-	}
+        // handeling if (exp) {...}
+    } else {
+        DEBUG_PRINT("Handeling if (exp) {...}\n");
+        tokenIndex--; // got back to the start of the expression
+        if (!parse_truth_expr(&if_statement->condition))
+            return false;
+        if (!match(TOKEN_RPAR))
+            return false;
+        DEBUG_PRINT("Successfully parsed if (exp)\n");
+    }
+    // checking the if else bodyes
+    if (!match(TOKEN_LBRACE))
+        return false; // if () {
+    if (!parse_body(&if_statement->if_body))
+        return false; // if () { ...
+    if (!match(TOKEN_RBRACE))
+        return false; // if () { ... }
+    if (!parse_else(if_statement))
+        return false; // if () { ... } else { ... }
 
-	if (!match(TOKEN_SEMICOLON))
-		return false;
-
-#ifdef DEBUG
-	printf("Successfully parsed <var_def>\n");
-#endif
-	return true;
+    DEBUG_PRINT("Successfully parsed <if>\n");
+    return true;
 }
 
-bool parse_if(void)
-{
-#ifdef DEBUG
-	printf("Parsing <if>\n");
-#endif
+bool parse_else(IfStatement *if_statement) {
+    DEBUG_PRINT("Parsing <else>\n");
 
-	if (!match(TOKEN_IF))
-		return false;
-	if (!match(TOKEN_LPAR))
-		return false;
-	if (is_truth_expr())
-	{
-		if (!parse_truth_expr())
-			return false;
-		if (!match(TOKEN_RPAR))
-			return false;
-	}
-	else
-	{
-		if (!match(TOKEN_IDENTIFIER))
-			return false;
-		if (!match(TOKEN_RPAR))
-			return false;
-		if (!match(TOKEN_VBAR))
-			return false;
-		if (!match(TOKEN_IDENTIFIER))
-			return false;
-		if (!match(TOKEN_VBAR))
-			return false;
-	}
+    if (currentToken()->type != TOKEN_ELSE) { // else
+        DEBUG_PRINT("No else clause found\n");
+        return true;
+    }
 
-	if (!match(TOKEN_LBRACE))
-		return false;
-	if (!parse_body())
-		return false;
-	if (!match(TOKEN_RBRACE))
-		return false;
-	if (!parse_else())
-		return false;
+    getNextToken();
+    if (!match(TOKEN_LBRACE))
+        return false; // else {
+    if (!parse_body(&if_statement->else_body))
+        return false; // else { ...
+    if (!match(TOKEN_RBRACE))
+        return false; // else { ... }
 
-#ifdef DEBUG
-	printf("Successfully parsed <if>\n");
-#endif
-	return true;
+    DEBUG_PRINT("Successfully parsed <else>\n");
+    return true;
 }
 
-bool parse_else(void)
-{
-#ifdef DEBUG
-	printf("Parsing <else>\n");
-#endif
+bool parse_while(WhileStatement *while_statement) {
+    DEBUG_PRINT("Parsing <while>\n");
 
-	if (currentToken()->type != TOKEN_ELSE)
-	{
-#ifdef DEBUG
-		printf("Expected 'else' but got: %s\n", currentToken()->value);
-#endif
-		return false;
-	}
+    if (!match(TOKEN_WHILE))
+        return false; // while
+    if (!match(TOKEN_LPAR))
+        return false; // while (
 
-	getNextToken();
-	if (!match(TOKEN_LBRACE))
-		return false;
-	if (!parse_body())
-		return false;
-	if (!match(TOKEN_RBRACE))
-		return false;
+    TOKEN_PTR curToken = currentToken();
+    TOKEN_PTR nextToken = getNextToken();
 
-#ifdef DEBUG
-	printf("Successfully parsed <else>\n");
-#endif
-	return true;
+    // handeling while (a) |na| {...}
+    if (curToken->type == TOKEN_IDENTIFIER && nextToken->type == TOKEN_RPAR) {
+
+        // save the current token into the expression ..
+        while_statement->condition.expr_type = IdentifierExpressionType;
+        while_statement->condition.data.identifier.name = curToken->value;
+        if (!while_statement->condition.data.identifier.name)
+            return false;
+        tokenIndex++;
+
+        if (!match(TOKEN_PIPE))
+            return false;
+        if (!match(TOKEN_IDENTIFIER))
+            return false;
+        tokenIndex--;
+        // saving the not nullable var name
+        while_statement->non_nullable.name = currentToken()->value;
+        if (!while_statement->non_nullable.name)
+            return false;
+        tokenIndex++;
+        if (!match(TOKEN_PIPE))
+            return false;
+
+        // handeling while (exp) {...}
+    } else {
+        tokenIndex--; // got back to the start of the expression
+        if (!parse_truth_expr(&while_statement->condition))
+            return false;
+        if (!match(TOKEN_RPAR))
+            return false;
+    }
+
+    if (!match(TOKEN_LBRACE))
+        return false;
+    if (!parse_body(&while_statement->body))
+        return false;
+    if (!match(TOKEN_RBRACE))
+        return false;
+
+    DEBUG_PRINT("Successfully parsed <while>\n");
+    return true;
 }
 
-bool parse_while(void)
-{
-#ifdef DEBUG
-	printf("Parsing <while>\n");
-#endif
+bool parse_ret_value(ReturnStatement *return_statement) {
+    DEBUG_PRINT("Parsing <ret_value>\n");
 
-	if (!match(TOKEN_WHILE))
-		return false;
-	if (!match(TOKEN_LPAR))
-		return false;
-	if (is_truth_expr())
-	{
-		if (!parse_truth_expr())
-			return false;
-		if (!match(TOKEN_RPAR))
-			return false;
-	}
-	else
-	{
-		if (!match(TOKEN_IDENTIFIER))
-			return false;
-		if (!match(TOKEN_RPAR))
-			return false;
-		if (!match(TOKEN_VBAR))
-			return false;
-		if (!match(TOKEN_IDENTIFIER))
-			return false;
-		if (!match(TOKEN_VBAR))
-			return false;
-	}
+    // Check for empty return
+    if (currentToken()->type == TOKEN_SEMICOLON) {
+        return_statement->value.expr_type = IdentifierExpressionType;
+        //return_statement->value.data_type.data_type = dTypeNone;
+        return_statement->value.data.literal.data_type.data_type = dTypeNone;
+        DEBUG_PRINT("Empty return value\n");
+        return true;
+    }
 
-	if (!match(TOKEN_LBRACE))
-		return false;
-	if (!parse_body())
-		return false;
-	if (!match(TOKEN_RBRACE))
-		return false;
+    if (!parse_no_truth_expr(&return_statement->value))
+        return false;
 
-#ifdef DEBUG
-	printf("Successfully parsed <while>\n");
-#endif
-	return true;
+    DEBUG_PRINT("Successfully parsed <ret_value>\n");
+    return true;
 }
 
-bool parse_ret_value(void)
-{
-#ifdef DEBUG
-	printf("Parsing <ret_value>\n");
-#endif
-	getNextToken();
+bool parse_native_func_call(FunctionCall *function_call) {
+    DEBUG_PRINT("Parsing <native_func_call>\n");
 
-	// empty return
-	if (currentToken()->type == TOKEN_SEMICOLON)
-	{
-#ifdef DEBUG
-		printf("Empty return value\n");
-#endif
-		getNextToken();
-		return true;
-	}
+    if (currentToken()->type != TOKEN_IDENTIFIER)
+        return false;
+    if (strcmp(currentToken()->value, "ifj"))
+        return false;
 
-	if (!parse_no_truth_expr())
-		return false;
+    getNextToken();
 
-	if (!match(TOKEN_SEMICOLON))
-		return false;
+    if (!match(TOKEN_CONCATENATE))
+        return false;
+    if (currentToken()->type != TOKEN_IDENTIFIER)
+        return false;
 
-#ifdef DEBUG
-	printf("Successfully parsed <ret_value>\n");
-#endif
-	return true;
+    char *func_name = malloc(strlen(currentToken()->value) + 5);
+    if (!func_name)
+        return false;
+
+    strcpy(func_name, "ifj_");
+    strcat(func_name, currentToken()->value);
+
+    free(currentToken()->value);
+    currentToken()->value = func_name;
+
+    getNextToken();
+
+    function_call->func_id.name = func_name;
+    function_call->arguments = initLinkedList(true);
+
+    if (!function_call->arguments)
+        return false;
+    if (!match(TOKEN_LPAR))
+        return false;
+    if (!parse_func_call_params(function_call->arguments))
+        return false;
+    if (!match(TOKEN_RPAR))
+        return false;
+
+    DEBUG_PRINT("Successfully parsed <native_func_call>\n");
+
+    return true;
 }
 
-bool parse_func_call(void)
-{
-#ifdef DEBUG
-	printf("Parsing <func_call>\n");
-#endif
+bool parse_user_func_call(FunctionCall *function_call) {
+    DEBUG_PRINT("Parsing <user_func_call>\n");
 
-	if (currentToken()->type == TOKEN_IFJ)
-	{
-		if (!parse_native_func_call())
-			return false;
-	}
-	else
-	{
-		if (!parse_user_func_call())
-			return false;
-	}
+    if (currentToken()->type != TOKEN_IDENTIFIER)
+        return false;
 
-#ifdef DEBUG
-	printf("Successfully parsed <func_call>\n");
-#endif
-	return true;
+    function_call->func_id.name = currentToken()->value;
+    if (!function_call->func_id.name)
+        return false;
+
+    function_call->arguments = initLinkedList(true);
+    if (!function_call->arguments)
+        return false;
+
+    getNextToken();
+
+    if (!match(TOKEN_LPAR))
+        return false;
+    if (!parse_func_call_params(function_call->arguments))
+        return false;
+    if (!match(TOKEN_RPAR))
+        return false;
+
+    DEBUG_PRINT("Successfully parsed <user_func_call>\n");
+    return true;
 }
 
-bool parse_native_func_call(void)
-{
-#ifdef DEBUG
-	printf("Parsing <native_func_call>\n");
-#endif
+bool parse_func_call_statement(FunctionCall *function_call) {
+    DEBUG_PRINT("Parsing <func_call_statement>\n");
 
-	if (!match(TOKEN_IFJ))
-		return false;
-	if (!match(TOKEN_CONCATENATE))
-		return false;
-	if (!match(TOKEN_IDENTIFIER))
-		return false;
-	if (!match(TOKEN_LPAR))
-		return false;
-	if (!parse_arguments())
-		return false;
-	if (!match(TOKEN_RPAR))
-		return false;
-	if (!match(TOKEN_SEMICOLON))
-		return false;
+    if (currentToken()->type != TOKEN_IDENTIFIER)
+        return false;
 
-#ifdef DEBUG
-	printf("Successfully parsed <native_func_call>\n");
-#endif
-	return true;
+    TOKEN_PTR nextToken = getDataAtIndex(buffer, tokenIndex + 1);
+
+    if (!strcmp(currentToken()->value, "ifj") && nextToken &&
+        nextToken->type == TOKEN_CONCATENATE) {
+        if (!parse_native_func_call(function_call))
+            return false;
+        if (!match(TOKEN_SEMICOLON))
+            return false;
+
+        return true;
+    }
+
+    if (!parse_user_func_call(function_call))
+        return false;
+    if (!match(TOKEN_SEMICOLON))
+        return false;
+
+    DEBUG_PRINT("Successfully parsed <func_call_statement>\n");
+    return true;
 }
 
-bool parse_user_func_call(void)
-{
-#ifdef DEBUG
-	printf("Parsing <user_func_call>\n");
-#endif
+bool parse_var_assign(AssigmentStatement *assign_statement) {
+    DEBUG_PRINT("Parsing <var_assign>\n");
 
-	if (!match(TOKEN_IDENTIFIER))
-		return false;
-	if (!match(TOKEN_LPAR))
-		return false;
-	if (!parse_arguments())
-		return false;
-	if (!match(TOKEN_RPAR))
-		return false;
-	if (!match(TOKEN_SEMICOLON))
-		return false;
+    if (currentToken()->type != TOKEN_IDENTIFIER && currentToken()->type != TOKEN_DELETE_VALUE)
+        return false;
 
-#ifdef DEBUG
-	printf("Successfully parsed <user_func_call>\n");
-#endif
-	return true;
+    assign_statement->id.name = currentToken()->value;
+    if (!assign_statement->id.name)
+        return false;
+
+    if (currentToken()->type == TOKEN_DELETE_VALUE)
+        assign_statement->discard = true;
+
+    getNextToken();
+
+    if (!match(TOKEN_ASSIGN))
+        return false;
+    if (!parse_no_truth_expr(&assign_statement->value))
+        return false;
+    if (!match(TOKEN_SEMICOLON))
+        return false;
+
+    DEBUG_PRINT("Successfully parsed <var_assign>\n");
+
+    return true;
 }
 
-bool parse_var_assign(void)
-{
-#ifdef DEBUG
-	printf("Parsing <var_assign>\n");
-#endif
+bool parse_no_truth_expr(Expression *expr) {
+    DEBUG_PRINT("Parsing <no_truth_expr>\n");
 
-	getNextToken();
+    if (currentToken()->type == TOKEN_IDENTIFIER) {
+        TOKEN_PTR nextToken = getDataAtIndex(buffer, tokenIndex + 1);
 
-	if (!match(TOKEN_ASSIGN))
-		return false;
+        if (nextToken && nextToken->type == TOKEN_LPAR) {
+            expr->expr_type = FunctionCallExpressionType;
+            return parse_user_func_call(&expr->data.function_call);
+        }
 
-	TOKEN_PTR token = currentToken();
-	TOKEN_PTR nextToken = getDataAtIndex(buffer, tokenIndex + 1);
+        if (!strcmp(currentToken()->value, "ifj") && nextToken &&
+            nextToken->type == TOKEN_CONCATENATE) {
+            expr->expr_type = FunctionCallExpressionType;
+            return parse_native_func_call(&expr->data.function_call);
+        }
+    }
 
-	// todo asi
-	// if (token->type == TOKEN_IFJ && nextToken->type == TOKEN_CONCATENATE)
-	// {
-	// 	if (!parse_native_func_call())
-	// 		return false;
-	// }
-
-	if (token->type == TOKEN_IDENTIFIER && nextToken->type == TOKEN_LPAR)
-	{
-		if (!parse_func_call())
-			return false;
-	}
-	else
-	{
-		if (!parse_no_truth_expr())
-			return false;
-		if (!match(TOKEN_SEMICOLON))
-			return false;
-	}
-
-#ifdef DEBUG
-	printf("Successfully parsed <var_assign>\n");
-#endif
-	return true;
+    enum ERR_CODES err = startPrecedentAnalysis(buffer, &tokenIndex, true, expr);
+    if (err != SUCCESS)
+        return false;
+    return true;
 }
 
-bool parse_no_truth_expr(void)
-{
-#ifdef DEBUG
-	printf("Parsing <no_truth_expr>\n");
-#endif
+bool parse_truth_expr(Expression *expr) {
+    DEBUG_PRINT("Parsing <truth_expr>\n");
 
-	TOKEN_PTR token = currentToken();
-	TOKEN_PTR nextToken = getDataAtIndex(buffer, tokenIndex + 1);
+    enum ERR_CODES err = startPrecedentAnalysis(buffer, &tokenIndex, false, expr);
+    if (err != SUCCESS) {
+        printf("Error in startPrecedentAnalysis: %d\n", err);
+        return false;
+    }
 
-	// pokud jde o literal a za nim je strednik, tak si ho zparsuju sam
-	if ((token->type == TOKEN_STRING || token->type == TOKEN_I32 || token->type == TOKEN_F64 || token->type == TOKEN_U8) && nextToken->type == TOKEN_SEMICOLON)
-	{
-		getNextToken();
-		return true;
-	}
-
-	err = startPrecedentAnalysis(buffer, (unsigned int *)&tokenIndex, true);
-	if (err != SUCCESS)
-	{
-		return false;
-	}
-
-	return true;
-}
-
-bool parse_truth_expr(void)
-{
-	printf("Parsing <truth_expr>\n");
-
-	err = startPrecedentAnalysis(buffer, (unsigned int *)&tokenIndex, false);
-	if (err != SUCCESS)
-	{
-		return false;
-	}
-
-	return true;
+    return true;
 }

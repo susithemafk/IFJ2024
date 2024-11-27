@@ -1,7 +1,14 @@
+# /** AUTHOR
+#  * 
+#  * @author <247581> Martin Mendl
+#  * @file Makefile
+#  * @date 25.11. 2024
+#  * @brief Makefile for IFJ project
+#  */
+
 # Compiler settings
 CC = gcc
-CFLAGS = -std=c99 -Wall -Wextra -pedantic -fcommon
-DBFLAGS = $(CFLAGS) -g -fsanitize=address
+CFLAGS = -std=c99 -Wall -Wextra -pedantic -fcommon -DUSE_CUSTOM_STRUCTURE
 INCLUDES = -Iinclude
 
 # Directories
@@ -11,12 +18,13 @@ LEXICAL_DIR = $(SRC_DIR)/lexical
 SEMANTICAL_DIR = $(SRC_DIR)/semantical
 SYNTAXICAL_DIR = $(SRC_DIR)/syntaxical
 UTILITY_DIR = $(SRC_DIR)/utility
-AST_ASSETS_DIR = $(SRC_DIR)/ast_assets
 TEST_DIR = tests
-BUILD_DIR = build
 
-# Debug flag
-DEBUG_FLAG = -DDEBUG
+# Find all .c files in the tests directory
+TEST_FILES = $(wildcard $(TEST_DIR)/*.c)
+
+# Allow file argument for make command
+file ?= $(word 1, $(TEST_FILES))
 
 # main src files without the main.c
 SRC_FILES = $(filter-out $(SRC_DIR)/main.c, \
@@ -31,6 +39,9 @@ SRC_FILES = $(filter-out $(SRC_DIR)/main.c, \
 # Define the `printCmd` variable based on the platform
 printCmd := $(shell if [ "$$(uname)" = "Darwin" ]; then echo "echo"; else echo "echo -e"; fi)
 
+# Test names (adjust as needed)
+TESTS = $(wildcard $(TEST_DIR)/*)
+
 # Targets
 all: main
 
@@ -43,92 +54,61 @@ main: $(SRC_FILES) $(SRC_DIR)/main.c
 	@$(printCmd) "\033[1;32mBuild completed successfully!   \033[0m"
 	@$(printCmd) "\033[1;36m==================================\033[0m"
 
-run: main
-	@./main < src/input.txt
+# Prepare the test environment
+prepare:
+	@$(printCmd) "\033[1;36m==================================\033[0m"
+	@$(printCmd) "Preparing test environment ..."
+	@chmod +x run_test.sh
+	@chmod +x code_gen_test.sh
+	@chmod +x integration_tests.sh
+	@$(printCmd) "\033[1;36mPermisions granted\033[0m"
+	@$(printCmd) "\033[1;36m==================================\033[0m"
+
+# test the code generation
+test_code_gen:
+	@$(printCmd) "\033[1;36m==================================\033[0m"
+	@$(printCmd) "Testing code generation ..."
+	@$(printCmd) "\033[1;36m==================================\033[0m"
+	@$(CC) $(CFLAGS) $(INCLUDES) $(SRC_FILES) $(SRC_DIR)/main.c -o main
+	./code_gen_test.sh main
+	@$(printCmd) "\033[1;36m==================================\033[0m"
+	@$(printCmd) "\033[1;32mCode generation tests done!   \033[0m"
+	@$(printCmd) "\033[1;36m==================================\033[0m"
 
 # Build test target (build only, no execution)
-test_%: $(TEST_DIR)/test_%.c
-	@$(printCmd) "\033[1;36m==================================\033[0m"
-	@$(printCmd) "Building with debug flag: \033[1;33m$@...                  \033[0m"
-	@$(printCmd) "\033[1;36m==================================\033[0m"
-	@rm -f $@
-	@$(CC) $(CFLAGS) $(INCLUDES) $(DEBUG_FLAG) $(SRC_FILES) $(TEST_DIR)/test_$*.c -o $@ -std=c99
-	@$(printCmd) "\033[1;36m==================================\033[0m"
-	@$(printCmd) "\033[1;32mBuild completed successfully!   \033[0m"
-	@$(printCmd) "\033[1;36m==================================\033[0m"
-	@if [ "$*" = "lex" ] || [ "$*" = "syntax_pass1" ]; then \
-    ./$@ < ./tests/lexical/input.txt; \
-	elif [ "$*" = "parser" ]; then \
-		./$@ < ./tests/syntaxical/input.txt; \
+test:
+	@if [ -f $(TEST_DIR)/$(file).c ]; then \
+		./run_test.sh $(file) true false "-1" true; \
+	elif [ "$(file)" = "integration" ]; then \
+		./run_test.sh "$(file)" true false "$(testcase)" "$(print)"; \
 	else \
-		./$@; \
+		./run_test.sh; \
 	fi
-	@rm -f $@
-	@$(printCmd) "\033[1;36m==================================\033[0m"
-	@$(printCmd) "\033[1;32mCleaning $@...            \033[0m"
-	@$(printCmd) "\033[1;32mProgram run successfully!       \033[0m"
-	@$(printCmd) "\033[1;36m==================================\033[0m"
-
 
 # Run specific test target
-run_%:
-	@$(printCmd) "\033[1;36m==================================\033[0m"
-	@$(printCmd) "Building test to run: \033[1;33m $@...                  \033[0m"
-	@$(printCmd) "\033[1;36m==================================\033[0m"
-	@$(CC) $(CFLAGS) $(INCLUDES) $(SRC_FILES) $(TEST_DIR)/test_$*.c -o $@ -std=c99
-	@$(printCmd) "\033[1;36m==================================\033[0m"
-	@$(printCmd) "Running \033[1;33m $@...                   \033[0m"
-	@$(printCmd) "\033[1;36m==================================\033[0m"
-	@if [ "$*" = "lex" ] || [ "$*" = "syntax_pass1" ]; then \
-		./$@ < ./tests/lexical/input.txt; \
-	elif [ "$*" = "parser" ]; then \
-		./$@ < ./tests/syntaxical/input.txt; \
+run:
+	@if [ -f $(TEST_DIR)/$(file).c ]; then \
+		./run_test.sh "$(file)" false false "-1" true; \
+	elif [ "$(file)" = "integration" ]; then \
+		./run_test.sh "$(file)" false false "$(testcase)" "$(print)"; \
 	else \
-		./$@; \
+		./run_test.sh; \
 	fi
-	@rm -f $@
-	@$(printCmd) "\033[1;36m==================================\033[0m"
-	@$(printCmd) "\033[1;32mCleaning $@...            \033[0m"
-	@$(printCmd) "\033[1;32mProgram run successfully!       \033[0m"
-	@$(printCmd) "\033[1;36m==================================\033[0m"
 
 # Run specific test target with memory check
-valgrind_%:
-	@$(printCmd) "\033[1;36m==================================\033[0m"
-	@$(printCmd) "Building \033[1;33m$@ ...                  \033[0m"
-	@$(printCmd) "\033[1;36m==================================\033[0m"
-	@$(CC) $(CFLAGS) $(INCLUDES) $(SRC_FILES) $(TEST_DIR)/test_$*.c -o $@ -std=c99
-	@$(printCmd) "\033[1;36m==================================\033[0m"
-	@$(printCmd) "Running \033[1;33m$@\033[0m with memory checker ..."
-	@$(printCmd) "\033[1;36m==================================\033[0m"
-	@if [ "$*" = "lex" ] || [ "$*" = "syntax_pass1" ] || [ "$*" = "parser" ]; then \
-		if [ "$$(uname)" = "Darwin" ]; then \
-			$(printCmd) "\033[1;32mUsing leaks on macOS for lex test...\033[0m"; \
-			leaks --atExit --fullStacks -- ./valgrind_$* < ./tests/lexical/input.txt; \
-		else \
-			$(printCmd) "\033[1;32mUsing valgrind on non-macOS system for lex test...\033[0m"; \
-			valgrind -s --leak-check=full --track-origins=yes --dsymutil=yes --show-leak-kinds=all ./valgrind_$* < ./tests/lexical/input.txt; \
-		fi; \
+valgrind:
+	@if [ -f $(TEST_DIR)/$(file).c ]; then \
+		./run_test.sh "$(file)" false true "-1" true; \
+	elif [ "$(file)" = "integration" ]; then \
+		./run_test.sh "$(file)" false true "$(testcase)" "$(print)"; \
 	else \
-		if [ "$$(uname)" = "Darwin" ]; then \
-			$(printCmd) "\033[1;32mUsing leaks on macOS...\033[0m"; \
-			leaks --atExit --fullStacks -- ./valgrind_$*; \
-		else \
-			$(printCmd) "\033[1;32mUsing valgrind on non-macOS system...\033[0m"; \
-			valgrind -s --leak-check=full --track-origins=yes --dsymutil=yes --show-leak-kinds=all ./valgrind_$*; \
-		fi; \
+		./run_test.sh; \
 	fi
-	@$(printCmd) "\033[1;36m==================================\033[0m"
-	@$(printCmd) "Memory check complete for \033[1;32m$@"
-	@rm -f $@
-	@$(printCmd) "\033[1;36mCleaning $@...\033[0m"
-	@$(printCmd) "\033[1;32mProgram run successfully!\033[0m"
-	@$(printCmd) "\033[1;36m==================================\033[0m"
-
+	
 clean:
 	@$(printCmd) "\033[1;36m==================================\033[0m"
 	@$(printCmd) "\033[1;33mCleaning build files...         \033[0m"
-	@rm -f main test_* ifj_to_go.zip
+	@rm -f main ifj_to_go.zip
 	@$(printCmd) "\033[1;32mAll build files cleaned\033[0m"
 	@$(printCmd) "\033[1;36m==================================\033[0m"
 
@@ -140,20 +120,55 @@ zip:
 	@$(printCmd) "\033[1;32mProject zipped successfully: ../IFJ2024/ifj_to_go.zip\033[0m"
 	@$(printCmd) "\033[1;36m==================================\033[0m"
 
+submit:
+	@$(printCmd) "\033[1;36m==================================\033[0m"
+	@$(printCmd) "\033[1;33mPreparing submission zip...       \033[0m"
+	@zip -rq xsucha18.zip \
+		$(SRC_FILES) $(SRC_DIR)/main.c rozdeleni dokumentace.pdf \
+		-x "*.git/*" ".gitignore" || \
+		$(printCmd) "\033[1;31mZipping failed.\033[0m"
+	@$(printCmd) "\033[1;32mSubmission zip created: ./xsucha18.zip\033[0m"
+	@$(printCmd) "\033[1;36m==================================\033[0m"
+
+.PHONY: snake
+
+snake:
+	@cd ./snake && \
+	if [ ! -d ".env" ]; then \
+		python3 -m venv .env; \
+	fi && \
+	source .env/bin/activate && \
+	python3 -m pip install --quiet --upgrade pip pynput && \
+	python3 snake.py && \
+	stty sane && \
+	read -t 1 -n 10000 discard || true && \
+	clear
+
 # help command
 help:
-	@$(printCmd) "\033[1;36m+--------------------------------+-----------------------------------------+--------------------------+\033[0m"
-	@$(printCmd) "\033[1;36m| \033[1;33mCommand                        \033[1;36m| \033[1;33mDescription                             \033[1;36m| \033[1;33mExample                  \033[1;36m|\033[0m"
-	@$(printCmd) "\033[1;36m+--------------------------------+-----------------------------------------+--------------------------+\033[0m"
-	@$(printCmd) "\033[1;36m| \033[1;32mmake\033[2;37m                           \033[0m\033[1;36m| \033[0mCompile the main program                \033[1;36m| \033[1;35mmake                     \033[1;36m|\033[0m"
-	@$(printCmd) "\033[1;36m| \033[1;32mmake\033[2;37m run                       \033[0m\033[1;36m| \033[0mCompile and run the main program        \033[1;36m| \033[1;35mmake run                 \033[1;36m|\033[0m"
-	@$(printCmd) "\033[1;36m| \033[1;32mmake\033[2;37m test_<test_name>          \033[0m\033[1;36m| \033[0mCompile the test program                \033[1;36m| \033[1;35mmake test_ast            \033[1;36m|\033[0m"
-	@$(printCmd) "\033[1;36m| \033[1;32mmake\033[2;37m run_<test_name>      	 \033[0m\033[1;36m| \033[0mCompile and run the test program        \033[1;36m| \033[1;35mmake run_ast             \033[1;36m|\033[0m"
-	@$(printCmd) "\033[1;36m| \033[1;32mmake\033[2;37m valgrind_<test_name> 	 \033[0m\033[1;36m| \033[0mCompile and run the test with Valgrind  \033[1;36m| \033[1;35mmake valgrind_ast        \033[1;36m|\033[0m"
-	@$(printCmd) "\033[1;36m| \033[1;32mmake\033[2;37m clean                     \033[0m\033[1;36m| \033[0mClean build files                       \033[1;36m| \033[1;35mmake clean               \033[1;36m|\033[0m"
-	@$(printCmd) "\033[1;36m| \033[1;32mmake\033[2;37m zip                       \033[0m\033[1;36m| \033[0mZip the project                         \033[1;36m| \033[1;35mmake zip                 \033[1;36m|\033[0m"
-	@$(printCmd) "\033[1;36m| \033[1;32mmake\033[2;37m help                      \033[0m\033[1;36m| \033[0mShow this help message                  \033[1;36m| \033[1;35mmake help                \033[1;36m|\033[0m"
-	@$(printCmd) "\033[1;36m+--------------------------------+-----------------------------------------+--------------------------+\033[0m"
+	@$(printCmd) "\033[1;36m+-----------------------------------------------------------------------+-------------------------------------------------------+-----------------------------------------------+\033[0m"
+	@$(printCmd) "\033[1;36m| \033[1;33mCommand                        					\033[1;36m| \033[1;33mDescription                                           \033[1;36m| \033[1;33mExample      			        	\033[1;36m|\033[0m"
+	@$(printCmd) "\033[1;36m+-----------------------------------------------------------------------+-------------------------------------------------------+-----------------------------------------------+\033[0m"
+	@$(printCmd) "\033[1;36m| \033[1;32mmake\033[2;37m                           					\033[0m\033[1;36m| \033[0mCompile the main program                              \033[1;36m| \033[1;35mmake                     			\033[1;36m|\033[0m"
+	@$(printCmd) "\033[1;36m| \033[1;32mmake\033[2;37m prepare                     					\033[0m\033[1;36m| \033[0mPrepare the test environment                          \033[1;36m| \033[1;35mmake prepare             			\033[1;36m|\033[0m"
+	@$(printCmd) "\033[1;36m| \033[1;32mmake\033[2;37m test_code_gen               					\033[0m\033[1;36m| \033[0mRun code generation tests                             \033[1;36m| \033[1;35mmake test_code_gen         			\033[1;36m|\033[0m"
+	@$(printCmd) "\033[1;36m| \033[1;32mmake\033[2;37m run                    						\033[0m\033[1;36m| \033[0mRun a file (provide file=<test_name>)                 \033[1;36m| \033[1;35mmake run file=test1.c    			\033[1;36m|\033[0m"
+	@$(printCmd) "\033[1;36m| \033[1;32mmake\033[2;37m test                      					\033[0m\033[1;36m| \033[0mRun a file with debug macros enabled                  \033[1;36m| \033[1;35mmake test file=test1.c   			\033[1;36m|\033[0m"
+	@$(printCmd) "\033[1;36m| \033[1;32mmake\033[2;37m valgrind                  					\033[0m\033[1;36m| \033[0mRun a file under Valgrind (provide file=<test_name>)  \033[1;36m| \033[1;35mmake valgrind file=test1.c			\033[1;36m|\033[0m"
+	@$(printCmd) "\033[1;36m| \033[1;32mmake\033[2;37m run file=integration          					\033[0m\033[1;36m| \033[0mRun all integration tests                             \033[1;36m| \033[1;35mmake run file=integration     		\033[1;36m|\033[0m"
+	@$(printCmd) "\033[1;36m| \033[1;32mmake\033[2;37m test file=integration          					\033[0m\033[1;36m| \033[0mRun all integration tests with debug macros           \033[1;36m| \033[1;35mmake test file=integration    		\033[1;36m|\033[0m"
+	@$(printCmd) "\033[1;36m| \033[1;32mmake\033[2;37m valgrind file=integration      					\033[0m\033[1;36m| \033[0mRun all integration tests under Valgrind              \033[1;36m| \033[1;35mmake valgrind file=integration		\033[1;36m|\033[0m"
+	@$(printCmd) "\033[1;36m| \033[1;32mmake\033[2;37m run file=integration testcase=<test_num> print=<bool>		\033[0m\033[1;36m| \033[0mRun specific integration test                         \033[1;36m| \033[1;35mmake run file=integration testcase=1	\033[1;36m	|\033[0m"
+	@$(printCmd) "\033[1;36m| \033[1;32mmake\033[2;37m test file=integration testcase=<test_num> print=<bool>		\033[0m\033[1;36m| \033[0mRun specific integration test with debug macros       \033[1;36m| \033[1;35mmake test file=integration testcase=1	   \033[1;36m	|\033[0m"
+	@$(printCmd) "\033[1;36m| \033[1;32mmake\033[2;37m valgrind file=integration testcase=<test_num> print=<bool>	\033[0m\033[1;36m| \033[0mRun specific integration test under Valgrind      	\033[1;36m| \033[1;35mmake valgrind file=integration testcase=1\033[1;36m  	|\033[0m"
+	@$(printCmd) "\033[1;36m| \033[1;32mmake\033[2;37m clean                		     				\033[0m\033[1;36m| \033[0mClean build files                                 	\033[1;36m| \033[1;35mmake clean             			\033[1;36m|\033[0m"
+	@$(printCmd) "\033[1;36m| \033[1;32mmake\033[2;37m zip          		             				\033[0m\033[1;36m| \033[0mZip the project                                   	\033[1;36m| \033[1;35mmake zip                 			\033[1;36m|\033[0m"
+	@$(printCmd) "\033[1;36m| \033[1;32mmake\033[2;37m submit          		             				\033[0m\033[1;36m| \033[0mCreate submission zip                            	\033[1;36m| \033[1;35mmake submit                 			\033[1;36m|\033[0m"
+	@$(printCmd) "\033[1;36m| \033[1;32mmake\033[2;37m help			                			\033[0m\033[1;36m| \033[0mShow this help message                                \033[1;36m| \033[1;35mmake help                			\033[1;36m|\033[0m"
+	@$(printCmd) "\033[1;36m| \033[1;32mmake\033[2;37m snake			                			\033[0m\033[1;36m| \033[0mWhat coud this do? ;P                             	\033[1;36m| \033[1;35mmake snake                			\033[1;36m|\033[0m"
+	@$(printCmd) "\033[1;36m+-----------------------------------------------------------------------+-------------------------------------------------------+-----------------------------------------------+\033[0m"
+	
+	
 
 
 

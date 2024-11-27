@@ -17,7 +17,11 @@
 
 #include <stdio.h>
 #include <stdbool.h>
+#ifdef USE_CUSTOM_STRUCTURE
 #include "utility/enumerations.h"
+#else
+#include "enumerations.h"
+#endif
 
 typedef enum
 {
@@ -48,14 +52,10 @@ typedef enum
 	SCANNER_LBRACE,
 	SCANNER_RBRACE,
 	SCANNER_SEMICOLON,
-	SCANNER_LSQUARE,	   // [
-	SCANNER_RSQUARE,	   // ]
-	SCANNER_U,			   // u
-	SCANNER_8,			   // 8
-	SCANNER_QUESTION_MARK, // ?
-	SCANNER_UNDERSCORE,	   // _
-	SCANNER_AT,			   // @
-	SCANNER_VBAR, 		   // |
+	SCANNER_LSQUARE, // [
+	SCANNER_RSQUARE, // ]
+	SCANNER_U,		 // u
+	SCANNER_8,		 // 8
 
 	SCANNER_I32,	   // 1
 	SCANNER_I64,	   // 1.0
@@ -73,7 +73,11 @@ typedef enum
 	SCANNER_COMMENT_START, //
 	SCANNER_COMMENT_END,   // \n or EOF
 
-	SCANNER_EOF
+	SCANNER_EOF,
+
+	SCANNER_PIPE,
+	SCANNER_QUESTION_MARK,
+	SCANNER_AT,
 } SCANNER_STATUS;
 
 enum ERR_CODES scanner_init(FILE *input);

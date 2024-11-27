@@ -1,15 +1,21 @@
 /** AUTHOR
- *
+ * 
  * @author <247581> Martin Mendl
+ * @author <253171> Vanesa Zimmermannová
  * @file enumerations.c
  * @date 28.9. 2024
  * @brief Test file for the linked list implementation
  */
 
-#include "utility/enumerations.h"
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdarg.h>
+#ifdef USE_CUSTOM_STRUCTURE
+#include "utility/enumerations.h"
+#else
+#include "enumerations.h"
+#endif
 
 // Function to negate a comparason operand
 enum TOKEN_TYPE negateOperand(enum TOKEN_TYPE operand) {
@@ -31,7 +37,30 @@ enum TOKEN_TYPE negateOperand(enum TOKEN_TYPE operand) {
     }
 }
 
-// Function to print out a human-readable error code with colors
+bool isLiteral(enum TOKEN_TYPE type) {
+    switch(type) {
+        case TOKEN_INTEGER_LITERAL:
+        case TOKEN_STRING_LITERAL:
+        case TOKEN_FLOAT_LITERAL:
+        case TOKEN_NULL:
+            return true;
+        default:
+            return false;
+    }
+} // Function to print out a human-readable error code with colors
+
+bool isDataType(enum TOKEN_TYPE type) {
+    switch(type) {
+        case TOKEN_I32:
+        case TOKEN_F64:
+        case TOKEN_U8:
+        case TOKEN_VOID:
+            return true;
+        default:
+            return false;
+    }
+}
+
 void printErrCode(enum ERR_CODES errCode) {
     char errStr[100];
     const char *color = COLOR_RESET; // Default color
@@ -97,25 +126,17 @@ void printErrCode(enum ERR_CODES errCode) {
 
     printf("Error -> %s%s%s\n", color, errStr, COLOR_RESET);
 }
-
-// Function to print out a debug message
-void printDebug(const char *file_name, const char *function_name, const char *message) {
-    printf("%sDEBUG:%s %sFILE: %s%s \n%sFUNC: %s%s \n%smsg: %s %s\n",
-            COLOR_INFO,       // Color for DEBUG label
-            COLOR_RESET,      // Reset color after DEBUG label
-            COLOR_FILE,       // Color for FILE label
-            file_name,        // File name passed as argument
-            COLOR_RESET,      // Reset color after file name
-            COLOR_FUNC,       // Color for FUNC label
-            function_name,    // Function name passed as argument
-            COLOR_RESET,      // Reset color after function name
-            COLOR_PASS,       // Color for the "msg->" prefix
-            COLOR_RESET,      // Reset color after "msg->"
-            message);         // The actual message
+// Debug print function
+void printDebug(const char *function_name, const char *format, ...) {
+    va_list args;
+    va_start(args, format);
+    printf("%sDEBUG:%s %sFUNC:%s %s %smsg%s -> ", 
+           COLOR_INFO, COLOR_RESET, 
+           COLOR_FUNC, function_name, COLOR_RESET, COLOR_PASS, COLOR_RESET);
+    vprintf(format, args); // Print the formatted message
+    printf(" %s\n", COLOR_RESET);
+    va_end(args);
 }
-
-
-
 
 
 // Function to hash a string
@@ -132,11 +153,17 @@ unsigned int hashString(const char* str) {
 enum DATA_TYPES covertTokneDataType(enum TOKEN_TYPE type) {
 
     switch (type) {
+        case TOKEN_VOID:
+        case TOKEN_NULL:
+            return dTypeVoid;
         case TOKEN_I32:
+        case TOKEN_INTEGER_LITERAL:
             return dTypeI32;
         case TOKEN_F64:
+        case TOKEN_FLOAT_LITERAL:
             return dTypeF64;
-        case TOKEN_STRING:
+        case TOKEN_U8:
+        case TOKEN_STRING_LITERAL:
             return dTypeU8;
         default:
             return dTypeNone;
@@ -185,7 +212,7 @@ void printTokenType(enum TOKEN_TYPE token) {
         case TOKEN_NOTEQUAL:
             printf("Token -> %sNOTEQUAL%s\n", COLOR_WARN, COLOR_RESET);
             break;
-        case TOKEN_STRING:
+        case TOKEN_STRING_LITERAL:
             printf("Token -> %sSTRING%s\n", COLOR_WARN, COLOR_RESET);
             break;
         case TOKEN_CONCATENATE:
@@ -254,7 +281,7 @@ void printTokenType(enum TOKEN_TYPE token) {
         case TOKEN_WHILE:
             printf("Token -> %sWHILE%s\n", COLOR_WARN, COLOR_RESET);
             break;
-        case TOKEN_UNDERSCORE:
+        case TOKEN_DELETE_VALUE:
             printf("Token -> %sDELETE_VALUE%s\n", COLOR_WARN, COLOR_RESET);
             break;
         default:

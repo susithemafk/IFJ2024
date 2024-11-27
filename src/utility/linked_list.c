@@ -10,7 +10,12 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
+
+#ifdef USE_CUSTOM_STRUCTURE
 #include "utility/linked_list.h"
+#else
+#include "linked_list.h"
+#endif
 
 // Function to check, if list is empty
 int emptyList(struct LinkedList *list) {
@@ -26,14 +31,10 @@ int emptyList(struct LinkedList *list) {
 
 // Function to get the size of the list
 unsigned int getSize(struct LinkedList *list) {
-    
     // check for internal error
-    if (list == NULL) return -1;
-
+    if (list == NULL) return 0;
     return list->size;
 }
-
-
 
 // function to init the linked list
 struct LinkedList *initLinkedList(bool freeData) {

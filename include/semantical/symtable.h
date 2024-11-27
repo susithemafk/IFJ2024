@@ -10,9 +10,16 @@
 #define SYMTABLE_H
 
 #include <stdbool.h>
+
+#ifdef USE_CUSTOM_STRUCTURE
 #include "utility/linked_list.h"
 #include "utility/enumerations.h"
 #include "utility/binary_search_tree.h"
+#else
+#include "linked_list.h"
+#include "enumerations.h"
+#include "binary_search_tree.h"
+#endif
 
 // ####################### SYMTABLE #######################
 
@@ -107,7 +114,7 @@ bool symAddParamToFunc(SymFunctionPtr func, enum DATA_TYPES type, bool nullable)
  * @param nullable - if the return value can be null
  * @return true, if the name was successfully added, false otherwise
 */
-bool symEditFuncDef(SymFunctionPtr func, char *name, enum DATA_TYPES returnType, int nullable);
+bool symEditFuncDef(SymFunctionPtr func, char *name, enum DATA_TYPES returnType, bool nullable);
 
 typedef struct SymVariable {
     unsigned int id; // id of the variable (id is valid, inside of the scope)
@@ -116,6 +123,7 @@ typedef struct SymVariable {
     bool mutable; // if the variable is mutable (constants will have this false)
     int nullable; // Indicates if the variable can hold a null value -1 unknown, 0 not nullable, 1 nullable
     bool accesed; // if the variable was accessed
+    bool modified; // if the variable was modified
 } SymVariable;
 
 

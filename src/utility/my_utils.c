@@ -1,4 +1,18 @@
+/**
+ * @file my_utils.c
+ *
+ * @author Marek Sucharda xsucha18
+ */
+
+#include <stdlib.h>
+#include <string.h>
+#include <stdio.h>
+
+#ifdef USE_CUSTOM_STRUCTURE
 #include "utility/my_utils.h"
+#else
+#include "my_utils.h"
+#endif
 
 bool isDigit(char input)
 {
@@ -14,4 +28,15 @@ int hex_to_int(char hex)
 	if (hex >= 'a' && hex <= 'f')
 		return hex - 'a' + 10;
 	return -1;
+}
+
+
+char *copyString(char *string) {
+    char *newString = malloc(strlen(string) + 1);
+    if (!newString) {
+        return NULL;
+    }
+    strcpy(newString, string);
+
+    return newString;
 }

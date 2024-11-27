@@ -10,8 +10,14 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
+
+#ifdef USE_CUSTOM_STRUCTURE
 #include "utility/binary_search_tree.h"
 #include "utility/linked_list.h"
+#else
+#include "binary_search_tree.h"
+#include "linked_list.h"
+#endif
 
 void (*freeDataFunction)(void **);
 
@@ -364,7 +370,3 @@ LinkedList *bstGetNodes(BST *tree) {
 
     return list;
 }
-
-
-
-
