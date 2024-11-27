@@ -1,0 +1,45 @@
+Test vestavenych funkci:
+i2f(42) -> 42.0
+f2i(42.0) -> 42
+concat("Hello, ", "world!") -> Hello, world!
+length("Hello, world!") -> 13
+substring("Hello, world!", 7, 12) -> world
+strcmp("apple", "banana") -> -1
+ord("Z", 0) -> 90
+chr(65) -> A
+Vestavene funkce otestovany.
+
+Vypocet faktorialu pro cisla od 0 do 7:
+Faktorial 0: 1
+Faktorial 1: 1
+Faktorial 2: 2
+Faktorial 3: 6
+Faktorial 4: 24
+Faktorial 5: 120
+Faktorial 6: 720
+Faktorial 7: 5040
+
+Spoustim while cyklus s pocatecnim cislem 10:
+Hodnota a: 10
+Hodnota a: 9
+Hodnota a: 8
+Hodnota a: 7
+Hodnota a: 6
+Hodnota a: 5
+Hodnota a: 4
+Hodnota a: 3
+Hodnota a: 2
+Hodnota a: 1
+Hodnota a: 0
+While cyklus dokonceny.
+
+Spoustim while cyklus s vnorenymi if prikazy:
+Hodnota b je 8.
+Hodnota b je 7.
+Hodnota b je 6.
+Hodnota b je 5.
+Hodnota b je 4.
+Hodnota b je 3.
+Hodnota b je 2.
+Hodnota b je 1.
+Vnorene if prikazy ukonceny.

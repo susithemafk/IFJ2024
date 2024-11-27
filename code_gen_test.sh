@@ -31,7 +31,7 @@ BINARY_NAME=$1
 
 # Path to the input Zig file and the expected output file
 ZIG_FILE="./test_inputs/code_gen/code_gen.zig"
-EXPECTED_OUTPUT="./test_inputs/code_gen/expected_out.out"
+EXPECTED_OUTPUT="./test_inputs/code_gen/expected_out.txt"
 
 # Temporary files
 PROGRAM_CODE="program.code"
