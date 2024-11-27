@@ -61,8 +61,12 @@ prepare:
 	@chmod +x run_test.sh
 	@chmod +x code_gen_test.sh
 	@chmod +x integration_tests.sh
+	@chmod +x submit_make.sh
+	@chmod u+x is_it_ok.sh
 	@$(printCmd) "\033[1;36mPermisions granted\033[0m"
 	@$(printCmd) "\033[1;36m==================================\033[0m"
+
+.PHONY: test_code_gen test run valgrind clean zip submit help
 
 # test the code generation
 test_code_gen:
@@ -70,7 +74,7 @@ test_code_gen:
 	@$(printCmd) "Testing code generation ..."
 	@$(printCmd) "\033[1;36m==================================\033[0m"
 	@$(CC) $(CFLAGS) $(INCLUDES) $(SRC_FILES) $(SRC_DIR)/main.c -o main
-	./code_gen_test.sh main
+	@./code_gen_test.sh main 
 	@$(printCmd) "\033[1;36m==================================\033[0m"
 	@$(printCmd) "\033[1;32mCode generation tests done!   \033[0m"
 	@$(printCmd) "\033[1;36m==================================\033[0m"
@@ -109,6 +113,7 @@ clean:
 	@$(printCmd) "\033[1;36m==================================\033[0m"
 	@$(printCmd) "\033[1;33mCleaning build files...         \033[0m"
 	@rm -f main ifj_to_go.zip
+	@rm -f xsucha18.zip Makefile.tmp
 	@$(printCmd) "\033[1;32mAll build files cleaned\033[0m"
 	@$(printCmd) "\033[1;36m==================================\033[0m"
 
@@ -123,11 +128,19 @@ zip:
 submit:
 	@$(printCmd) "\033[1;36m==================================\033[0m"
 	@$(printCmd) "\033[1;33mPreparing submission zip...       \033[0m"
-	@zip -rq xsucha18.zip \
-		$(SRC_FILES) $(SRC_DIR)/main.c rozdeleni dokumentace.pdf \
-		-x "*.git/*" ".gitignore" || \
-		$(printCmd) "\033[1;31mZipping failed.\033[0m"
+	@./submit_make.sh
 	@$(printCmd) "\033[1;32mSubmission zip created: ./xsucha18.zip\033[0m"
+	@$(printCmd) "\033[1;36m==================================\033[0m"
+
+control_submit:
+	@$(printCmd) "\033[1;36m==================================\033[0m"
+	@$(printCmd) "\033[1;33mPreparing submission zip...       \033[0m"
+	@./submit_make.sh
+	@$(printCmd) "\033[1;32mSubmission zip created: ./xsucha18.zip\033[0m"
+	@rm -rf testdir
+	@mkdir testdir
+	./is_it_ok.sh ./xsucha18.zip testdir
+	@rm -rf testdir
 	@$(printCmd) "\033[1;36m==================================\033[0m"
 
 .PHONY: snake
