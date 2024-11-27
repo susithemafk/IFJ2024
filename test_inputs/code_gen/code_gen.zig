@@ -120,26 +120,26 @@ pub fn main() void {
     ifj.write("Spoustim while cyklus s vnorenymi if prikazy:\n");
     var b = 8; // Start from 8 and decrement
     while (b > 0) {
-        if (b > 4) {
-            if (b > 6) {
+        if (b >= 4) {
+            if (b >= 6) {
                 if (b == 7) {
                     ifj.write("Hodnota b je 7.\n");
                 } else {
-                    ifj.write("Hodnota b je 8.\n");
+                    ifj.write("Hodnota b je 6.\n");
                 }
             } else {
                 if (b == 5) {
                     ifj.write("Hodnota b je 5.\n");
                 } else {
-                    ifj.write("Hodnota b je 6.\n");
+                    ifj.write("Hodnota b je 4.\n");
                 }
             }
         } else {
-            if (b > 2) {
+            if (b >= 2) {
                 if (b == 3) {
                     ifj.write("Hodnota b je 3.\n");
                 } else {
-                    ifj.write("Hodnota b je 4.\n");
+                    ifj.write("Hodnota b je 2.\n");
                 }
             } else {
                 if (b == 1) {

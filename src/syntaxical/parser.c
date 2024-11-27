@@ -31,6 +31,8 @@ bool saveNewToken(struct TOKEN token, LinkedList *buffer) {
 
     newToken->type = token.type;    
     newToken->value = token.value;
+
+    DEBUG_PRINT("SAVING TOKEN: %s\n", newToken->value);
     
     // save the token to the buffer
     if (!insertNodeAtIndex(buffer, (void *)newToken, -1)) return false;

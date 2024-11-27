@@ -1,6 +1,5 @@
 const ifj = @import("ifj24.zig");
 
-<<<<<<< HEAD
 // Hlavni funkce
 pub fn main() void {
     // Testing built-in functions
@@ -172,11 +171,3 @@ pub fn factorial(n: i32) i32 {
     }
     return result;
 }
-=======
-pub fn main() void {
-    const str = \\text1
-    \\text2
-    ;
-    ifj.write(str);
-}
->>>>>>> cfad568a4b37da698f8dc2df16a37947f652be2d
