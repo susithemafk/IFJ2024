@@ -21,6 +21,37 @@ static struct TOKEN token;
 // udelat parser dle good_asts.c
 // todo return bez leve zavorky ve funkci
 
+TOKEN_PTR currentToken(void) {
+    return (TOKEN_PTR)getDataAtIndex(buffer, tokenIndex);
+}
+
+TOKEN_PTR getNextToken(void) {
+    tokenIndex++;
+    return (TOKEN_PTR)getDataAtIndex(buffer, tokenIndex);
+}
+
+bool match(enum TOKEN_TYPE tokenType) {
+    TOKEN_PTR token = currentToken();
+
+    if (!token || token->type != tokenType) {
+        DEBUG_PRINT("Expected token type: ");
+        printTokenType(tokenType);
+        DEBUG_PRINT(" but got: ");
+
+        if (token) {
+            printTokenType(currentToken()->type);
+        } else {
+            DEBUG_PRINT("No token");
+        }
+
+        return false;
+    }
+
+    DEBUG_PRINT("Matched token: \t%s\n", token->value);
+    getNextToken();
+    return true;
+}
+
 // Function to save a new token
 // Function to save a new token to the buffer
 bool saveNewToken(struct TOKEN token, LinkedList *buffer) {
@@ -51,15 +82,6 @@ void freeBuffer(LinkedList ** buffer) {
     }
 
     removeList(buffer);
-}
-
-TOKEN_PTR currentToken(void) {
-    return (TOKEN_PTR)getDataAtIndex(buffer, tokenIndex);
-}
-
-TOKEN_PTR getNextToken(void) {
-    tokenIndex++;
-    return (TOKEN_PTR)getDataAtIndex(buffer, tokenIndex);
 }
 
 enum ERR_CODES parser_init(SymTable *tbl, LinkedList *buf) {
@@ -126,27 +148,7 @@ enum ERR_CODES parser_parse(FILE *input, struct Program *program) {
     return SUCCESS;
 }
 
-bool match(enum TOKEN_TYPE tokenType) {
-    TOKEN_PTR token = currentToken();
 
-    if (!token || token->type != tokenType) {
-        DEBUG_PRINT("Expected token type: ");
-        printTokenType(tokenType);
-        DEBUG_PRINT(" but got: ");
-
-        if (token) {
-            printTokenType(currentToken()->type);
-        } else {
-            DEBUG_PRINT("No token");
-        }
-
-        return false;
-    }
-
-    DEBUG_PRINT("Matched token: \t%s\n", token->value);
-    getNextToken();
-    return true;
-}
 
 bool parse_program(struct Program *program) {
     DEBUG_PRINT("Parsing <program>\n");
@@ -745,6 +747,9 @@ bool parse_ret_value(ReturnStatement *return_statement) {
 
     // Check for empty return
     if (currentToken()->type == TOKEN_SEMICOLON) {
+        return_statement->value.expr_type = IdentifierExpressionType;
+        //return_statement->value.data_type.data_type = dTypeNone;
+        return_statement->value.data.literal.data_type.data_type = dTypeNone;
         DEBUG_PRINT("Empty return value\n");
         return true;
     }

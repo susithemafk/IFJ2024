@@ -259,9 +259,21 @@ enum ERR_CODES analyzeReturnStatement(ReturnStatement *return_statement, SymTabl
     enum DATA_TYPES returnType;
     bool nullable;
 
+    DEBUG_PRINT("adress of return statement: %p", return_statement->value);
+
+    if (
+        return_statement->value.expr_type == IdentifierExpressionType && 
+        return_statement->value.data.literal.data_type.data_type == dTypeNone
+    ) {
+        if (currentFunc->returnType != dTypeVoid) return E_SEMANTIC_BAD_FUNC_RETURN;
+        return SUCCESS; // empty return
+    }
+
     err = analyzeExpression(&return_statement->value, table, &returnType, &nullable);
     DEBUG_PRINT("Return type: %d\nNullable: %d\nError: %d\n", returnType, nullable, err);
     if (err != SUCCESS) return err;
+
+    if (returnType == dTypeVoid && nullable) return SUCCESS; // epmty return
 
     DEBUG_PRINT_IF(returnType == dTypeUndefined, "Return type is undefined");
     DEBUG_PRINT_IF(currentFunc->returnType == dTypeNone, "Function return type is undefined");
@@ -554,6 +566,7 @@ enum ERR_CODES analyzeExpression(Expression *expr, SymTable *table, enum DATA_TY
     SymVariable *var;
     SymFunctionPtr fncDef;
 
+    DEBUG_PRINT("Analyzing eppression of type: %d", expr->expr_type);
 
     switch (expr->expr_type) {
         // function call
@@ -569,6 +582,7 @@ enum ERR_CODES analyzeExpression(Expression *expr, SymTable *table, enum DATA_TY
 
         // literal
         case LiteralExpressionType:
+            DEBUG_PRINT("Analyzing literal");
             *returnType = expr->data.literal.data_type.data_type;
             *resultNullable = expr->data.literal.data_type.is_nullable; // since null literal is nullable i guess
             break;
