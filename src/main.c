@@ -7,10 +7,17 @@
  * @author <253171> Vanesa Zimmermannová
  */
 
+#ifdef USE_CUSTOM_STRUCTURE
 #include "code_generation/code_generator.h"
 #include "syntaxical/parser.h"
 #include "utility/enumerations.h"
 #include "semantical/sem_analyzer.h"
+#else 
+#include "code_generator.h"
+#include "parser.h"
+#include "enumerations.h"
+#include "sem_analyzer.h"
+#endif
 
 int main(void) {
     enum ERR_CODES status;

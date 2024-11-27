@@ -5,11 +5,16 @@
  * @date 20.10.2024
  * @brief Implementation of the code generator
  */
-
-#include "code_generation/code_generator.h"
-#include "code_generation/builtin_generator.h"
 #include <stdio.h>
 #include <stdlib.h>
+
+#ifdef USE_CUSTOM_STRUCTURE
+#include "code_generation/code_generator.h"
+#include "code_generation/builtin_generator.h"
+#else
+#include "code_generator.h"
+#include "builtin_generator.h"
+#endif
 
 #define PRINTLN(...)                                                                               \
     do {                                                                                           \

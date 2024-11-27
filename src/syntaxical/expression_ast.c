@@ -7,8 +7,12 @@
  * @brief Implementation of abstract syntax tree functions - resource releasing
  */
 
-#include "syntaxical/expression_ast.h"
 #include <stdlib.h>
+#ifdef USE_CUSTOM_STRUCTURE
+#include "syntaxical/expression_ast.h"
+#else
+#include "expression_ast.h"
+#endif
 
 void freeDataType(DataType *data_type) {
     DEBUG_PRINT("Freeing data type");

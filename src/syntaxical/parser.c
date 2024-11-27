@@ -8,9 +8,15 @@
  * @brief main src file for the precedent analysis
  */
 
+#ifdef USE_CUSTOM_STRUCTURE
 #include "syntaxical/parser.h"
 #include "syntaxical/precident.h"
 #include "utility/my_utils.h"
+#else
+#include "parser.h"
+#include "precident.h"
+#include "my_utils.h"
+#endif
 
 static unsigned int tokenIndex = 0;
 static LinkedList *buffer = NULL;

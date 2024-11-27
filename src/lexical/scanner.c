@@ -4,12 +4,19 @@
  * @author Marek Sucharda xsucha18
  */
 
+#include <ctype.h>
+#include <stdlib.h>
+#include <string.h>
+
+#ifdef USE_CUSTOM_STRUCTURE
 #include "lexical/scanner.h"
 #include "utility/enumerations.h"
 #include "utility/my_utils.h"
-#include <ctype.h>
-#include <stdlib.h> // cound use the <malloc.h> instead, however it is not recommended.
-#include <string.h>
+#else
+#include "scanner.h"
+#include "enumerations.h"
+#include "my_utils.h"
+#endif
 
 #define ALLOC_SIZE 64
 

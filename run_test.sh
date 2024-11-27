@@ -100,7 +100,7 @@ echo -e "${GREEN}Use Valgrind: $USE_VALGRIND${RESET}"
 
 # Compiler and flags
 CC="gcc"
-CFLAGS="-std=c99 -Wall -Wextra -pedantic -fcommon"
+CFLAGS="-std=c99 -Wall -Wextra -pedantic -fcommon -DUSE_CUSTOM_STRUCTURE"
 INCLUDES="-Iinclude"
 
 # Directories

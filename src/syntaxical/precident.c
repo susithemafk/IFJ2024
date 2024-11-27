@@ -8,12 +8,17 @@
  * @brief main src file for the precedent analysis
  */
 
-#include "syntaxical/precident.h"
-#include "utility/my_utils.h"
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#ifdef USE_CUSTOM_STRUCTURE
+#include "syntaxical/precident.h"
+#include "utility/my_utils.h"
+#else
+#include "precident.h"
+#include "my_utils.h"
+#endif
 
 // Precedent table
 const char precedentTable[7][8] = {"><<><>>", ">><><>>", "<<<=<< ", ">> > >>",

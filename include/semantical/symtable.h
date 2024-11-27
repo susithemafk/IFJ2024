@@ -10,9 +10,16 @@
 #define SYMTABLE_H
 
 #include <stdbool.h>
+
+#ifdef USE_CUSTOM_STRUCTURE
 #include "utility/linked_list.h"
 #include "utility/enumerations.h"
 #include "utility/binary_search_tree.h"
+#else
+#include "linked_list.h"
+#include "enumerations.h"
+#include "binary_search_tree.h"
+#endif
 
 // ####################### SYMTABLE #######################
 

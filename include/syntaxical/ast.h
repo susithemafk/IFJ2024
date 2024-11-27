@@ -9,10 +9,17 @@
 #ifndef AST_H
 #define AST_H
 
+#ifdef USE_CUSTOM_STRUCTURE
 #include "semantical/symtable.h"
 #include "syntaxical/expression_ast.h"
 #include "utility/enumerations.h"
 #include "utility/linked_list.h"
+#else
+#include "symtable.h"
+#include "expression_ast.h"
+#include "enumerations.h"
+#include "linked_list.h"
+#endif
 
 typedef struct Program {
     LinkedList *functions;

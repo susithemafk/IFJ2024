@@ -9,9 +9,15 @@
 #ifndef EXPRESSION_AST_H
 #define EXPRESSION_AST_H
 
+#ifdef USE_CUSTOM_STRUCTURE
 #include "utility/enumerations.h"
 #include "utility/linked_list.h"
 #include "semantical/symtable.h"
+#else
+#include "enumerations.h"
+#include "linked_list.h"
+#include "symtable.h"
+#endif
 
 typedef struct DataType {
     enum DATA_TYPES data_type;

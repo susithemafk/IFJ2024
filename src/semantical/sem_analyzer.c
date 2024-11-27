@@ -10,9 +10,15 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h> 
+#ifdef USE_CUSTOM_STRUCTURE
 #include "semantical/sem_analyzer.h"
 #include "syntaxical/ast.h"
 #include "utility/enumerations.h"
+#else
+#include "sem_analyzer.h"
+#include "ast.h"
+#include "enumerations.h"
+#endif
 
 // Function to analyze the whole program
 enum ERR_CODES analyzeProgram(Program *program, SymTable *table) {

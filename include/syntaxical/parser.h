@@ -1,13 +1,31 @@
-#include "lexical/scanner.h"
-#include "semantical/symtable.h"
-#include "utility/enumerations.h"
-#include "utility/linked_list.h"
+/** AUTHOR
+ *
+ * @author <xsucha18> Marek Sucharda 
+ * @author <253171> Vanesa Zimmermannová
+ * @author <247581> Martin Mendl   
+ * @file precident.c
+ * @date 17.11. 2024
+ * @brief main src file for the precedent analysis
+ */
+
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
+#ifdef USE_CUSTOM_STRUCTURE
+#include "lexical/scanner.h"
+#include "semantical/symtable.h"
+#include "utility/enumerations.h"
+#include "utility/linked_list.h"
 #include "syntaxical/ast.h"
+#else
+#include "scanner.h"
+#include "symtable.h"
+#include "enumerations.h"
+#include "linked_list.h"
+#include "ast.h"
+#endif
 
 /** 
  * Function to do the first pass over the program

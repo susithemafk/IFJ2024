@@ -9,7 +9,11 @@
 #ifndef CODE_GENERATOR_H
 #define CODE_GENERATOR_H
 
+#ifdef USE_CUSTOM_STRUCTURE
 #include "syntaxical/ast.h"
+#else
+#include "ast.h"
+#endif
 
 void generateCodeProgram(Program *program);
 void generateCodeFunction(Function *function);

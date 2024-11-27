@@ -10,7 +10,12 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
+
+#ifdef USE_CUSTOM_STRUCTURE
 #include "utility/linked_list.h"
+#else
+#include "linked_list.h"
+#endif
 
 // Function to check, if list is empty
 int emptyList(struct LinkedList *list) {

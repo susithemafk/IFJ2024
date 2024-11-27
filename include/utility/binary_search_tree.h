@@ -10,7 +10,12 @@
 #define BINARY_SEARCH_TREE_H
 
 #include <stdbool.h>
+
+#ifdef USE_CUSTOM_STRUCTURE
 #include "utility/linked_list.h"
+#else
+#include "linked_list.h"
+#endif
 
 /**
  * @brief Struct for the symbol table

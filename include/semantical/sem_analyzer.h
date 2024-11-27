@@ -11,8 +11,13 @@
 #ifndef SEM_ANALYZER_H
 #define SEM_ANALYZER_H
 
+#ifdef USE_CUSTOM_STRUCTURE
 #include "syntaxical/ast.h"
 #include "utility/enumerations.h"
+#else 
+#include "ast.h"
+#include "enumerations.h"
+#endif
 
 enum COVERSION_FLAGS {
     CONV_NONE ,

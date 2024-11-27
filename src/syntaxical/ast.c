@@ -7,8 +7,12 @@
  * @brief Implementation of abstract syntax tree functions - resource releasing
  */
 
-#include "syntaxical/ast.h"
 #include <stdio.h>
+#ifdef USE_CUSTOM_STRUCTURE
+#include "syntaxical/ast.h"
+#else 
+#include "ast.h"
+#endif
 
 void freeProgram(Program *program) {
     DEBUG_PRINT("Freeing program");

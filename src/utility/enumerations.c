@@ -7,11 +7,15 @@
  * @brief Test file for the linked list implementation
  */
 
-#include "utility/enumerations.h"
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
+#ifdef USE_CUSTOM_STRUCTURE
+#include "utility/enumerations.h"
+#else
+#include "enumerations.h"
+#endif
 
 // Function to negate a comparason operand
 enum TOKEN_TYPE negateOperand(enum TOKEN_TYPE operand) {

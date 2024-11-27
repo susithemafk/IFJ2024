@@ -11,10 +11,17 @@
 #ifndef PRECIDENT_H
 #define PRECIDENT_H
 
+#include <stdbool.h>
+
+#ifdef USE_CUSTOM_STRUCTURE
 #include "syntaxical/ast.h"
 #include "utility/enumerations.h"
 #include "utility/linked_list.h"
-#include <stdbool.h>
+#else 
+#include "ast.h"
+#include "enumerations.h"
+#include "linked_list.h"
+#endif
 
 #ifdef DEBUG
 #define DEBUG_TOKEN_RULE(stackItem, token, rule)                 \

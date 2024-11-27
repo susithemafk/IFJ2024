@@ -10,9 +10,16 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
+#ifdef USE_CUSTOM_STRUCTURE
 #include "semantical/inbuild_funcs.h"
 #include "utility/enumerations.h"
 #include "semantical/symtable.h"
+#else
+#include "inbuild_funcs.h"
+#include "enumerations.h"
+#include "symtable.h"
+#endif
+
 
 /*
 // Functions for reading values:

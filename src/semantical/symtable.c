@@ -6,13 +6,19 @@
  * @brief main scr file for the symtable
  */
 
-#include "semantical/symtable.h"
-#include "semantical/inbuild_funcs.h"
-#include "utility/binary_search_tree.h"
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#ifdef USE_CUSTOM_STRUCTURE
+#include "semantical/symtable.h"
+#include "semantical/inbuild_funcs.h"
+#include "utility/binary_search_tree.h"
+#else
+#include "symtable.h"
+#include "inbuild_funcs.h"
+#include "binary_search_tree.h"
+#endif
 
 // ####################### SYMTABLE #######################
 

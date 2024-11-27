@@ -5,9 +5,13 @@
  * @date 21.10.2024
  * @brief Implementation of the builtin functions generator
  */
-
-#include "code_generation/builtin_generator.h"
 #include <stdio.h>
+
+#ifdef USE_CUSTOM_STRUCTURE
+#include "code_generation/builtin_generator.h"
+#else
+#include "builtin_generator.h"
+#endif
 
 #define PRINTLN(...)                                                                               \
     do {                                                                                           \

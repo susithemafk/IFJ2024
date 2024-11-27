@@ -11,8 +11,14 @@
 
 #include <stdbool.h>
 #include <stdlib.h>
+
+#ifdef USE_CUSTOM_STRUCTURE
 #include "semantical/symtable.h"
 #include "utility/enumerations.h"
+#else
+#include "symtable.h"
+#include "enumerations.h"
+#endif
 
 /*
 // Functions for reading values:

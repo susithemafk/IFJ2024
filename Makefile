@@ -8,8 +8,7 @@
 
 # Compiler settings
 CC = gcc
-CFLAGS = -std=c99 -Wall -Wextra -pedantic -fcommon
-DBFLAGS = $(CFLAGS) -g -fsanitize=address
+CFLAGS = -std=c99 -Wall -Wextra -pedantic -fcommon -DUSE_CUSTOM_STRUCTURE
 INCLUDES = -Iinclude
 
 # Directories
@@ -26,9 +25,6 @@ TEST_FILES = $(wildcard $(TEST_DIR)/*.c)
 
 # Allow file argument for make command
 file ?= $(word 1, $(TEST_FILES))
-
-# Debug flag
-DEBUG_FLAG = -DDEBUG
 
 # main src files without the main.c
 SRC_FILES = $(filter-out $(SRC_DIR)/main.c, \
@@ -127,7 +123,9 @@ zip:
 submit:
 	@$(printCmd) "\033[1;36m==================================\033[0m"
 	@$(printCmd) "\033[1;33mPreparing submission zip...       \033[0m"
-	@zip -rq xsucha18.zip . -x "*.git/*" ".gitignore" || \
+	@zip -rq xsucha18.zip \
+		$(SRC_FILES) $(SRC_DIR)/main.c rozdeleni dokumentace.pdf \
+		-x "*.git/*" ".gitignore" || \
 		$(printCmd) "\033[1;31mZipping failed.\033[0m"
 	@$(printCmd) "\033[1;32mSubmission zip created: ./xsucha18.zip\033[0m"
 	@$(printCmd) "\033[1;36m==================================\033[0m"

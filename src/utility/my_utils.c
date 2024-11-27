@@ -1,7 +1,18 @@
-#include "utility/my_utils.h"
+/**
+ * @file my_utils.c
+ *
+ * @author Marek Sucharda xsucha18
+ */
+
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+
+#ifdef USE_CUSTOM_STRUCTURE
+#include "utility/my_utils.h"
+#else
+#include "my_utils.h"
+#endif
 
 bool isDigit(char input)
 {

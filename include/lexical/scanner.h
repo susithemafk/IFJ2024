@@ -17,7 +17,11 @@
 
 #include <stdio.h>
 #include <stdbool.h>
+#ifdef USE_CUSTOM_STRUCTURE
 #include "utility/enumerations.h"
+#else
+#include "enumerations.h"
+#endif
 
 typedef enum
 {
