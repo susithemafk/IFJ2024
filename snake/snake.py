@@ -286,5 +286,5 @@ if __name__ == "__main__":
         if e.code == 2:
             # Trigger action for exit code 2
             print("Opening a video because exit code was 2.")
-            webbrowser.open("https://www.youtube.com/watch?v=UR7tujNjfo4")
-        raise  # Re-raise the exit for other handlers or parent processes
+            webbrowser.open("https://youtu.be/yr_Rpk9HR1g?si=XyQmiYwLWG5BurRO")
+        exit(0)

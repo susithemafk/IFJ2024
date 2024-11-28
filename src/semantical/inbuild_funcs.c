@@ -10,6 +10,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
+
 #ifdef USE_CUSTOM_STRUCTURE
 #include "semantical/inbuild_funcs.h"
 #include "utility/enumerations.h"

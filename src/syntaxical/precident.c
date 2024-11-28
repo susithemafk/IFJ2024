@@ -12,6 +12,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
 #ifdef USE_CUSTOM_STRUCTURE
 #include "syntaxical/precident.h"
 #include "utility/my_utils.h"
@@ -21,9 +22,17 @@
 #endif
 
 // Precedent table
-const char precedentTable[7][8] = {"><<><>>", ">><><>>", "<<<=<< ", ">> > >>",
-                                   ">> > >>", "<<<><>>", "<<< <<$"};
+const char precedentTable[7][7] = {
+    "><<><>>", 
+    ">><><>>", 
+    "<<<=<< ", 
+    ">> > >>",
+    ">> > >>", 
+    "<<<><>>", 
+    "<<< <<$"
+};
 
+// function to remove stack
 void removeStack(LinkedList **stack) {
     int size = getSize(*stack);
 
@@ -31,7 +40,6 @@ void removeStack(LinkedList **stack) {
         StackItemPtr item = (StackItemPtr)getDataAtIndex(*stack, i);
         freeExpression(&item->ast_node);
     }
-
     removeList(stack);
 }
 

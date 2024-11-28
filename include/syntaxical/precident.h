@@ -49,7 +49,7 @@
 
 // ####################### PRECIDENT #######################
 
-extern const char precedentTable[7][8];
+extern const char precedentTable[7][7];
 
 // rules like < > = " "
 enum PRECEDENT_RULE {

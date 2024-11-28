@@ -10,6 +10,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
 #ifdef USE_CUSTOM_STRUCTURE
 #include "semantical/symtable.h"
 #include "semantical/inbuild_funcs.h"

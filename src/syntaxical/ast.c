@@ -8,6 +8,7 @@
  */
 
 #include <stdio.h>
+
 #ifdef USE_CUSTOM_STRUCTURE
 #include "syntaxical/ast.h"
 #else 
