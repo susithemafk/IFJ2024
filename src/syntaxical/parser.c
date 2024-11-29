@@ -147,22 +147,22 @@ bool parse_prolog(void) {
 
     if (!match(TOKEN_CONST))
         return false; // const
-    if (!match(TOKEN_IDENTIFIER))
-        return false; // const identifier
+    if (!match(TOKEN_IFJ))
+        return false; // const ifj
     if (!match(TOKEN_ASSIGN))
-        return false; // const identifier =
+        return false; // const ifj =
     if (!match(TOKEN_AT))
-        return false; // const identifier = @
-    if (!match(TOKEN_IDENTIFIER))
-        return false; // const identifier = @identifier
+        return false; // const ifj = @
+    if (!match(TOKEN_IMPORT))
+        return false; // const ifj = @import
     if (!match(TOKEN_LPAR))
-        return false; // const identifier = @identifier(
+        return false; // const ifj = @import(
     if (!match(TOKEN_STRING_LITERAL))
-        return false; // const identifier = @identifier("string")
+        return false; // const ifj = @import("string")
     if (!match(TOKEN_RPAR))
-        return false; // const identifier = @identifier("string")
+        return false; // const ifj = @import("string")
     if (!match(TOKEN_SEMICOLON))
-        return false; // const identifier = @identifier("string");
+        return false; // const ifj = @import("string");
 
     DEBUG_PRINT("Successfully parsed <prolog>\n");
 
@@ -478,6 +478,7 @@ bool parse_body_content(struct Statement *statement) {
     case TOKEN_VAR:
         statement->type = VariableDefinitionStatementType;
         return parse_var_def(&statement->data.variable_definition_statement);
+		
     case TOKEN_IF:
         statement->type = IfStatementType;
         return parse_if(&statement->data.if_statement);
@@ -500,6 +501,13 @@ bool parse_body_content(struct Statement *statement) {
 
         statement->type = FunctionCallStatementType;
         return parse_func_call_statement(&statement->data.function_call_statement);
+	case TOKEN_IFJ: 
+        statement->type = FunctionCallStatementType;
+        if (!parse_native_func_call(&statement->data.function_call_statement))
+			return false;
+		if (!match(TOKEN_SEMICOLON))
+			return false;
+		return true; 
 
     case TOKEN_DELETE_VALUE:
         statement->type = AssigmentStatementType;
@@ -522,6 +530,7 @@ bool parse_body_content_next(void) {
     case TOKEN_IF:
     case TOKEN_RETURN:
     case TOKEN_VAR:
+	case TOKEN_IFJ:
     case TOKEN_WHILE:
     case TOKEN_DELETE_VALUE:
         return true;
@@ -736,17 +745,16 @@ bool parse_ret_value(ReturnStatement *return_statement) {
 bool parse_native_func_call(FunctionCall *function_call) {
     DEBUG_PRINT("Parsing <native_func_call>\n");
 
-    if (currentToken()->type != TOKEN_IDENTIFIER)
-        return false;
-    if (strcmp(currentToken()->value, "ifj"))
-        return false;
+	if (currentToken()->type != TOKEN_IFJ)
+		return false;
 
     getNextToken();
 
     if (!match(TOKEN_CONCATENATE))
         return false;
-    if (currentToken()->type != TOKEN_IDENTIFIER)
+    if (!match(TOKEN_IDENTIFIER))
         return false;
+	tokenIndex--; 
 
     char *func_name = malloc(strlen(currentToken()->value) + 5);
     if (!func_name)
@@ -757,8 +765,7 @@ bool parse_native_func_call(FunctionCall *function_call) {
 
     free(currentToken()->value);
     currentToken()->value = func_name;
-
-    getNextToken();
+	tokenIndex++; 
 
     function_call->func_id.name = func_name;
     function_call->arguments = initLinkedList(true);
@@ -771,6 +778,8 @@ bool parse_native_func_call(FunctionCall *function_call) {
         return false;
     if (!match(TOKEN_RPAR))
         return false;
+	// if (!match(TOKEN_SEMICOLON))
+	// 	return false;
 
     DEBUG_PRINT("Successfully parsed <native_func_call>\n");
 
@@ -811,16 +820,6 @@ bool parse_func_call_statement(FunctionCall *function_call) {
         return false;
 
     TOKEN_PTR nextToken = getDataAtIndex(buffer, tokenIndex + 1);
-
-    if (!strcmp(currentToken()->value, "ifj") && nextToken &&
-        nextToken->type == TOKEN_CONCATENATE) {
-        if (!parse_native_func_call(function_call))
-            return false;
-        if (!match(TOKEN_SEMICOLON))
-            return false;
-
-        return true;
-    }
 
     if (!parse_user_func_call(function_call))
         return false;
@@ -868,13 +867,12 @@ bool parse_no_truth_expr(Expression *expr) {
             expr->expr_type = FunctionCallExpressionType;
             return parse_user_func_call(&expr->data.function_call);
         }
+    } 
 
-        if (!strcmp(currentToken()->value, "ifj") && nextToken &&
-            nextToken->type == TOKEN_CONCATENATE) {
-            expr->expr_type = FunctionCallExpressionType;
-            return parse_native_func_call(&expr->data.function_call);
-        }
-    }
+	if (currentToken()->type == TOKEN_IFJ) {
+		expr->expr_type = FunctionCallExpressionType;
+		return parse_native_func_call(&expr->data.function_call);
+	}
 
     enum ERR_CODES err = startPrecedentAnalysis(buffer, &tokenIndex, true, expr);
     if (err != SUCCESS)

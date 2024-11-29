@@ -142,10 +142,12 @@ enum TOKEN_TYPE {
     TOKEN_NULL,   // 36. null
     TOKEN_PUB,    // 37. pub
 
-    TOKEN_VOID, // 38. void
-    TOKEN_I32,  // 39. i32
-    TOKEN_F64,  // 40. f64
-    TOKEN_U8,   // 41. []u8
+    TOKEN_VOID,     // 38. void
+    TOKEN_I32,      // 39. i32
+    TOKEN_F64,      // 40. f64
+    TOKEN_U8,       // 41. []u8 
+    TOKEN_IFJ,      // 42. ifj
+    TOKEN_IMPORT,   // 43. import
 };
 
 typedef struct TOKEN {

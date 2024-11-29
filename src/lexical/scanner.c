@@ -487,7 +487,11 @@ enum ERR_CODES scanner_get_token(struct TOKEN *tokenPointer) {
                     tokenPointer->type = TOKEN_VOID;
                 } else if (!strcmp(tokenPointer->value, "while")) {
                     tokenPointer->type = TOKEN_WHILE;
-                } else if (!strcmp(tokenPointer->value, "_")) {
+                } else if (!strcmp(tokenPointer->value, "ifj")) {
+					tokenPointer->type = TOKEN_IFJ; 
+				} else if (!strcmp(tokenPointer->value, "import")) {
+					tokenPointer->type = TOKEN_IMPORT;  
+				} else if (!strcmp(tokenPointer->value, "_")) {
                     tokenPointer->type = TOKEN_DELETE_VALUE;
 
                     // Identifikátor je poslední, jelikož se nejedná o rezervované slovo
