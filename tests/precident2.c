@@ -14,7 +14,6 @@
 #include "utility/linked_list.h"
 #include "utility/enumerations.h"
 #include "syntaxical/precident.h"
-#include "syntaxical/parser_pass1.h"
 #include "semantical/symtable.h"
 
 // ####################### TEST CASES #######################

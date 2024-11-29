@@ -719,12 +719,12 @@ bool parse_ret_value(ReturnStatement *return_statement) {
 
     // Check for empty return
     if (currentToken()->type == TOKEN_SEMICOLON) {
-        return_statement->value.expr_type = IdentifierExpressionType;
-        //return_statement->value.data_type.data_type = dTypeNone;
-        return_statement->value.data.literal.data_type.data_type = dTypeNone;
+        return_statement->empty = true;
         DEBUG_PRINT("Empty return value\n");
         return true;
     }
+
+    return_statement->empty = false;
 
     if (!parse_no_truth_expr(&return_statement->value))
         return false;
@@ -860,9 +860,41 @@ bool parse_var_assign(AssigmentStatement *assign_statement) {
 
 bool parse_no_truth_expr(Expression *expr) {
     DEBUG_PRINT("Parsing <no_truth_expr>\n");
+    DEBUG_PRINT("Current token: %s\n", currentToken()->value);
 
-    if (currentToken()->type == TOKEN_IDENTIFIER) {
+    if (currentToken()->type == TOKEN_IDENTIFIER || isLiteral(currentToken()->type)) {
         TOKEN_PTR nextToken = getDataAtIndex(buffer, tokenIndex + 1);
+
+        // = <identifier>; or = <literal>;
+        if (nextToken && nextToken->type == TOKEN_SEMICOLON) {
+            // = <identifier>;
+            if (currentToken()->type == TOKEN_IDENTIFIER) {
+                DEBUG_PRINT("Identifier ending with ;");
+                expr->expr_type = IdentifierExpressionType;
+                expr->data.identifier.name = currentToken()->value;
+                getNextToken(); // move to semicolon
+                return true;
+            }
+
+            // = <literal>;
+            if (isLiteral(currentToken()->type)) {
+                DEBUG_PRINT("Literar ending with ;");
+                expr->expr_type = LiteralExpressionType;
+                expr->data.literal.value = currentToken()->value;
+                if (currentToken()->type == TOKEN_NULL) { // handeling of null;
+                    expr->data_type.is_nullable = true;
+                    expr->data_type.data_type = dTypeNone;
+                    expr->data.literal.value = NULL;
+                } else {
+                    expr->data_type.is_nullable = false;
+                    expr->data_type.data_type = covertTokneDataType(currentToken()->type);
+                    expr->data.literal.data_type = expr->data_type;
+                }
+
+                getNextToken(); // move to semicolon
+                return true;
+            }
+        }
 
         if (nextToken && nextToken->type == TOKEN_LPAR) {
             expr->expr_type = FunctionCallExpressionType;

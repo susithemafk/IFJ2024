@@ -444,7 +444,7 @@ enum ERR_CODES symTableExitScope(SymTable *table) {
 }
 
 // Function to insert a new
-SymVariable *symTableDeclareVariable(SymTable *table, char *name, enum DATA_TYPES type, bool mutable, bool nullable, char *value) {
+SymVariable *symTableDeclareVariable(SymTable *table, char *name, enum DATA_TYPES type, bool mutable, bool nullable, bool canBeConvertedToI32) {
     // Check if the table or current scope is invalid (if global scope declaration is disallowed)
     if (table == NULL || table->currentScope->type == SYM_GLOBAL) {
         return NULL;
@@ -473,7 +473,7 @@ SymVariable *symTableDeclareVariable(SymTable *table, char *name, enum DATA_TYPE
     newVariable->accesed = false;
     newVariable->id = table->varCount;
     newVariable->modified = (mutable) ? false : true; // if the var is constant, we dont need to acces it
-    newVariable->value = value;
+    newVariable->valueKnonwAtCompileTime = (!mutable) ? canBeConvertedToI32 : false;
 
     // Get the hash of the variable's name
     unsigned int hash = hashString(name);
