@@ -645,7 +645,7 @@ bool parse_else(IfStatement *if_statement) {
 
     if (currentToken()->type != TOKEN_ELSE) { // else
         DEBUG_PRINT("No else clause found\n");
-        return true;
+        return false;
     }
 
     getNextToken();
