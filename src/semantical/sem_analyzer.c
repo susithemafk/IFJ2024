@@ -779,7 +779,7 @@ enum ERR_CODES analyzeBinaryExpression(BinaryExpression *binary_expr, SymTable *
 
     DEBUG_PRINT("types are i32 or f64");
 
-     // if both types are the same, we dont have a problem
+    // if both types are the same, we dont have a problem
     if (leftType == rightType) {
         switch(binary_expr->operation) {
             case TOKEN_PLUS:
@@ -823,31 +823,25 @@ enum ERR_CODES analyzeBinaryExpression(BinaryExpression *binary_expr, SymTable *
         case TOKEN_EQUALS:
         case TOKEN_NOTEQUAL:
             //A is i32 ligeral && B is f64 literal
-            //    -> (if deciaml place of A is 0s, convert A i32 -> SUCCESS, else ERROR)
+            //    -> convert A to f64
             if (leftType == dTypeI32 && left->expr_type == LiteralExpressionType && rightType == dTypeF64 && right->expr_type == LiteralExpressionType) {
                 DEBUG_PRINT("A is i32 ligeral && B is f64 literal");
-                if (f64valueCanBeCovertedToi32(right->data.literal.value)) {
-                    right->conversion = IntToFloat;
-                    left->conversion = NoConversion;
-                    convPossible = true;
-                    operationRetType = dTypeF64;
-                    break;
-                }
-                return E_SEMANTIC_INCOMPATABLE_TYPES;
+                left->conversion = IntToFloat;
+                right->conversion = NoConversion;
+                convPossible = true;
+                operationRetType = dTypeF64;
+                break;
             }
 
             //A is f64 literal && B is i32 literal
-            //    -> (if decimal place of A is 0s, convert A f64 -> SUCCESS, else ERROR)
+            //    -> convert B to f64
             if (leftType == dTypeF64 && left->expr_type == LiteralExpressionType && rightType == dTypeI32 && right->expr_type == LiteralExpressionType) {
                 DEBUG_PRINT("A is f64 literal && B is i32 literal");
-                if (f64valueCanBeCovertedToi32(left->data.literal.value)) {
-                    left->conversion = IntToFloat;
-                    right->conversion = NoConversion;
-                    convPossible = true;
-                    operationRetType = dTypeF64;
-                    break;
-                }
-                return E_SEMANTIC_INCOMPATABLE_TYPES;
+                left->conversion = NoConversion;
+                right->conversion = IntToFloat;
+                convPossible = true;
+                operationRetType = dTypeF64;
+                break;
             }
 
             //A is variable i32 && B is f64 literal
