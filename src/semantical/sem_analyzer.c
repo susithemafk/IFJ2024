@@ -259,14 +259,27 @@ enum ERR_CODES analyzeReturnStatement(ReturnStatement *return_statement, SymTabl
 
     DEBUG_PRINT("adress of return statement: %p", return_statement->value);
 
-    if (
-        return_statement->value.expr_type == IdentifierExpressionType && 
-        return_statement->value.data.literal.data_type.data_type == dTypeNone
-    ) {
+    // empty return
+    if (return_statement->empty) {
         if (currentFunc->returnType != dTypeVoid) return E_SEMANTIC_BAD_FUNC_RETURN;
-        return SUCCESS; // empty return
+        (*retCount)++;
+        return SUCCESS;
     }
 
+    // return null;
+    if (
+        return_statement->value.expr_type == LiteralExpressionType && 
+        !return_statement->value.data.literal.value && 
+        return_statement->value.data.literal.data_type.data_type == dTypeNone &&
+        return_statement->value.data.literal.data_type.is_nullable
+    ) {
+        if (!currentFunc->nullableReturn) return E_SEMANTIC_INCOMPATABLE_TYPES;
+        (*retCount)++;
+        return_statement->value.conversion = NoConversion;
+        return SUCCESS;
+    }
+
+    // return <exp>;
     err = analyzeExpression(&return_statement->value, table, &returnType, &nullable);
     DEBUG_PRINT("Return type: %d\nNullable: %d\nError: %d\n", returnType, nullable, err);
     if (err != SUCCESS) return err;
@@ -334,6 +347,7 @@ enum ERR_CODES analyzeWhileStatement(WhileStatement *while_statement, SymTable *
         while_statement->non_nullable.var = nonNullVar;
 
     } else {
+        // we should have this type if whiele -> while (exp) { body }
         DEBUG_PRINT("Analyzing while (truthExp) {...}");
         DEBUG_PRINT_IF(type != dTypeBool, "While type is not bool");
         DEBUG_PRINT("While type valid");
@@ -371,6 +385,7 @@ enum ERR_CODES analyzeIfStatement(IfStatement *if_statement, SymTable *table, Sy
     // move to if scope
     if (!symTableMoveScopeDown(table, SYM_IF)) return E_INTERNAL;
 
+    // we should have this type if if -> if (exp) |a| { body }
     if (if_statement->non_nullable.name) {
         DEBUG_PRINT("Analyzing if (a) |na| {...}");
         // need to somehow find the variable in the while scope?
@@ -403,7 +418,7 @@ enum ERR_CODES analyzeIfStatement(IfStatement *if_statement, SymTable *table, Sy
         if_statement->non_nullable.var = nonNullVar;
 
     } else {
-
+        // we should have this type if if -> if (exp) { body }
         DEBUG_PRINT("Analyzing if (truthExp) {...}");
         DEBUG_PRINT_IF(type != dTypeBool, "If type is not bool");
         DEBUG_PRINT("If type valid\n");
@@ -545,7 +560,6 @@ enum ERR_CODES analyzeVariableDefinitionStatement(VariableDefinitionStatement *s
     DEBUG_PRINT("Var declare valid");
 
     if (!var) return E_SEMANTIC_REDIFINITION;
-
     statement->id.var = var;
 
     // if the type is defined, and they dont match, error out
