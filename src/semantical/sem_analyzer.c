@@ -108,7 +108,8 @@ enum ERR_CODES analyzeParam(Param *param, SymTable *table) {
         param->id.name, 
         param->type.data_type,
         false, 
-        param->type.is_nullable
+        param->type.is_nullable,
+        NULL // TODO
     );
     if (!var) return E_SEMANTIC_REDIFINITION;
     param->id.var = var;
@@ -331,7 +332,8 @@ enum ERR_CODES analyzeWhileStatement(WhileStatement *while_statement, SymTable *
             while_statement->non_nullable.name,
             var->type,
             false, // this war will not exist after the while loop, so it should be const
-            false
+            false,
+            NULL // TODO
         );
      
         DEBUG_PRINT_IF(!nonNullVar, "Variable %s redifined", while_statement->non_nullable.name);
@@ -399,7 +401,8 @@ enum ERR_CODES analyzeIfStatement(IfStatement *if_statement, SymTable *table, Sy
             if_statement->non_nullable.name,
             var->type,
             false, // this war will not exist after the while loop, so it should be const
-            false
+            false,
+            NULL // TODO
         );
 
         DEBUG_PRINT_IF(!nonNullVar, "Variable %s redifined", if_statement->non_nullable.name);
@@ -518,7 +521,8 @@ enum ERR_CODES analyzeVariableDefinitionStatement(VariableDefinitionStatement *s
         statement->id.name, 
         statement->type.data_type,
         !statement->isConst,
-        statement->type.is_nullable
+        statement->type.is_nullable, 
+        NULL // TODO
     );
 
     DEBUG_PRINT_IF(!var, "Variable %s redifined", statement->id.name);
@@ -756,7 +760,9 @@ enum ERR_CODES analyzeBinaryExpression(BinaryExpression *binary_expr, SymTable *
     // we can compare:
 
     // two variables, not the same type
-    if (leftType != rightType && binary_expr->left->expr_type == IdentifierExpressionType && binary_expr->right->expr_type == IdentifierExpressionType) {
+    if (
+        leftType != rightType && 
+        binary_expr->left->expr_type == IdentifierExpressionType && binary_expr->right->expr_type == IdentifierExpressionType) {
         return E_SEMANTIC_INCOMPATABLE_TYPES;
     }
 

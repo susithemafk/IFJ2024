@@ -120,7 +120,7 @@ clean:
 zip:
 	@$(printCmd) "\033[1;36m==================================\033[0m"
 	@$(printCmd) "\033[1;33mZipping project...              \033[0m"
-	@cd ../ && zip -rq ./IFJ2024/ifj_to_go.zip ./IFJ2024 -x "*/.git/*" "*/.gitignore" || \
+	@cd ../ && zip -rq ./IFJ2024/ifj_to_go.zip ./IFJ2024 -x "*/.git/*" "*/.gitignore" "*/snake/.env/*" || \
 		$(printCmd) "\033[1;31mZipping failed.\033[0m"
 	@$(printCmd) "\033[1;32mProject zipped successfully: ../IFJ2024/ifj_to_go.zip\033[0m"
 	@$(printCmd) "\033[1;36m==================================\033[0m"

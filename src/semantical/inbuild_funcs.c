@@ -47,15 +47,15 @@ SymVariable write_var = {4, "write", DATA_TYPE_VOID, false, true, false};
 
 */
 
-SymVariable write_var = {4, "write", dTypeNone, false, false, true, true};
-SymVariable term1 = {1, "term", dTypeI32, false, false, true, true};
-SymVariable term2 = {2, "term", dTypeF64, false, false, true, true};
-SymVariable term3 = {3, "term", dTypeU8, false, false, true, true};
-SymVariable s = {4, "s", dTypeU8, false, false, true, true};
-SymVariable s1 = {5, "s1", dTypeU8, false, false, true, true};
-SymVariable s2 = {6, "s2", dTypeU8, false, false, true, true};
-SymVariable i = {7, "i", dTypeI32, false, false, true, true};
-SymVariable j = {8, "j", dTypeI32, false, false, true, true};
+SymVariable write_var = {4, "write", dTypeNone, false, false, true, true, NULL};
+SymVariable term1 = {1, "term", dTypeI32, false, false, true, true, NULL};
+SymVariable term2 = {2, "term", dTypeF64, false, false, true, true, NULL};
+SymVariable term3 = {3, "term", dTypeU8, false, false, true, true, NULL};
+SymVariable s = {4, "s", dTypeU8, false, false, true, true, NULL};
+SymVariable s1 = {5, "s1", dTypeU8, false, false, true, true, NULL};
+SymVariable s2 = {6, "s2", dTypeU8, false, false, true, true, NULL};
+SymVariable i = {7, "i", dTypeI32, false, false, true, true, NULL};
+SymVariable j = {8, "j", dTypeI32, false, false, true, true, NULL};
 char *readstr_name = "ifj_readstr";
 char *readi32_name = "ifj_readi32";
 char *readf64_name = "ifj_readf64";

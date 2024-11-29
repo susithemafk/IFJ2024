@@ -76,38 +76,9 @@ bool saveNewToken(struct TOKEN token, LinkedList *buffer) {
     return true;
 }
 
-// Function to free the buffer
-void freeBuffer(LinkedList ** buffer) {
-
-    unsigned int size = getSize(*buffer);
-    for (unsigned int i = 0; i < size; i++) {
-        TOKEN_PTR oneToken = (TOKEN_PTR)getDataAtIndex(*buffer, i);
-
-        free(oneToken->value);
-        free(oneToken);
-    }
-
-    removeList(buffer);
-}
-
-enum ERR_CODES parser_init(SymTable *tbl, LinkedList *buf) {
-    buffer = buf;
+void parser_init(SymTable *tbl) {
+    buffer = tbl->tokenBuffer;
     table = tbl;
-
-    if (!buffer) {
-        freeBuffer(&buffer);
-        DEBUG_PRINT("Error in parser init");
-        return E_INTERNAL;
-    }
-
-    return SUCCESS;
-}
-
-void parser_cleanup(void) {
-    if (buffer)
-        freeBuffer(&buffer);
-    if (table)
-        symTableFree(&table);
 }
 
 // Functio to do the first pass over the program
@@ -118,14 +89,10 @@ enum ERR_CODES firstPass(FILE *input, LinkedList *buffer) {
     while (status == SUCCESS) {
         // get the token
         status = scanner_get_token(&token);
-        if (status != SUCCESS) return status;
-        if (status != SUCCESS) return E_INTERNAL;
-        if (token.type == TOKEN_EOF) {
-            if (!saveNewToken(token, buffer)) return E_INTERNAL;
-            break;
-        }
-        // save the token
         if (!saveNewToken(token, buffer)) return E_INTERNAL;
+        if (status != SUCCESS) return status;
+        // save the token
+        if (token.type == TOKEN_EOF) break;
     }
 
     // check, if we have the main function
@@ -153,7 +120,6 @@ enum ERR_CODES parser_parse(FILE *input, struct Program *program) {
 
     return SUCCESS;
 }
-
 
 
 bool parse_program(struct Program *program) {

@@ -291,29 +291,30 @@ SymTable *symTableInit(void) {
         return NULL;
     }
 
-    // alocate the data thing
-    LinkedList *data = initLinkedList(false);
-    if (data == NULL) {
-        free(globalScope);
-        free(table);
-        return NULL;
-    }
-
-    // save the constant to the data
-    if (!insertNodeAtIndex(data, (void *)thorwAway, -1)) {
-        free(thorwAway);
-        free(globalScope);
-        free(table);
-        return NULL;
-    }
+  
 
     // fill the table
     table->root = globalScope;
     table->currentScope = globalScope;
     table->varCount = 1;
     table->scopeCount = 1;
-    table->data = data;
+    table->data = initLinkedList(false);
     table->functionDefinitions = bstInit(freeFuncDefsWrapper);
+    table->tokenBuffer = initLinkedList(false);
+    if (
+        table->functionDefinitions == NULL || 
+        table->tokenBuffer == NULL ||
+        table->data == NULL
+    ) symTableFree(&table);
+
+    // save the constant to the data
+    if (!insertNodeAtIndex(table->data, (void *)thorwAway, -1)) {
+        free(thorwAway);
+        free(globalScope);
+        free(table);
+        return NULL;
+    }
+
     // need to also add all the function definitions that are build in
     fillInBuildInFuncions(table);
 
@@ -443,7 +444,7 @@ enum ERR_CODES symTableExitScope(SymTable *table) {
 }
 
 // Function to insert a new
-SymVariable *symTableDeclareVariable(SymTable *table, char *name, enum DATA_TYPES type, bool mutable, bool nullable) {
+SymVariable *symTableDeclareVariable(SymTable *table, char *name, enum DATA_TYPES type, bool mutable, bool nullable, TOKEN_PTR value) {
     // Check if the table or current scope is invalid (if global scope declaration is disallowed)
     if (table == NULL || table->currentScope->type == SYM_GLOBAL) {
         return NULL;
@@ -472,6 +473,7 @@ SymVariable *symTableDeclareVariable(SymTable *table, char *name, enum DATA_TYPE
     newVariable->accesed = false;
     newVariable->id = table->varCount;
     newVariable->modified = (mutable) ? false : true; // if the var is constant, we dont need to acces it
+    newVariable->value = value;
 
     // Get the hash of the variable's name
     unsigned int hash = hashString(name);
@@ -600,7 +602,19 @@ bool symTableFree(SymTable **table) {
         free(variable);
     }
 
+    // free the token buffer:
+    unsigned int size = getSize((*table)->tokenBuffer);
+    for (unsigned int i = 0; i < size; i++) {
+        TOKEN_PTR oneToken = (TOKEN_PTR)getDataAtIndex((*table)->tokenBuffer, i);
+
+        free(oneToken->value);
+        free(oneToken);
+    }
+
+    removeList(&(*table)->tokenBuffer);
+    // free the variables
     removeList(&tTable->data);
+    // free function definitions
     bstFree(&(*table)->functionDefinitions);
 
     // free the table

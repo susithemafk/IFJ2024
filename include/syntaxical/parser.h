@@ -35,15 +35,6 @@
 enum ERR_CODES firstPass(FILE *input, LinkedList *buffer);
 
 /**
- * Function to parse a function call
- * 
- * @param buffer - the buffer of tokens
- * @param table - the symbol table
- * @return enum ERR_CODES
-*/
-void freeBuffer(LinkedList **buffer);
-
-/**
  * Function to save a new token to the buffer
  * 
  * @param token - the token to save
@@ -53,7 +44,7 @@ void freeBuffer(LinkedList **buffer);
 bool saveNewToken(struct TOKEN token, LinkedList *buffer);
 
 
-enum ERR_CODES parser_init(SymTable *tbl, LinkedList *buf);
+void parser_init(SymTable *tbl);
 enum ERR_CODES parser_parse(FILE *input, Program *program);
 
 bool match(enum TOKEN_TYPE tokenType);

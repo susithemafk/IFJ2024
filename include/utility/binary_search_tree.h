@@ -83,7 +83,7 @@ void *bstSearchForNode(BST *tree, unsigned int key);
  * 
  * @param tree - pointer to the symbol table (BST)
  * @param key - key of the node
- * @param returnData - pointer to which the data will be stored
+ * @param returnData - pointer to which the data will be stor§ed
  * @return true, if the data was successfully popped, false otherwise
 */
 bool bstPopNode(BST *tree, unsigned int key, void **returnData);
