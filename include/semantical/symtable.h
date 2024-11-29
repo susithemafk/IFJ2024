@@ -125,7 +125,7 @@ typedef struct SymVariable {
     int nullable; // Indicates if the variable can hold a null value -1 unknown, 0 not nullable, 1 nullable
     bool accesed; // if the variable was accessed
     bool modified; // if the variable was modified
-    TOKEN_PTR value; // pointer to the value, should be null, if the value is not known, at compile time
+    char *value; // pointer to the value, should be null, if the value is not known, at compile time
 } SymVariable;
 
 
@@ -180,7 +180,7 @@ enum ERR_CODES symTableExitScope(SymTable *table);
  * @param mutable - flag, if the variable is mutable
  * @return pointer to the variable, if the variable was successfully inserted, NULL otherwise
 */
-SymVariable *symTableDeclareVariable(SymTable *table, char *name, enum DATA_TYPES type, bool mutable, bool nullable, TOKEN_PTR value);
+SymVariable *symTableDeclareVariable(SymTable *table, char *name, enum DATA_TYPES type, bool mutable, bool nullable, char *value);
 
 /**
  * Search for a vairable based on its name, in same hash variables
