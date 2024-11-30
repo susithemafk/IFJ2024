@@ -1,97 +1,119 @@
 const ifj = @import("ifj24.zig");
-// Hlavná funkcia programu
+
+// Main program entry point
 pub fn main() void {
-    ifj.write("Vitaj v komplexnom testovacom programe pre jazyk IFJ24!\n");
+    ifj.write("Starting complex program with nullable handling, recursion, and nested conditions.\n");
 
-    // Práca s číslami a základnými operáciami
-    const a: i32 = 42;
-    const b: i32 = 13;
-    var result: i32 = a + b;
-    ifj.write("Sucet cisel: ");
-    ifj.write(result);
-    ifj.write("\n");
+    // Complex usage of nullable values with nested conditionals
+    const a: ?i32 = null;
+    const b: ?i32 = 10;
+    const c: ?i32 = 5;
 
-    // Práca s podmienkami
-    if (result > 50) {
-        result = 10;
-        ifj.write("Vysledok je vacsi ako 50.\n");
-    } else {
-        ifj.write("Vysledok je mensi alebo rovny 50.\n");
-    }
-
-    // Práca s cyklom while
-    ifj.write("Vypis cisel od 1 do 5:\n");
-    var i: i32 = 1;
-    while (i <= 5) {
-        ifj.write(i);
+    if (a) |value| {
+        ifj.write("Nullable a is not null: ");
+        ifj.write(value);
         ifj.write("\n");
-        i = i + 1;
-    }
-
-    // Práca s funkciami (faktoriál - rekurzívne)
-    const factorialInput: i32 = 5;
-    const factorialResult = factorial(factorialInput);
-    ifj.write("Faktorial cisla ");
-    ifj.write(factorialInput);
-    ifj.write(" je ");
-    ifj.write(factorialResult);
-    ifj.write(".\n");
-
-    // Práca s reťazcami
-    const str1 = ifj.string("Testovanie prace s retazcami.");
-    const str2 = ifj.string(" IFJ24 je super!");
-    const combined = ifj.concat(str1, str2);
-    ifj.write("Spojeny retazec: ");
-    ifj.write(combined);
-    ifj.write("\n");
-
-    // Cyklus while na čítanie vstupu
-    var sum: i32 = 0;
-    ifj.write("Zadajte cisla na scitanie (0 ukonci vstup):\n");
-
-    var brk: i32 = 1;
-    while (brk != 0) {
-        const input = ifj.readi32();
-        if (input) |num| {
-            if (num == 0) {
-                brk = 0;
-            } else {
-                sum = sum + num;
-            }
+    } else {
+        if (b) |value| {
+            ifj.write("Nullable a is null, but b is not null: ");
+            ifj.write(value);
+            ifj.write("\n");
         } else {
-            ifj.write("Neplatny vstup! Skuste znova.\n");
+            if (c) |value| {
+                ifj.write("Nullable a and b are null, but c is not null: ");
+                ifj.write(value);
+                ifj.write("\n");
+            } else {
+                ifj.write("All nullable values are null.\n");
+            }
         }
     }
-    ifj.write("Sucet zadanych cisel je: ");
+
+    // Function call with multiple nullable parameters
+    const sum = nullable_sum(a, b);
+    ifj.write("Sum of a and b: ");
     ifj.write(sum);
     ifj.write("\n");
 
-    // Práca s porovnávaním reťazcov
-    ifj.write("Zadajte 'ahoj', aby ste pokracovali:\n");
-    const inputStr = ifj.readstr();
-    const expected = ifj.string("ahoj");
-    if (inputStr) |in_str| {
-        const same = ifj.strcmp(in_str, expected);
-        if (same == 0) {
-            ifj.write("Zadany retazec je spravny!\n");
+    // Nested conditional to check for non-nullable conditions
+    const x: i32 = 20;
+    const y: i32 = 15;
+
+    if (x > y) {
+        ifj.write("x is greater than y\n");
+
+        // Check if x is even using subtraction instead of modulo
+        var half_x = x - 2 * (x / 2); // Mimics x % 2 == 0 by using integer division
+        if (half_x == 0) {
+            ifj.write("x is even\n");
         } else {
-            ifj.write("Nespravny retazec. Koncim program. 1\n");
+            ifj.write("x is odd\n");
+        }
+        half_x = 0;
+    } else {
+        ifj.write("x is not greater than y\n");
+
+        // Check if y is even using subtraction instead of modulo
+        var half_y = y - 2 * (y / 2); // Mimics y % 2 == 0 by using integer division
+        if (half_y == 0) {
+            ifj.write("y is even\n");
+        } else {
+            ifj.write("y is odd\n");
+        }
+        half_y = 0;
+    }
+
+    // While loop for reading inputs and performing a sum
+    var total_sum: i32 = 0;
+    var continue_input: i32 = 1;
+    ifj.write("Enter numbers to sum (0 to stop):\n");
+
+    while (continue_input != 0) {
+        const input = ifj.readi32();
+        if (input) |num| {
+            if (num == 0) {
+                continue_input = 0;
+            } else {
+                total_sum = total_sum + num;
+            }
+        } else {
+            ifj.write("Invalid input, try again.\n");
+        }
+    }
+
+    ifj.write("Total sum: ");
+    ifj.write(total_sum);
+    ifj.write("\n");
+    ifj.write("Enter hello : ");
+    // Handling strings and their comparison
+    const input_str = ifj.readstr();
+    const expected_str = ifj.string("hello");
+
+    if (input_str) |str| {
+        const result = ifj.strcmp(str, expected_str);
+        if (result == 0) {
+            ifj.write("Correct string entered!\n");
+        } else {
+            ifj.write("Incorrect string, exiting program.\n");
             return;
         }
     } else {
-        ifj.write("Nespravny retazec. Koncim program. 2\n");
+        ifj.write("No string input, exiting program.\n");
         return;
     }
 
-    ifj.write("Testovaci program ukonceny uspesne.\n");
+    // Test completed
+    ifj.write("Program completed successfully.\n");
 }
 
-// Rekurzívna funkcia na výpočet faktoriálu
-pub fn factorial(n: i32) i32 {
-    if (n <= 1) {
-        return 1;
+// Function that takes nullable parameters and returns their sum
+pub fn nullable_sum(a: ?i32, b: ?i32) i32 {
+    var sum: i32 = 0;
+    if (a) |value| {
+        sum = sum + value;
     } else {}
-    const n_ = n - 1;
-    const a = factorial(n_);
-    return n * a;
+    if (b) |value| {
+        sum = sum + value;
+    } else {}
+    return sum;
 }

@@ -482,7 +482,7 @@ enum ERR_CODES analyzeAssigmentStatement(AssigmentStatement *statement, SymTable
     DEBUG_PRINT("Assigment type: %d\nAssigment nullable: %d\nError: %d", type, nullable, err);
     if (err != SUCCESS) return err;
 
-    if (statement->value.expr_type == LiteralExpressionType && type == dTypeU8) return E_SEMANTIC_UNKNOWN_TYPE;
+    if (statement->value.expr_type == LiteralExpressionType && type == dTypeU8) return E_SEMANTIC_INCOMPATABLE_TYPES;
 
     DEBUG_PRINT_IF(var->id == 0, "Variable %s is global", statement->id.name);
     DEBUG_PRINT_IF(var->nullable, "Variable %s is nullable", statement->id.name);
@@ -521,6 +521,12 @@ enum ERR_CODES analyzeAssigmentStatement(AssigmentStatement *statement, SymTable
                 return SUCCESS;
             }
         }
+        // we can also assign NULL, in csae it is nullable
+        if (var->nullable && type == dTypeNone && nullable && statement->value.expr_type == LiteralExpressionType && !statement->value.data.literal.value) {
+            DEBUG_PRINT("assigning NULL to nullable var");
+            return SUCCESS;
+        }
+
         // comment this out???? end
         return E_SEMANTIC_INCOMPATABLE_TYPES;
     }
@@ -597,6 +603,11 @@ enum ERR_CODES analyzeVariableDefinitionStatement(VariableDefinitionStatement *s
                 statement->value.conversion = IntToFloat;
                 return SUCCESS;
             }
+        }
+        // we can also assign NULL, in csae it is nullable
+        if (var->nullable && type == dTypeNone && nullable && statement->value.expr_type == LiteralExpressionType && !statement->value.data.literal.value) {
+            DEBUG_PRINT("assigning NULL to nullable var");
+            return SUCCESS;
         }
         // comment this out???? end
         return E_SEMANTIC_INCOMPATABLE_TYPES;
