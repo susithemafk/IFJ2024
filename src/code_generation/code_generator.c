@@ -176,7 +176,8 @@ void generateCodeWhileStatement(WhileStatement *statement) {
 }
 
 void generateCodeReturnStatement(ReturnStatement *statement) {
-    generateCodeExpression(&statement->value);
+    if (!statement->empty) // note, I have modified this (martin), since i was getting seg faults
+        generateCodeExpression(&statement->value);
     PRINTLN("POPFRAME");
     PRINTLN("RETURN");
 }

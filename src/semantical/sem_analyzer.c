@@ -34,6 +34,7 @@ enum ERR_CODES analyzeProgram(Program *program, SymTable *table) {
         Function *function = (Function *)getDataAtIndex(program->functions, i);
         SymFunctionPtr funDef = symInitFuncDefinition();
         if (!funDef) return E_INTERNAL;
+        if (strcmp(function->id.name, "main") == 0 && (function->returnType.data_type != dTypeVoid || getSize(function->params) != 0)) return E_SEMANTIC_INVALID_FUN_PARAM;
         DEBUG_PRINT("Function name: %s\nFunction return type: %d\nFunftion return nullable: %d", function->id.name, function->returnType.data_type, function->returnType.is_nullable);
         bool result = symEditFuncDef(funDef, function->id.name, function->returnType.data_type, (function->returnType.is_nullable) ? 1 : 0);
         if (!result) return E_INTERNAL;
@@ -88,6 +89,7 @@ enum ERR_CODES analyzeProgram(Program *program, SymTable *table) {
         // invalid amount of returns
         if (strcmp(funDef->funcName, "main") != 0) {
             if (funDef->returnType != dTypeVoid && retCount == 0) return E_SEMANTIC_BAD_FUNC_RETURN;
+            if (funDef->returnType == dTypeVoid && retCount > 0) return E_SEMANTIC_BAD_FUNC_RETURN;
         }
 
         // exit the function scope
@@ -266,6 +268,9 @@ enum ERR_CODES analyzeReturnStatement(ReturnStatement *return_statement, SymTabl
         return SUCCESS;
     }
 
+    // in case we have a not empty return, but the fucntion is void
+    if (currentFunc->returnType == dTypeVoid) return E_SEMANTIC_BAD_FUNC_RETURN;
+
     // return null;
     if (
         return_statement->value.expr_type == LiteralExpressionType && 
@@ -273,7 +278,7 @@ enum ERR_CODES analyzeReturnStatement(ReturnStatement *return_statement, SymTabl
         return_statement->value.data.literal.data_type.data_type == dTypeNone &&
         return_statement->value.data.literal.data_type.is_nullable
     ) {
-        if (!currentFunc->nullableReturn) return E_SEMANTIC_INCOMPATABLE_TYPES;
+        if (!currentFunc->nullableReturn) return E_SEMANTIC_INVALID_FUN_PARAM;
         (*retCount)++;
         return_statement->value.conversion = NoConversion;
         return SUCCESS;
@@ -291,8 +296,8 @@ enum ERR_CODES analyzeReturnStatement(ReturnStatement *return_statement, SymTabl
     DEBUG_PRINT("return is valid");
 
     // check if the return type is correct
-    if (currentFunc->returnType != returnType) return E_SEMANTIC_BAD_FUNC_RETURN;
-    if (!currentFunc->nullableReturn && nullable) return E_SEMANTIC_INCOMPATABLE_TYPES;
+    if (currentFunc->returnType != returnType) return E_SEMANTIC_INVALID_FUN_PARAM;
+    if (!currentFunc->nullableReturn && nullable) return E_SEMANTIC_INVALID_FUN_PARAM;
 
     (*retCount)++;
 
@@ -477,7 +482,7 @@ enum ERR_CODES analyzeAssigmentStatement(AssigmentStatement *statement, SymTable
     DEBUG_PRINT("Assigment type: %d\nAssigment nullable: %d\nError: %d", type, nullable, err);
     if (err != SUCCESS) return err;
 
-    if (statement->value.expr_type == LiteralExpressionType && type == dTypeU8) return E_SEMANTIC_INCOMPATABLE_TYPES;
+    if (statement->value.expr_type == LiteralExpressionType && type == dTypeU8) return E_SEMANTIC_UNKNOWN_TYPE;
 
     DEBUG_PRINT_IF(var->id == 0, "Variable %s is global", statement->id.name);
     DEBUG_PRINT_IF(var->nullable, "Variable %s is nullable", statement->id.name);
@@ -536,7 +541,7 @@ enum ERR_CODES analyzeVariableDefinitionStatement(VariableDefinitionStatement *s
     enum DATA_TYPES type;
     err = analyzeExpression(&statement->value, table, &type, &nullable);
 
-    if (statement->value.expr_type == LiteralExpressionType && type == dTypeU8) return E_SEMANTIC_INCOMPATABLE_TYPES;
+    if (statement->value.expr_type == LiteralExpressionType && type == dTypeU8) return E_SEMANTIC_UNKNOWN_TYPE;
 
     DEBUG_PRINT("analyzing right side of the definition\nexp type: %d\nexp nullable: %d\nerr: %d", type, nullable, err);
     if (err != SUCCESS) return err;
@@ -546,7 +551,7 @@ enum ERR_CODES analyzeVariableDefinitionStatement(VariableDefinitionStatement *s
 
     // if the value is a constant f64 literal, we can convert it to i32, so save the value
     bool canBeConvertedToI32 = false;
-    if (statement->isConst && statement->value.expr_type == LiteralExpressionType) {
+    if (statement->isConst && statement->value.expr_type == LiteralExpressionType && type != dTypeNone) {
         canBeConvertedToI32 = f64valueCanBeCovertedToi32(statement->value.data.literal.value);
     }
 
@@ -826,6 +831,79 @@ enum ERR_CODES analyzeBinaryExpression(BinaryExpression *binary_expr, SymTable *
         case TOKEN_GREATEROREQUAL:
         case TOKEN_EQUALS:
         case TOKEN_NOTEQUAL:
+
+            //A is i32 literal && B is binary Expression f64
+            //    -> convert A to f64
+            if (leftType == dTypeI32 && left->expr_type == LiteralExpressionType && rightType == dTypeF64 && right->expr_type == BinaryExpressionType) {
+                DEBUG_PRINT("A is i32 literal && B is binary Expression f64");
+                left->conversion = IntToFloat;
+                right->conversion = NoConversion;
+                convPossible = true;
+                operationRetType = dTypeF64;
+                break;
+            }
+
+            //A is binary Expression f64 && B is i32 literal
+            //    -> convert B to f64
+            if (leftType == dTypeF64 && left->expr_type == BinaryExpressionType && rightType == dTypeI32 && right->expr_type == LiteralExpressionType) {
+                DEBUG_PRINT("A is binary Expression f64 && B is i32 literal");
+                left->conversion = NoConversion;
+                right->conversion = IntToFloat;
+                convPossible = true;
+                operationRetType = dTypeF64;
+                break;
+            }
+
+            //A is f64 literal && B is binary Expression i32
+            //   -> convert A to i32, if decimal place of A is 0s
+            if (leftType == dTypeF64 && left->expr_type == LiteralExpressionType && rightType == dTypeI32 && right->expr_type == BinaryExpressionType) {
+                DEBUG_PRINT("A is f64 literal && B is binary Expression i32");
+                if (f64valueCanBeCovertedToi32(left->data.literal.value)) {
+                    left->conversion = FloatToInt;
+                    right->conversion = NoConversion;
+                    convPossible = true;
+                    operationRetType = dTypeI32;
+                    break;
+                }
+                return E_SEMANTIC_INCOMPATABLE_TYPES;
+            }
+
+            //A is binary Expression i32 && B is f64 literal
+            //    -> convert B to i32, if decimal place of B is 0s
+            if (leftType == dTypeI32 && left->expr_type == BinaryExpressionType && rightType == dTypeF64 && right->expr_type == LiteralExpressionType) {
+                DEBUG_PRINT("A is binary Expression i32 && B is f64 literal");
+                if (f64valueCanBeCovertedToi32(right->data.literal.value)) {
+                    left->conversion = NoConversion;
+                    right->conversion = FloatToInt;
+                    convPossible = true;
+                    operationRetType = dTypeI32;
+                    break;
+                }
+                return E_SEMANTIC_INCOMPATABLE_TYPES;
+            }
+
+            //A is constant f64 variable && B is binary Expression i32
+            //    -> convert A to i32, if decimal place of A is 0s
+            if (leftType == dTypeF64 && left->expr_type == IdentifierExpressionType && left->data.identifier.var->valueKnonwAtCompileTime && rightType == dTypeI32 && right->expr_type == BinaryExpressionType) {
+                DEBUG_PRINT("A is constant f64 variable && B is binary Expression i32");
+                left->conversion = FloatToInt;
+                right->conversion = NoConversion;
+                convPossible = true;
+                operationRetType = dTypeI32;
+                break;
+            }
+
+            //A is binary Expression i32 && B is constant f64 variable
+            //    -> convert B to i32, if decimal place of B is 0s
+            if (leftType == dTypeI32 && left->expr_type == BinaryExpressionType && rightType == dTypeF64 && right->expr_type == IdentifierExpressionType && right->data.identifier.var->valueKnonwAtCompileTime) {
+                DEBUG_PRINT("A is binary Expression i32 && B is constant f64 variable");
+                left->conversion = NoConversion;
+                right->conversion = FloatToInt;
+                convPossible = true;
+                operationRetType = dTypeI32;
+                break;
+            }
+
             //A is i32 ligeral && B is f64 literal
             //    -> convert A to f64
             if (leftType == dTypeI32 && left->expr_type == LiteralExpressionType && rightType == dTypeF64 && right->expr_type == LiteralExpressionType) {
@@ -949,6 +1027,10 @@ enum ERR_CODES analyzeBinaryExpression(BinaryExpression *binary_expr, SymTable *
             break;
 
         case TOKEN_DIVIDE:
+
+            // division by 0
+            if (right->expr_type == LiteralExpressionType && (strcmp(right->data.literal.value, "0") == 0 || strcmp(right->data.literal.value, "0.0") == 0)) return E_SEMANTIC_OTHER;
+
             //A is constant f64 expression (value known at compile time) && B is i32 (any type: literal, variable, bianry expression ...)
             //    -> (if decimal place of A is only 0s, we convert A to i32 -> SUCESS else ERROR)
             if (leftType == dTypeF64 && left->expr_type == IdentifierExpressionType && left->data.identifier.var->valueKnonwAtCompileTime && rightType == dTypeI32) {

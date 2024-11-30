@@ -22,6 +22,7 @@ static unsigned int tokenIndex = 0;
 static LinkedList *buffer = NULL;
 static SymTable *table = NULL; // TODO: vhodit do mainu table, pak parser, pak v mainu free
 static struct TOKEN token;
+enum ERR_CODES globalError = SUCCESS;
 
 // vnoreny funkce resi first pass
 // udelat parser dle good_asts.c
@@ -114,8 +115,7 @@ enum ERR_CODES parser_parse(FILE *input, struct Program *program) {
     DEBUG_PRINT("Current token: %s\n", currentToken()->value);
 
     if (!parse_program(program)) {
-        puts("Error in second pass");
-        return E_SYNTAX;
+        return (globalError == SUCCESS) ? E_SYNTAX : globalError;
     }
 
     return SUCCESS;
@@ -149,6 +149,11 @@ bool parse_prolog(void) {
         return false; // const
     if (!match(TOKEN_IDENTIFIER))
         return false; // const identifier
+    // change, after working ifj token
+    tokenIndex--;
+    if (strcmp(currentToken()->value, "ifj") != 0)
+        return false; // const identifier
+    tokenIndex++;
     if (!match(TOKEN_ASSIGN))
         return false; // const identifier =
     if (!match(TOKEN_AT))
@@ -159,6 +164,10 @@ bool parse_prolog(void) {
         return false; // const identifier = @identifier(
     if (!match(TOKEN_STRING_LITERAL))
         return false; // const identifier = @identifier("string")
+    tokenIndex--;
+    if (strcmp(currentToken()->value, "ifj24.zig") != 0)
+        return false; // const identifier = @identifier("string")
+    tokenIndex++;
     if (!match(TOKEN_RPAR))
         return false; // const identifier = @identifier("string")
     if (!match(TOKEN_SEMICOLON))
@@ -188,6 +197,7 @@ bool parse_functions(LinkedList *functions) {
 
         if (!parse_function(function))
             return false;
+
     }
 
     DEBUG_PRINT("Successfully parsed <functions>\n");
@@ -921,6 +931,7 @@ bool parse_truth_expr(Expression *expr) {
     enum ERR_CODES err = startPrecedentAnalysis(buffer, &tokenIndex, false, expr);
     if (err != SUCCESS) {
         printf("Error in startPrecedentAnalysis: %d\n", err);
+        globalError = err;
         return false;
     }
 
