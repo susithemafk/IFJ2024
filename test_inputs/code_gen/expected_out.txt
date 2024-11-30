@@ -1,9 +1,16 @@
 Test vestavenych funkci:
-i2f(42) -> 42.0
+i2f(42) -> 0x1.5p5
 f2i(42.0) -> 42
 concat("Hello, ", "world!") -> Hello, world!
 length("Hello, world!") -> 13
 substring("Hello, world!", 7, 12) -> world
+substring("Hello, world!", 7, 7) -> 
+substring("Hello, world!", 7, 6) -> null
+substring("Hello, world!", -1, 6) -> null
+substring("Hello, world!", 7, -1) -> null
+substring("Hello, world!", 7, 13) -> world!
+substring("Hello, world!", 7, 14) -> null
+substring("Hello, world!", 13, 7) -> null
 strcmp("apple", "banana") -> -1
 ord("Z", 0) -> 90
 chr(65) -> A
@@ -18,7 +25,6 @@ Faktorial 4: 24
 Faktorial 5: 120
 Faktorial 6: 720
 Faktorial 7: 5040
-
 Spoustim while cyklus s pocatecnim cislem 10:
 Hodnota a: 10
 Hodnota a: 9
@@ -32,7 +38,6 @@ Hodnota a: 2
 Hodnota a: 1
 Hodnota a: 0
 While cyklus dokonceny.
-
 Spoustim while cyklus s vnorenymi if prikazy:
 Hodnota b je 8.
 Hodnota b je 7.
