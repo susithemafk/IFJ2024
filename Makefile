@@ -145,9 +145,9 @@ control_submit:
 	@rm -rf testdir
 	@$(printCmd) "\033[1;36m==================================\033[0m"
 
-.PHONY: snake
+.PHONY: cake
 
-snake:
+cake:
 	@cd ./snake && \
 	if [ ! -d ".env" ]; then \
 		python3 -m venv .env; \
@@ -180,7 +180,7 @@ help:
 	@$(printCmd) "\033[1;36m| \033[1;32mmake\033[2;37m zip          		             				\033[0m\033[1;36m| \033[0mZip the project                                   	\033[1;36m| \033[1;35mmake zip                 			\033[1;36m|\033[0m"
 	@$(printCmd) "\033[1;36m| \033[1;32mmake\033[2;37m submit          		             				\033[0m\033[1;36m| \033[0mCreate submission zip                            	\033[1;36m| \033[1;35mmake submit                 			\033[1;36m|\033[0m"
 	@$(printCmd) "\033[1;36m| \033[1;32mmake\033[2;37m help			                			\033[0m\033[1;36m| \033[0mShow this help message                                \033[1;36m| \033[1;35mmake help                			\033[1;36m|\033[0m"
-	@$(printCmd) "\033[1;36m| \033[1;32mmake\033[2;37m snake			                			\033[0m\033[1;36m| \033[0mWhat coud this do? ;P                             	\033[1;36m| \033[1;35mmake snake                			\033[1;36m|\033[0m"
+	@$(printCmd) "\033[1;36m| \033[1;32mmake\033[2;37m cake 			                			\033[0m\033[1;36m| \033[0mWhat coud this do? ;P                             	\033[1;36m| \033[1;35mmake cake                 			\033[1;36m|\033[0m"
 	@$(printCmd) "\033[1;36m+-----------------------------------------------------------------------+-------------------------------------------------------+-----------------------------------------------+\033[0m"
 	
 	
