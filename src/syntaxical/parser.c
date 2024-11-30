@@ -896,7 +896,8 @@ bool parse_no_truth_expr(Expression *expr) {
             }
         }
 
-        if (nextToken && nextToken->type == TOKEN_LPAR) {
+        // = <identifier>(...)
+        if (currentToken()->type == TOKEN_IDENTIFIER && nextToken && nextToken->type == TOKEN_LPAR) {
             expr->expr_type = FunctionCallExpressionType;
             return parse_user_func_call(&expr->data.function_call);
         }

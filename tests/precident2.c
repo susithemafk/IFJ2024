@@ -15,12 +15,12 @@
 #include "utility/enumerations.h"
 #include "syntaxical/precident.h"
 #include "semantical/symtable.h"
+#include "syntaxical/parser.h"
 
 // ####################### TEST CASES #######################
 
 
 int main(void) {
-    LinkedList *buffer = initLinkedList(false);
     TestInstancePtr test;
     SymTable *table = symTableInit();
 
@@ -28,16 +28,18 @@ int main(void) {
 
     test = initTestInstance("Precedent analysis test for expressions");
 
-    enum ERR_CODES err = firstPass(table, input, buffer);
+    enum ERR_CODES err = firstPass(input, table->tokenBuffer);
     testCase(
         test,
-        err == E_SEMANTIC_UND_FUNC_OR_VAR,
-        "Validating main function",
-        "Main function not found (expected)",
-        "Main function found (unexpected)"
+        err == SUCCESS,
+        "validating first pass",
+        "First pass passed (expected)",
+        "First pass failed (unexpected)"
     );
 
     fclose(input);
+
+    LinkedList *buffer = table->tokenBuffer;
 
     /*
     here we need to go throu all the toens, first we should find 0|1 folowed by :, telling is the exp is valid or invalid
@@ -50,7 +52,8 @@ int main(void) {
         TOKEN_PTR token = (TOKEN_PTR)getDataAtIndex(buffer, i++);
 
         if (token->type == TOKEN_EOF) break;
-        if (token->type != TOKEN_I32) {
+        if (token->type != TOKEN_INTEGER_LITERAL) {
+            printf("token value: %s\n", token->value);
             printf("invalid test!\n");
             return 1;
         } // invalid token
@@ -137,7 +140,6 @@ int main(void) {
             i++;
         }
     }
-    freeBuffer(&buffer);
     symTableFree(&table);
     finishTestInstance(test);
 }

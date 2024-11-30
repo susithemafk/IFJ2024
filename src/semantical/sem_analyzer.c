@@ -477,6 +477,8 @@ enum ERR_CODES analyzeAssigmentStatement(AssigmentStatement *statement, SymTable
     DEBUG_PRINT("Assigment type: %d\nAssigment nullable: %d\nError: %d", type, nullable, err);
     if (err != SUCCESS) return err;
 
+    if (statement->value.expr_type == LiteralExpressionType && type == dTypeU8) return E_SEMANTIC_INCOMPATABLE_TYPES;
+
     DEBUG_PRINT_IF(var->id == 0, "Variable %s is global", statement->id.name);
     DEBUG_PRINT_IF(var->nullable, "Variable %s is nullable", statement->id.name);
     DEBUG_PRINT_IF(nullable, "Value is nullable");
@@ -533,6 +535,8 @@ enum ERR_CODES analyzeVariableDefinitionStatement(VariableDefinitionStatement *s
     bool nullable;
     enum DATA_TYPES type;
     err = analyzeExpression(&statement->value, table, &type, &nullable);
+
+    if (statement->value.expr_type == LiteralExpressionType && type == dTypeU8) return E_SEMANTIC_INCOMPATABLE_TYPES;
 
     DEBUG_PRINT("analyzing right side of the definition\nexp type: %d\nexp nullable: %d\nerr: %d", type, nullable, err);
     if (err != SUCCESS) return err;
@@ -811,7 +815,7 @@ enum ERR_CODES analyzeBinaryExpression(BinaryExpression *binary_expr, SymTable *
 
     // differemtn rules for + - * < > <= >= == != and / for conversions
     bool convPossible = false;
-    enum DATA_TYPES operationRetType = dTypeNone;
+    enum DATA_TYPES operationRetType = dTypeUndefined;
     switch(binary_expr->operation) {
         case TOKEN_PLUS:
         case TOKEN_MINUS:

@@ -60,7 +60,7 @@ int _getPrecedentIndex(enum TOKEN_TYPE token) {
     case TOKEN_IDENTIFIER:
     case TOKEN_INTEGER_LITERAL:
     case TOKEN_FLOAT_LITERAL:
-    case TOKEN_STRING_LITERAL:
+    //case TOKEN_STRING_LITERAL: // this should not be here, since ll1 grammer does not support it
     case TOKEN_NULL:
         return 4;
     case TOKEN_EQUALS:
