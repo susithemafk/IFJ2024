@@ -758,11 +758,11 @@ bool parse_native_func_call(FunctionCall *function_call) {
     if (currentToken()->type != TOKEN_IDENTIFIER)
         return false;
 
-    char *func_name = malloc(strlen(currentToken()->value) + 5);
+    char *func_name = malloc(strlen(currentToken()->value) + 6);
     if (!func_name)
         return false;
 
-    strcpy(func_name, "ifj_");
+    strcpy(func_name, "$ifj_");
     strcat(func_name, currentToken()->value);
 
     free(currentToken()->value);

@@ -38,6 +38,70 @@ pub fn main() void {
     }
     ifj.write("\n");
 
+    const substring_result1 = ifj.substring(concatenated, 7, 7);
+    ifj.write("substring(\"Hello, world!\", 7, 7) -> ");
+    if (substring_result1) |sub| {
+        ifj.write(sub); // Should print ""
+    } else {
+        ifj.write("null");
+    }
+    ifj.write("\n");
+
+    const substring_result2 = ifj.substring(concatenated, 7, 6);
+    ifj.write("substring(\"Hello, world!\", 7, 6) -> ");
+    if (substring_result2) |sub| {
+        ifj.write(sub); // Should print "null"
+    } else {
+        ifj.write("null");
+    }
+    ifj.write("\n");
+
+    const neg_number: i32 = 0 - 1;
+    const substring_result3 = ifj.substring(concatenated, neg_number, 6);
+    ifj.write("substring(\"Hello, world!\", -1, 6) -> ");
+    if (substring_result3) |sub| {
+        ifj.write(sub); // Should print "null"
+    } else {
+        ifj.write("null");
+    }
+    ifj.write("\n");
+
+    const substring_result4 = ifj.substring(concatenated, 7, neg_number);
+    ifj.write("substring(\"Hello, world!\", 7, -1) -> ");
+    if (substring_result4) |sub| {
+        ifj.write(sub); // Should print "null"
+    } else {
+        ifj.write("null");
+    }
+    ifj.write("\n");
+
+    const substring_result5 = ifj.substring(concatenated, 7, 13);
+    ifj.write("substring(\"Hello, world!\", 7, 13) -> ");
+    if (substring_result5) |sub| {
+        ifj.write(sub); // Should print "world!"
+    } else {
+        ifj.write("null");
+    }
+    ifj.write("\n");
+
+    const substring_result6 = ifj.substring(concatenated, 7, 14);
+    ifj.write("substring(\"Hello, world!\", 7, 14) -> ");
+    if (substring_result6) |sub| {
+        ifj.write(sub);
+    } else {
+        ifj.write("null"); // Should print "null"
+    }
+    ifj.write("\n");
+
+    const substring_result7 = ifj.substring(concatenated, 13, 7);
+    ifj.write("substring(\"Hello, world!\", 13, 7) -> ");
+    if (substring_result7) |sub| {
+        ifj.write(sub);
+    } else {
+        ifj.write("null"); // Should print "null"
+    }
+    ifj.write("\n");
+
     // Test strcmp
     const str_cmp1 = ifj.string("apple");
     const str_cmp2 = ifj.string("banana");
@@ -118,34 +182,34 @@ pub fn main() void {
 
     // Nested while loop with if statements
     ifj.write("Spoustim while cyklus s vnorenymi if prikazy:\n");
-    var b = 8; // Start from 8 and decrement
+    var b: i32 = 8; // Start from 8 and decrement
     while (b > 0) {
-        if (b >= 4) {
-            if (b >= 6) {
-                if (b == 7) {
-                    ifj.write("Hodnota b je 7.\n");
+        if (b >= 5) {
+            if (b >= 7) {
+                if (b == 8) {
+                    ifj.write("Hodnota b je 8.\n");
                 } else {
-                    ifj.write("Hodnota b je 6.\n");
+                    ifj.write("Hodnota b je 7.\n");
                 }
             } else {
-                if (b == 5) {
-                    ifj.write("Hodnota b je 5.\n");
+                if (b == 6) {
+                    ifj.write("Hodnota b je 6.\n");
                 } else {
-                    ifj.write("Hodnota b je 4.\n");
+                    ifj.write("Hodnota b je 5.\n");
                 }
             }
         } else {
-            if (b >= 2) {
-                if (b == 3) {
-                    ifj.write("Hodnota b je 3.\n");
+            if (b >= 3) {
+                if (b == 4) {
+                    ifj.write("Hodnota b je 4.\n");
                 } else {
-                    ifj.write("Hodnota b je 2.\n");
+                    ifj.write("Hodnota b je 3.\n");
                 }
             } else {
-                if (b == 1) {
-                    ifj.write("Hodnota b je 1.\n");
+                if (b == 2) {
+                    ifj.write("Hodnota b je 2.\n");
                 } else {
-                    ifj.write("Hodnota b je 0.\n");
+                    ifj.write("Hodnota b je 1.\n");
                 }
             }
         }

@@ -56,19 +56,19 @@ SymVariable s1 = {5, "s1", dTypeU8, false, false, true, true, false};
 SymVariable s2 = {6, "s2", dTypeU8, false, false, true, true, false};
 SymVariable i = {7, "i", dTypeI32, false, false, true, true, false};
 SymVariable j = {8, "j", dTypeI32, false, false, true, true, false};
-char *readstr_name = "ifj_readstr";
-char *readi32_name = "ifj_readi32";
-char *readf64_name = "ifj_readf64";
-char *write_name = "ifj_write";
-char *i2f_name = "ifj_i2f";
-char *f2i_name = "ifj_f2i";
-char *string_name = "ifj_string";
-char *length_name = "ifj_length";
-char *concat_name = "ifj_concat";
-char *substring_name = "ifj_substring";
-char *Strcmp_name = "ifj_strcmp";
-char *ord_name = "ifj_ord";
-char *chr_name = "ifj_chr";
+char *readstr_name = "$ifj_readstr";
+char *readi32_name = "$ifj_readi32";
+char *readf64_name = "$ifj_readf64";
+char *write_name = "$ifj_write";
+char *i2f_name = "$ifj_i2f";
+char *f2i_name = "$ifj_f2i";
+char *string_name = "$ifj_string";
+char *length_name = "$ifj_length";
+char *concat_name = "$ifj_concat";
+char *substring_name = "$ifj_substring";
+char *Strcmp_name = "$ifj_strcmp";
+char *ord_name = "$ifj_ord";
+char *chr_name = "$ifj_chr";
 
 void fillInBuildInFuncions(SymTable* table) {
 
