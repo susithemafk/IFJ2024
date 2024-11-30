@@ -423,11 +423,21 @@ enum ERR_CODES startPrecedentAnalysis(LinkedList *buffer, unsigned int *startIdx
                 return E_SYNTAX;
             }
 
-            if (!doExpresion && ((last->type == STACK_ITEM_TRUTH_EXPRESSION &&
-                                  last->content.stateTruthExpression != STATE_TEX_R) ||
-                                 last->type != STACK_ITEM_TRUTH_EXPRESSION)) {
-                removeStack(&stack);
-                return E_SYNTAX;
+            if (!doExpresion) {
+                DEBUG_PRINT("Last item: %d\n", last->type);
+                if (last->type == STACK_ITEM_TRUTH_EXPRESSION) {
+                    DEBUG_PRINT("Last inner type: %d\n", last->content.stateTruthExpression);
+                    if (last->content.stateTruthExpression == STATE_TEX_E) {
+                        DEBUG_PRINT("error\n");
+                        removeStack(&stack);
+                        return E_SEMANTIC_INCOMPATABLE_TYPES; // handle truth expression, with no R
+                    }
+                }
+
+                if (last->type != STACK_ITEM_TRUTH_EXPRESSION) {
+                    removeStack(&stack);
+                    return E_SYNTAX;
+                }
             }
 
             // correct check for expresion syntax

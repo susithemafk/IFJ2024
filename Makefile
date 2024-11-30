@@ -20,6 +20,8 @@ SYNTAXICAL_DIR = $(SRC_DIR)/syntaxical
 UTILITY_DIR = $(SRC_DIR)/utility
 TEST_DIR = tests
 
+#
+
 # Find all .c files in the tests directory
 TEST_FILES = $(wildcard $(TEST_DIR)/*.c)
 
