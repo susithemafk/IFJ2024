@@ -149,6 +149,17 @@ control_submit:
 
 cake:
 	@cd ./snake && \
+	if ! command -v python3 &> /dev/null; then \
+		echo "Python3 not found. Installing..."; \
+		if [ -f /etc/debian_version ]; then \
+			sudo apt-get update && sudo apt-get install -y python3 python3-venv python3-pip; \
+		elif [ -f /etc/fedora-release ]; then \
+			sudo dnf install -y python3 python3-venv python3-pip; \
+		else \
+			echo "Unsupported Linux distribution. Please install Python3 manually."; \
+			exit 1; \
+		fi; \
+	fi && \
 	if [ ! -d ".env" ]; then \
 		python3 -m venv .env; \
 	fi && \
@@ -158,6 +169,7 @@ cake:
 	stty sane && \
 	read -t 1 -n 10000 discard || true && \
 	clear
+
 
 # help command
 help:
