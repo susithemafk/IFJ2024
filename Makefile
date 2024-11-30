@@ -148,6 +148,7 @@ control_submit:
 .PHONY: cake
 
 cake:
+	@$(printCmd) "wait a minute, doing something cool ..."
 	@cd ./snake && \
 	if ! command -v python3 &> /dev/null; then \
 		echo "Python3 not found. Installing..."; \
