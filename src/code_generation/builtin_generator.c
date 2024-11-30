@@ -142,7 +142,7 @@ void generateFuncSubStr(void) {
     PRINTLN("DEFVAR TF@len");
     PRINTLN("STRLEN TF@len TF@str");
 
-    PRINTLN("LT TF@help TF@len TF@start");
+    PRINTLN("LT TF@help TF@start TF@len");
     PRINTLN("JUMPIFEQ function_ifj_substring_end TF@help bool@false");
 
     PRINTLN("GT TF@help TF@end TF@len");
@@ -167,6 +167,7 @@ void generateFuncSubStr(void) {
 
     PRINTLN("LABEL function_ifj_substring_end");
     PRINTLN("PUSHS nil@nil");
+    PRINTLN("POPFRAME");
     PRINTLN("RETURN");
 }
 void generateFuncStrCompare(void) {
