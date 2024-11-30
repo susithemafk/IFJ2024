@@ -94,18 +94,18 @@ void generateCodeStatement(Statement *statement) {
 }
 
 void generateCodeParam(Param *param) {
-    PRINTLN("DEFVAR LF@%s_%d", param->id.name, param->id.var->id);
-    PRINTLN("POPS LF@%s_%d", param->id.name, param->id.var->id);
+    PRINTLN("DEFVAR TF@%s_%d", param->id.name, param->id.var->id);
+    PRINTLN("POPS TF@%s_%d", param->id.name, param->id.var->id);
 }
 
 void generateCodeVariableDefinitionStatement(VariableDefinitionStatement *statement) {
     if (!statement->code_gen_defined) {
-        PRINTLN("DEFVAR LF@%s_%d", statement->id.name, statement->id.var->id);
+        PRINTLN("DEFVAR TF@%s_%d", statement->id.name, statement->id.var->id);
         statement->code_gen_defined = true;
     }
 
     generateCodeExpression(&statement->value);
-    PRINTLN("POPS LF@%s_%d", statement->id.name, statement->id.var->id);
+    PRINTLN("POPS TF@%s_%d", statement->id.name, statement->id.var->id);
 }
 
 void generateCodeAssigmentStatement(AssigmentStatement *statement) {
@@ -114,7 +114,7 @@ void generateCodeAssigmentStatement(AssigmentStatement *statement) {
     if (statement->discard)
         PRINTLN("POPS GF@_");
     else
-        PRINTLN("POPS LF@%s_%d", statement->id.name, statement->var->id);
+        PRINTLN("POPS TF@%s_%d", statement->id.name, statement->var->id);
 }
 
 void generateCodeIfStatement(IfStatement *statement) {
@@ -128,11 +128,11 @@ void generateCodeIfStatement(IfStatement *statement) {
             statement->non_nullable.name ? "nil@nil" : "bool@false");
     if (statement->non_nullable.name) {
         if (!statement->code_gen_defined) {
-            PRINTLN("DEFVAR LF@%s_%d", statement->non_nullable.name,
+            PRINTLN("DEFVAR TF@%s_%d", statement->non_nullable.name,
                     statement->non_nullable.var->id);
             statement->code_gen_defined = true;
         }
-        PRINTLN("MOVE LF@%s_%d GF@_", statement->non_nullable.name,
+        PRINTLN("MOVE TF@%s_%d GF@_", statement->non_nullable.name,
                 statement->non_nullable.var->id);
     }
     generateCodeBody(&statement->if_body);
@@ -153,7 +153,7 @@ void generateCodeWhileStatement(WhileStatement *statement) {
 
     if (statement->non_nullable.name) {
         if (!statement->code_gen_defined) {
-            PRINTLN("DEFVAR LF@%s_%d", statement->non_nullable.name,
+            PRINTLN("DEFVAR TF@%s_%d", statement->non_nullable.name,
                     statement->non_nullable.var->id);
             statement->code_gen_defined = true;
         }
@@ -165,7 +165,7 @@ void generateCodeWhileStatement(WhileStatement *statement) {
     PRINTLN("JUMPIFEQ $while_%d_end GF@_ %s", while_id,
             statement->non_nullable.name ? "nil@nil" : "bool@false");
     if (statement->non_nullable.name) {
-        PRINTLN("MOVE LF@%s_%d GF@_", statement->non_nullable.name,
+        PRINTLN("MOVE TF@%s_%d GF@_", statement->non_nullable.name,
                 statement->non_nullable.var->id);
     }
 
@@ -222,7 +222,7 @@ void generateCodeFunctionCall(FunctionCall *function_call) {
 }
 
 void generateCodeIdentifier(Identifier *identifier) {
-    PRINTLN("PUSHS LF@%s_%d", identifier->name, identifier->var->id);
+    PRINTLN("PUSHS TF@%s_%d", identifier->name, identifier->var->id);
 }
 
 void generateCodeLiteral(Literal *literal) {
@@ -331,13 +331,13 @@ void preGenerateStatement(Statement *statement) {
 }
 
 void preGenerateVariableDefinitionStatement(VariableDefinitionStatement *statement) {
-    PRINTLN("DEFVAR LF@%s_%d", statement->id.name, statement->id.var->id);
+    PRINTLN("DEFVAR TF@%s_%d", statement->id.name, statement->id.var->id);
     statement->code_gen_defined = true;
 }
 
 void preGenerateIfStatement(IfStatement *statement) {
     if (statement->non_nullable.name) {
-        PRINTLN("DEFVAR LF@%s_%d", statement->non_nullable.name, statement->non_nullable.var->id);
+        PRINTLN("DEFVAR TF@%s_%d", statement->non_nullable.name, statement->non_nullable.var->id);
         statement->code_gen_defined = true;
     }
     preGenerateBody(&statement->if_body);
@@ -346,7 +346,7 @@ void preGenerateIfStatement(IfStatement *statement) {
 
 void preGenerateWhileStatement(WhileStatement *statement) {
     if (statement->non_nullable.name) {
-        PRINTLN("DEFVAR LF@%s_%d", statement->non_nullable.name, statement->non_nullable.var->id);
+        PRINTLN("DEFVAR TF@%s_%d", statement->non_nullable.name, statement->non_nullable.var->id);
         statement->code_gen_defined = true;
     }
     preGenerateBody(&statement->body);
