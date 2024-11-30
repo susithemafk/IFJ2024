@@ -708,18 +708,20 @@ enum ERR_CODES analyzeBinaryExpression(BinaryExpression *binary_expr, SymTable *
     Expression *right = binary_expr->right;
 
     // get the ret type of the left epx
+    DEBUG_PRINT("Analyzing left expression");
     err = analyzeExpression(left, table, &leftType, &leftNullable);
     DEBUG_PRINT_IF(err != SUCCESS, "Error in left expression");
     if (err != SUCCESS) return err;
 
     // get the ret type of the right exp
+    DEBUG_PRINT("Analyzing right expression");
     err = analyzeExpression(right, table, &rightType, &rightNullable);
     DEBUG_PRINT_IF(err != SUCCESS, "Error in right expression");
     if (err != SUCCESS) return err;
 
-    DEBUG_PRINT("left type: %d\nright type: %d", leftType, rightType);
-    DEBUG_PRINT("left nullable: %d\nright nullable: %d", leftNullable, rightNullable);
-    DEBUG_PRINT("operation: %d", binary_expr->operation);
+    DEBUG_PRINT("\nleft type: %d\nright type: %d", leftType, rightType);
+    DEBUG_PRINT("\nleft nullable: %d\nright nullable: %d", leftNullable, rightNullable);
+    DEBUG_PRINT("\noperation: %d", binary_expr->operation);
 
     // first we filter out bad examples, and some special cases, so after this switch, we only have i32 and f64, that are not nullable
     switch(binary_expr->operation) {
@@ -815,8 +817,6 @@ enum ERR_CODES analyzeBinaryExpression(BinaryExpression *binary_expr, SymTable *
     }
 
     DEBUG_PRINT("trying to convert types");
-    DEBUG_PRINT("left type type: %d\nright type type: %d", leftType, rightType);
-    DEBUG_PRINT("left expression type: %d\nright expression type: %d", left->expr_type, right->expr_type);
 
     // differemtn rules for + - * < > <= >= == != and / for conversions
     bool convPossible = false;
@@ -835,7 +835,7 @@ enum ERR_CODES analyzeBinaryExpression(BinaryExpression *binary_expr, SymTable *
             //A is i32 literal && B is binary Expression f64
             //    -> convert A to f64
             if (leftType == dTypeI32 && left->expr_type == LiteralExpressionType && rightType == dTypeF64 && right->expr_type == BinaryExpressionType) {
-                DEBUG_PRINT("A is i32 literal && B is binary Expression f64");
+                DEBUG_PRINT("A is i32 literal && B is binary Expression f64, convert A to f64");
                 left->conversion = IntToFloat;
                 right->conversion = NoConversion;
                 convPossible = true;
@@ -846,7 +846,7 @@ enum ERR_CODES analyzeBinaryExpression(BinaryExpression *binary_expr, SymTable *
             //A is binary Expression f64 && B is i32 literal
             //    -> convert B to f64
             if (leftType == dTypeF64 && left->expr_type == BinaryExpressionType && rightType == dTypeI32 && right->expr_type == LiteralExpressionType) {
-                DEBUG_PRINT("A is binary Expression f64 && B is i32 literal");
+                DEBUG_PRINT("A is binary Expression f64 && B is i32 literal, convert B to f64");
                 left->conversion = NoConversion;
                 right->conversion = IntToFloat;
                 convPossible = true;
@@ -857,7 +857,7 @@ enum ERR_CODES analyzeBinaryExpression(BinaryExpression *binary_expr, SymTable *
             //A is f64 literal && B is binary Expression i32
             //   -> convert A to i32, if decimal place of A is 0s
             if (leftType == dTypeF64 && left->expr_type == LiteralExpressionType && rightType == dTypeI32 && right->expr_type == BinaryExpressionType) {
-                DEBUG_PRINT("A is f64 literal && B is binary Expression i32");
+                DEBUG_PRINT("A is f64 literal && B is binary Expression i32, convert A to i32");
                 if (f64valueCanBeCovertedToi32(left->data.literal.value)) {
                     left->conversion = FloatToInt;
                     right->conversion = NoConversion;
@@ -871,7 +871,7 @@ enum ERR_CODES analyzeBinaryExpression(BinaryExpression *binary_expr, SymTable *
             //A is binary Expression i32 && B is f64 literal
             //    -> convert B to i32, if decimal place of B is 0s
             if (leftType == dTypeI32 && left->expr_type == BinaryExpressionType && rightType == dTypeF64 && right->expr_type == LiteralExpressionType) {
-                DEBUG_PRINT("A is binary Expression i32 && B is f64 literal");
+                DEBUG_PRINT("A is binary Expression i32 && B is f64 literal, convert B to i32");
                 if (f64valueCanBeCovertedToi32(right->data.literal.value)) {
                     left->conversion = NoConversion;
                     right->conversion = FloatToInt;
@@ -885,7 +885,7 @@ enum ERR_CODES analyzeBinaryExpression(BinaryExpression *binary_expr, SymTable *
             //A is constant f64 variable && B is binary Expression i32
             //    -> convert A to i32, if decimal place of A is 0s
             if (leftType == dTypeF64 && left->expr_type == IdentifierExpressionType && left->data.identifier.var->valueKnonwAtCompileTime && rightType == dTypeI32 && right->expr_type == BinaryExpressionType) {
-                DEBUG_PRINT("A is constant f64 variable && B is binary Expression i32");
+                DEBUG_PRINT("A is constant f64 variable && B is binary Expression i32, convert A to i32");
                 left->conversion = FloatToInt;
                 right->conversion = NoConversion;
                 convPossible = true;
@@ -896,7 +896,7 @@ enum ERR_CODES analyzeBinaryExpression(BinaryExpression *binary_expr, SymTable *
             //A is binary Expression i32 && B is constant f64 variable
             //    -> convert B to i32, if decimal place of B is 0s
             if (leftType == dTypeI32 && left->expr_type == BinaryExpressionType && rightType == dTypeF64 && right->expr_type == IdentifierExpressionType && right->data.identifier.var->valueKnonwAtCompileTime) {
-                DEBUG_PRINT("A is binary Expression i32 && B is constant f64 variable");
+                DEBUG_PRINT("A is binary Expression i32 && B is constant f64 variable, convert B to i32");
                 left->conversion = NoConversion;
                 right->conversion = FloatToInt;
                 convPossible = true;
@@ -907,7 +907,7 @@ enum ERR_CODES analyzeBinaryExpression(BinaryExpression *binary_expr, SymTable *
             //A is i32 ligeral && B is f64 literal
             //    -> convert A to f64
             if (leftType == dTypeI32 && left->expr_type == LiteralExpressionType && rightType == dTypeF64 && right->expr_type == LiteralExpressionType) {
-                DEBUG_PRINT("A is i32 ligeral && B is f64 literal");
+                DEBUG_PRINT("A is i32 ligeral && B is f64 literal, convert A to f64");
                 left->conversion = IntToFloat;
                 right->conversion = NoConversion;
                 convPossible = true;
@@ -918,7 +918,7 @@ enum ERR_CODES analyzeBinaryExpression(BinaryExpression *binary_expr, SymTable *
             //A is f64 literal && B is i32 literal
             //    -> convert B to f64
             if (leftType == dTypeF64 && left->expr_type == LiteralExpressionType && rightType == dTypeI32 && right->expr_type == LiteralExpressionType) {
-                DEBUG_PRINT("A is f64 literal && B is i32 literal");
+                DEBUG_PRINT("A is f64 literal && B is i32 literal, convert B to f64");
                 left->conversion = NoConversion;
                 right->conversion = IntToFloat;
                 convPossible = true;
@@ -929,12 +929,12 @@ enum ERR_CODES analyzeBinaryExpression(BinaryExpression *binary_expr, SymTable *
             //A is variable i32 && B is f64 literal
             //    -> (if deciaml place of B is 0s, convert B f64 -> SUCESS, else ERROR)
             if (leftType == dTypeI32 && left->expr_type == IdentifierExpressionType && rightType == dTypeF64 && right->expr_type == LiteralExpressionType) {
-                DEBUG_PRINT("A is variable i32 && B is f64 literal");
+                DEBUG_PRINT("A is variable i32 && B is f64 literal, convert B f64 -> SUCESS, else ERROR");
                 if (f64valueCanBeCovertedToi32(right->data.literal.value)) {
                     right->conversion = FloatToInt;
                     left->conversion = NoConversion;
                     convPossible = true;
-                    operationRetType = dTypeF64;
+                    operationRetType = dTypeI32;
                     break;
                 }
                 return E_SEMANTIC_INCOMPATABLE_TYPES;
@@ -943,12 +943,12 @@ enum ERR_CODES analyzeBinaryExpression(BinaryExpression *binary_expr, SymTable *
             //A is f64 literal && B is i32 variable
             //    -> (if decimal place of A is 0s, convert A f64 -> SUCCESS, else ERROR)
             if (leftType == dTypeF64 && left->expr_type == LiteralExpressionType && rightType == dTypeI32 && right->expr_type == IdentifierExpressionType) {
-                DEBUG_PRINT("A is f64 literal && B is i32 variable");
+                DEBUG_PRINT("A is f64 literal && B is i32 variable, convert A f64 -> SUCCESS, else ERROR");
                 if (f64valueCanBeCovertedToi32(left->data.literal.value)) {
                     left->conversion = FloatToInt;
                     right->conversion = NoConversion;
                     convPossible = true;
-                    operationRetType = dTypeF64;
+                    operationRetType = dTypeI32;
                     break;
                 }
                 return E_SEMANTIC_INCOMPATABLE_TYPES;
@@ -957,7 +957,7 @@ enum ERR_CODES analyzeBinaryExpression(BinaryExpression *binary_expr, SymTable *
             //A is variable f64 && B is i32 literal
             //    -> (Convert B to f64 -> SUCCESS)
             if (leftType == dTypeF64 && left->expr_type == IdentifierExpressionType && rightType == dTypeI32 && right->expr_type == LiteralExpressionType) {
-                DEBUG_PRINT("A is a constant variable f64 && B is i32 literal");
+                DEBUG_PRINT("A is a constant variable f64 && B is i32 literal, convert B to f64");
                 right->conversion = IntToFloat;
                 left->conversion = NoConversion;
                 convPossible = true;
@@ -968,7 +968,7 @@ enum ERR_CODES analyzeBinaryExpression(BinaryExpression *binary_expr, SymTable *
             //A is i32 literal && B is variable f64
             //    -> (Convert A to f64 -> SUCCESS)
             if (leftType == dTypeI32 && left->expr_type == LiteralExpressionType && rightType == dTypeF64 && right->expr_type == IdentifierExpressionType) {
-                DEBUG_PRINT("A is i32 literal && B is a constant variable f64");
+                DEBUG_PRINT("A is i32 literal && B is a constant variable f64, convert A to f64");
                 left->conversion = IntToFloat;
                 right->conversion = NoConversion;
                 convPossible = true;
@@ -979,7 +979,7 @@ enum ERR_CODES analyzeBinaryExpression(BinaryExpression *binary_expr, SymTable *
             //A is f64 constant expresion (value known at compile time) && B is i32 variable
             //    -> (if decimal place of A is 0s, convert A i32, SUCCESS, else -> ERROR)
             if (leftType == dTypeF64 && left->expr_type == IdentifierExpressionType && left->data.identifier.var->valueKnonwAtCompileTime && rightType == dTypeI32 && right->expr_type == IdentifierExpressionType) {
-                DEBUG_PRINT("A is f64 constant expresion (value known at compile time) && B is i32 variable");
+                DEBUG_PRINT("A is f64 constant expresion (value known at compile time) && B is i32 variable, convert A i32, SUCCESS, else -> ERROR");
                 // if the var->valueKnonwAtCompileTime is true, it means, that the value can be covnerted to i32
                 left->conversion = FloatToInt;
                 right->conversion = NoConversion;
@@ -991,7 +991,7 @@ enum ERR_CODES analyzeBinaryExpression(BinaryExpression *binary_expr, SymTable *
             //A is i32 variable && B is f64 constant expresion (value known at compile time)
             //    -> (if decimal place of B is 0s, convert B i32, SUCCESS, else -> ERROR)
             if (leftType == dTypeI32 && left->expr_type == IdentifierExpressionType && rightType == dTypeF64 && right->expr_type == IdentifierExpressionType && right->data.identifier.var->valueKnonwAtCompileTime) {
-                DEBUG_PRINT("A is i32 variable && B is f64 constant expresion (value known at compile time)");
+                DEBUG_PRINT("A is i32 variable && B is f64 constant expresion (value known at compile time), convert B i32, SUCCESS, else -> ERROR");
                 // if the var->valueKnonwAtCompileTime is true, it means, that the value can be covnerted to i32
                 right->conversion = FloatToInt;
                 left->conversion = NoConversion;
@@ -1003,7 +1003,7 @@ enum ERR_CODES analyzeBinaryExpression(BinaryExpression *binary_expr, SymTable *
             //A is f64 constant expresion (value known at compile time) && B is i32 literal
             //    -> (Convert B to f64 -> SUCCESS)
             if (leftType == dTypeF64 && left->expr_type == IdentifierExpressionType && left->data.identifier.var->valueKnonwAtCompileTime && rightType == dTypeI32 && right->expr_type == LiteralExpressionType) {
-                DEBUG_PRINT("A is f64 constant expresion (value known at compile time) && B is i32 literal");
+                DEBUG_PRINT("A is f64 constant expresion (value known at compile time) && B is i32 literal, convert B to f64");
                 // if the var->valueKnonwAtCompileTime is true, it means, that the value can be covnerted to i32
                 right->conversion = IntToFloat;
                 left->conversion = NoConversion;
@@ -1015,7 +1015,7 @@ enum ERR_CODES analyzeBinaryExpression(BinaryExpression *binary_expr, SymTable *
             //A is i32 literal && B is f64 constant expresion (value known at compile time)
             //    -> (Convert A to f64 -> SUCCESS)
             if (leftType == dTypeI32 && left->expr_type == LiteralExpressionType && rightType == dTypeF64 && right->expr_type == IdentifierExpressionType && right->data.identifier.var->valueKnonwAtCompileTime) {
-                DEBUG_PRINT("A is i32 literal && B is f64 constant expresion (value known at compile time)");
+                DEBUG_PRINT("A is i32 literal && B is f64 constant expresion (value known at compile time), convert A to f64");
                 // if the var->valueKnonwAtCompileTime is true, it means, that the value can be covnerted to i32
                 left->conversion = IntToFloat;
                 right->conversion = NoConversion;
