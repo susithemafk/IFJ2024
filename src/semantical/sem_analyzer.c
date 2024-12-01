@@ -644,9 +644,7 @@ enum ERR_CODES analyzeExpression(Expression *expr, SymTable *table, enum DATA_TY
             DEBUG_PRINT("Analyzing literal");
              // should be handelted in the syntaxical analysis
             if (!expr->data.literal.value) {
-                *returnType = dTypeNone;
-                *resultNullable = true;
-                break;
+                DEBUG_PRINT("Literal is NULL");
             }
             *returnType = expr->data.literal.data_type.data_type;
             *resultNullable = expr->data.literal.data_type.is_nullable; // since null literal is nullable i guess
