@@ -251,15 +251,11 @@ void generateCodeLiteral(Literal *literal) {
     case dTypeBool:
         PRINTLN("PUSHS bool@%s", literal->value);
         break;
+    case dTypeNone:
+        PRINTLN("PUSHS nil@nil");
+        break;
     case dTypeVoid:
     case dTypeUndefined:
-    case dTypeNone:
-        // this is a hotfix. Somebody broke parser or semantical analysis, so in AST I get Undefined type for null literal.
-        // I am not able to find out where the problem is. in parser it seems correct branch executes, but None type is not set !!!
-        // I already fixed this issue once before !!! FIX IT PLEASE !!! ( ./in/test_3.ifj )
-        // this hotfix could potentialy mean generating wrong code in other cases
-        if (literal->value == NULL)
-            PRINTLN("PUSHS nil@nil");
         break;
     }
 }
