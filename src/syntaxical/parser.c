@@ -892,13 +892,12 @@ bool parse_no_truth_expr(Expression *expr) {
                 expr->expr_type = LiteralExpressionType;
                 expr->data.literal.value = currentToken()->value;
                 if (currentToken()->type == TOKEN_NULL) { // handeling of null;
-                    expr->data_type.is_nullable = true;
-                    expr->data_type.data_type = dTypeNone;
+                    expr->data.literal.data_type.is_nullable = true;
+                    expr->data.literal.data_type.data_type = dTypeNone;
                     expr->data.literal.value = NULL;
                 } else {
-                    expr->data_type.is_nullable = false;
-                    expr->data_type.data_type = covertTokneDataType(currentToken()->type);
-                    expr->data.literal.data_type = expr->data_type;
+                    expr->data.literal.data_type.is_nullable = false;
+                    expr->data.literal.data_type.data_type = covertTokneDataType(currentToken()->type);
                 }
 
                 getNextToken(); // move to semicolon
