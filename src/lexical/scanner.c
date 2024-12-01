@@ -114,7 +114,10 @@ enum ERR_CODES scanner_get_token(struct TOKEN *tokenPointer) {
                 break;
             case '=':
                 state = SCANNER_1EQUAL;
-                break;
+                break; 
+			case '\\':
+				state = SCANNER_MULTILINE_STRING; 
+				break; 
             case '\"':
                 assign_value = false;
                 state = SCANNER_STRING_START;
@@ -218,6 +221,61 @@ enum ERR_CODES scanner_get_token(struct TOKEN *tokenPointer) {
             else
                 return E_LEXICAL;
             break;
+
+		case SCANNER_MULTILINE_STRING: 
+            char lookahead; 
+            bool is_newline = false;
+
+            input = getc(file);
+
+            while (input != EOF) {
+                if (input == '\n') {
+                    is_newline = true; 
+                    tokenPointer->value[string_index++] = input;
+                }
+
+                if (is_newline && !isspace(input)) {
+                    is_newline = false;
+                } 
+
+                if (is_newline && isspace(input)) {
+                    input = getc(file); 
+                    continue; 
+                }
+
+                if (is_newline) {
+                    if (!(input == '\\' && lookahead == '\\')) {
+                        return E_LEXICAL; // po newlinu musi byt double zpetne lomitko
+                    }
+                }
+
+                lookahead = getc(file);
+                // printf("Current char + lookahead: %c %c\n", input, lookahead);
+
+                if (input == '\\' && lookahead == '\\') {
+                    lookahead = getc(file);
+                } else if (input == '/' && lookahead == '/') {
+                    while (input != '\n') {
+                        input = getc(file);
+                    }
+                }
+                else if (input == ';' || input == ')') {
+                    ungetc(lookahead, file);
+                    break;
+                } else {
+                    tokenPointer->value[string_index++] = input;
+                }
+
+                input = lookahead;
+            }
+
+            if (input == EOF) {
+                return E_LEXICAL; 
+            }
+
+            tokenPointer->type = TOKEN_STRING_LITERAL;
+            return scanner_end(input, &nextCharacter, tokenPointer, string_index); 
+
 
         case SCANNER_STRING_VALUE:
             if (input == '"') {
