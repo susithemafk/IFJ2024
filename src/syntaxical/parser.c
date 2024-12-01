@@ -159,6 +159,11 @@ bool parse_prolog(void) {
         return false; // const ifj = @import(
     if (!match(TOKEN_STRING_LITERAL))
         return false; // const ifj = @import("string")
+    tokenIndex--; // go back to the string literal
+    if (strcmp(currentToken()->value, "ifj24.zig") != 0)
+        return false; // const ifj = @import("string")
+    tokenIndex++; // go to the next token
+
     if (!match(TOKEN_RPAR))
         return false; // const ifj = @import("string")
     if (!match(TOKEN_SEMICOLON))
@@ -819,8 +824,6 @@ bool parse_func_call_statement(FunctionCall *function_call) {
 
     if (currentToken()->type != TOKEN_IDENTIFIER)
         return false;
-
-    TOKEN_PTR nextToken = getDataAtIndex(buffer, tokenIndex + 1);
 
     if (!parse_user_func_call(function_call))
         return false;
