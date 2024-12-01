@@ -99,6 +99,8 @@ enum ERR_CODES scanner_get_token(struct TOKEN *tokenPointer) {
             nextCharacter = EOF;
         }
         assign_value = true;
+        char lookahead; 
+        bool is_newline = false;
 
         switch (state) {
         case SCANNER_START:
@@ -223,8 +225,7 @@ enum ERR_CODES scanner_get_token(struct TOKEN *tokenPointer) {
             break;
 
 		case SCANNER_MULTILINE_STRING: 
-            char lookahead; 
-            bool is_newline = false;
+           
 
             input = getc(file);
 
