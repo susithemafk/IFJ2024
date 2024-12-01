@@ -651,7 +651,7 @@ enum ERR_CODES analyzeExpression(Expression *expr, SymTable *table, enum DATA_TY
             expr->conversion = NoConversion;
             break;
 
-        // binary expression
+        // binary expression 
         case BinaryExpressionType:
             DEBUG_PRINT("Analyzing binary expression");
             err = analyzeBinaryExpression(&expr->data.binary_expr, table, returnType, resultNullable);
