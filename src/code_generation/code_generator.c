@@ -337,12 +337,14 @@ void preGenerateStatement(Statement *statement) {
 }
 
 void preGenerateVariableDefinitionStatement(VariableDefinitionStatement *statement) {
+    if (statement->code_gen_defined)
+        return;
     PRINTLN("DEFVAR TF@%s_%d", statement->id.name, statement->id.var->id);
     statement->code_gen_defined = true;
 }
 
 void preGenerateIfStatement(IfStatement *statement) {
-    if (statement->non_nullable.name) {
+    if (statement->non_nullable.name && !statement->code_gen_defined) {
         PRINTLN("DEFVAR TF@%s_%d", statement->non_nullable.name, statement->non_nullable.var->id);
         statement->code_gen_defined = true;
     }
@@ -351,7 +353,7 @@ void preGenerateIfStatement(IfStatement *statement) {
 }
 
 void preGenerateWhileStatement(WhileStatement *statement) {
-    if (statement->non_nullable.name) {
+    if (statement->non_nullable.name && !statement->code_gen_defined) {
         PRINTLN("DEFVAR TF@%s_%d", statement->non_nullable.name, statement->non_nullable.var->id);
         statement->code_gen_defined = true;
     }

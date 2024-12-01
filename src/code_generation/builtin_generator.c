@@ -248,8 +248,8 @@ void generateFuncStrOrd(void) {
     PRINTLN("LT TF@help TF@index int@0");
     PRINTLN("JUMPIFEQ function_$ifj_ord_end TF@help bool@true");
 
-    PRINTLN("GT TF@help TF@index TF@len");
-    PRINTLN("JUMPIFEQ function_$ifj_ord_end TF@help bool@true");
+    PRINTLN("LT TF@help TF@index TF@len");
+    PRINTLN("JUMPIFEQ function_$ifj_ord_end TF@help bool@false");
 
     PRINTLN("STRI2INT TF@help TF@str TF@index");
     PRINTLN("PUSHS TF@help");
