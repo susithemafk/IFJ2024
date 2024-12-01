@@ -756,15 +756,13 @@ bool parse_native_func_call(FunctionCall *function_call) {
 
     getNextToken();
 
-    if (!match(TOKEN_CONCATENATE))
-        return false;
-    if (!match(TOKEN_IDENTIFIER))
-        return false;
+    if (!match(TOKEN_CONCATENATE)) return false;
+    if (!match(TOKEN_IDENTIFIER)) return false;
+
 	tokenIndex--; 
 
     char *func_name = malloc(strlen(currentToken()->value) + 6);
-    if (!func_name)
-        return false;
+    if (!func_name) return false;
 
     strcpy(func_name, "$ifj_");
     strcat(func_name, currentToken()->value);
