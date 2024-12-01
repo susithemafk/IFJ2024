@@ -39,6 +39,7 @@ typedef enum StatementType {
 } StatementType;
 
 typedef struct ReturnStatement {
+    bool empty;
     struct Expression value;
 } ReturnStatement;
 

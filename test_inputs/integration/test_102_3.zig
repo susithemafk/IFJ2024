@@ -1,6 +1,6 @@
 const ifj = @import("ifj24.zig");
 
 pub fn main() void {
-    const str = ifj.string("\xAa");
-    ifj.write(str);
+    const x = x + 2; // should be error 3
+    _ = x;
 }

@@ -13,14 +13,14 @@
 #include "builtin_generator.h"
 #endif
 
-#define PRINTLN(...)                                                                               \
-    do {                                                                                           \
-        printf(__VA_ARGS__);                                                                       \
-        printf("\n");                                                                              \
+#define PRINTLN(...)                                                                                                                                                                                   \
+    do {                                                                                                                                                                                               \
+        printf(__VA_ARGS__);                                                                                                                                                                           \
+        printf("\n");                                                                                                                                                                                  \
     } while (0)
 
 void generateFuncWrite(void) {
-    PRINTLN("LABEL function_ifj_write");
+    PRINTLN("LABEL function_$ifj_write");
     PRINTLN("PUSHFRAME");
     PRINTLN("CREATEFRAME");
 
@@ -33,7 +33,7 @@ void generateFuncWrite(void) {
 }
 
 void generateFuncReadStr(void) {
-    PRINTLN("LABEL function_ifj_readstr");
+    PRINTLN("LABEL function_$ifj_readstr");
     PRINTLN("PUSHFRAME");
     PRINTLN("CREATEFRAME");
 
@@ -45,7 +45,7 @@ void generateFuncReadStr(void) {
     PRINTLN("RETURN");
 }
 void generateFuncReadInt(void) {
-    PRINTLN("LABEL function_ifj_readi32");
+    PRINTLN("LABEL function_$ifj_readi32");
     PRINTLN("PUSHFRAME");
     PRINTLN("CREATEFRAME");
 
@@ -57,7 +57,7 @@ void generateFuncReadInt(void) {
     PRINTLN("RETURN");
 }
 void generateFuncReadFloat(void) {
-    PRINTLN("LABEL function_ifj_readf64");
+    PRINTLN("LABEL function_$ifj_readf64");
     PRINTLN("PUSHFRAME");
     PRINTLN("CREATEFRAME");
 
@@ -70,21 +70,21 @@ void generateFuncReadFloat(void) {
 }
 
 void generateFuncInt2Float(void) {
-    PRINTLN("LABEL function_ifj_i2f");
+    PRINTLN("LABEL function_$ifj_i2f");
     PRINTLN("INT2FLOATS");
     PRINTLN("RETURN");
 }
 void generateFuncFloat2Int(void) {
-    PRINTLN("LABEL function_ifj_f2i");
+    PRINTLN("LABEL function_$ifj_f2i");
     PRINTLN("FLOAT2INTS");
     PRINTLN("RETURN");
 }
 void generateFuncString(void) {
-    PRINTLN("LABEL function_ifj_string");
+    PRINTLN("LABEL function_$ifj_string");
     PRINTLN("RETURN");
 }
 void generateFuncLength(void) {
-    PRINTLN("LABEL function_ifj_length");
+    PRINTLN("LABEL function_$ifj_length");
     PRINTLN("PUSHFRAME");
     PRINTLN("CREATEFRAME");
 
@@ -98,7 +98,7 @@ void generateFuncLength(void) {
     PRINTLN("RETURN");
 }
 void generateFuncConcat(void) {
-    PRINTLN("LABEL function_ifj_concat");
+    PRINTLN("LABEL function_$ifj_concat");
     PRINTLN("PUSHFRAME");
     PRINTLN("CREATEFRAME");
 
@@ -116,7 +116,7 @@ void generateFuncConcat(void) {
     PRINTLN("RETURN");
 }
 void generateFuncSubStr(void) {
-    PRINTLN("LABEL function_ifj_substring");
+    PRINTLN("LABEL function_$ifj_substring");
     PRINTLN("PUSHFRAME");
     PRINTLN("CREATEFRAME");
 
@@ -131,46 +131,47 @@ void generateFuncSubStr(void) {
     PRINTLN("DEFVAR TF@help");
 
     PRINTLN("LT TF@help TF@start int@0");
-    PRINTLN("JUMPIFEQ function_ifj_substring_end TF@help bool@true");
+    PRINTLN("JUMPIFEQ function_$ifj_substring_end TF@help bool@true");
 
     PRINTLN("LT TF@help TF@end int@0");
-    PRINTLN("JUMPIFEQ function_ifj_substring_end TF@help bool@true");
+    PRINTLN("JUMPIFEQ function_$ifj_substring_end TF@help bool@true");
 
     PRINTLN("GT TF@help TF@start TF@end");
-    PRINTLN("JUMPIFEQ function_ifj_substring_end TF@help bool@true");
+    PRINTLN("JUMPIFEQ function_$ifj_substring_end TF@help bool@true");
 
     PRINTLN("DEFVAR TF@len");
     PRINTLN("STRLEN TF@len TF@str");
 
-    PRINTLN("LT TF@help TF@len TF@start");
-    PRINTLN("JUMPIFEQ function_ifj_substring_end TF@help bool@false");
+    PRINTLN("LT TF@help TF@start TF@len");
+    PRINTLN("JUMPIFEQ function_$ifj_substring_end TF@help bool@false");
 
     PRINTLN("GT TF@help TF@end TF@len");
-    PRINTLN("JUMPIFEQ function_ifj_substring_end TF@help bool@true");
+    PRINTLN("JUMPIFEQ function_$ifj_substring_end TF@help bool@true");
 
     PRINTLN("DEFVAR TF@substr");
     PRINTLN("MOVE TF@substr string@");
 
-    PRINTLN("LABEL function_ifj_substring_cycle");
+    PRINTLN("LABEL function_$ifj_substring_cycle");
     PRINTLN("LT TF@help TF@start TF@end");
-    PRINTLN("JUMPIFNEQ function_ifj_substring_return TF@help bool@true");
+    PRINTLN("JUMPIFNEQ function_$ifj_substring_return TF@help bool@true");
 
     PRINTLN("GETCHAR TF@help TF@str TF@start");
     PRINTLN("CONCAT TF@substr TF@substr TF@help");
     PRINTLN("ADD TF@start TF@start int@1");
-    PRINTLN("JUMP function_ifj_substring_cycle");
+    PRINTLN("JUMP function_$ifj_substring_cycle");
 
-    PRINTLN("LABEL function_ifj_substring_return");
+    PRINTLN("LABEL function_$ifj_substring_return");
     PRINTLN("PUSHS TF@substr");
     PRINTLN("POPFRAME");
     PRINTLN("RETURN");
 
-    PRINTLN("LABEL function_ifj_substring_end");
+    PRINTLN("LABEL function_$ifj_substring_end");
     PRINTLN("PUSHS nil@nil");
+    PRINTLN("POPFRAME");
     PRINTLN("RETURN");
 }
 void generateFuncStrCompare(void) {
-    PRINTLN("LABEL function_ifj_strcmp");
+    PRINTLN("LABEL function_$ifj_strcmp");
     PRINTLN("PUSHFRAME");
     PRINTLN("CREATEFRAME");
 
@@ -189,48 +190,50 @@ void generateFuncStrCompare(void) {
     PRINTLN("STRLEN TF@len2 TF@str2");
 
     PRINTLN("DEFVAR TF@help");
-    PRINTLN("LT TF@help TF@len1 TF@len2");
-    PRINTLN("JUMPIFEQ function_ifj_strcmp_str1_less TF@help bool@true");
-
-    PRINTLN("GT TF@help TF@len1 TF@len2");
-    PRINTLN("JUMPIFEQ function_ifj_strcmp_str2_less TF@help bool@true");
-
     PRINTLN("DEFVAR TF@char1");
     PRINTLN("DEFVAR TF@char2");
 
-    PRINTLN("LABEL function_ifj_strcmp_cycle");
+    PRINTLN("LABEL function_$ifj_strcmp_cycle");
     PRINTLN("LT TF@help TF@index TF@len1");
-    PRINTLN("JUMPIFEQ function_ifj_strcmp_equal TF@help bool@false");
+    PRINTLN("JUMPIFEQ function_$ifj_strcmp_str1_end TF@help bool@false");
+
+    PRINTLN("LT TF@help TF@index TF@len2");
+    PRINTLN("JUMPIFEQ function_$ifj_strcmp_str2_less TF@help bool@false");
 
     PRINTLN("GETCHAR TF@char1 TF@str1 TF@index");
     PRINTLN("GETCHAR TF@char2 TF@str2 TF@index");
 
     PRINTLN("LT TF@help TF@char1 TF@char2");
-    PRINTLN("JUMPIFEQ function_ifj_strcmp_str1_less TF@help bool@true");
+    PRINTLN("JUMPIFEQ function_$ifj_strcmp_str1_less TF@help bool@true");
 
     PRINTLN("GT TF@help TF@char1 TF@char2");
-    PRINTLN("JUMPIFEQ function_ifj_strcmp_str2_less TF@help bool@true");
+    PRINTLN("JUMPIFEQ function_$ifj_strcmp_str2_less TF@help bool@true");
 
     PRINTLN("ADD TF@index TF@index int@1");
-    PRINTLN("JUMP function_ifj_strcmp_cycle");
+    PRINTLN("JUMP function_$ifj_strcmp_cycle");
 
-    PRINTLN("LABEL function_ifj_strcmp_str1_less");
+    PRINTLN("LABEL function_$ifj_strcmp_str1_end");
+    PRINTLN("LT TF@help TF@len1 TF@len2");
+    PRINTLN("JUMPIFEQ function_$ifj_strcmp_str1_less TF@help bool@true");
+    PRINTLN("JUMP function_$ifj_strcmp_equal");
+
+    PRINTLN("LABEL function_$ifj_strcmp_str1_less");
     PRINTLN("PUSHS int@-1");
     PRINTLN("POPFRAME");
     PRINTLN("RETURN");
 
-    PRINTLN("LABEL function_ifj_strcmp_str2_less");
+    PRINTLN("LABEL function_$ifj_strcmp_str2_less");
     PRINTLN("PUSHS int@1");
     PRINTLN("POPFRAME");
     PRINTLN("RETURN");
 
-    PRINTLN("LABEL function_ifj_strcmp_equal");
+    PRINTLN("LABEL function_$ifj_strcmp_equal");
     PRINTLN("PUSHS int@0");
     PRINTLN("POPFRAME");
     PRINTLN("RETURN");
 }
 void generateFuncStrOrd(void) {
-    PRINTLN("LABEL function_ifj_ord");
+    PRINTLN("LABEL function_$ifj_ord");
     PRINTLN("PUSHFRAME");
     PRINTLN("CREATEFRAME");
 
@@ -245,10 +248,10 @@ void generateFuncStrOrd(void) {
 
     PRINTLN("DEFVAR TF@help");
     PRINTLN("LT TF@help TF@index int@0");
-    PRINTLN("JUMPIFEQ function_ifj_ord_end TF@help bool@true");
+    PRINTLN("JUMPIFEQ function_$ifj_ord_end TF@help bool@true");
 
-    PRINTLN("GT TF@help TF@index TF@len");
-    PRINTLN("JUMPIFEQ function_ifj_ord_end TF@help bool@true");
+    PRINTLN("LT TF@help TF@index TF@len");
+    PRINTLN("JUMPIFEQ function_$ifj_ord_end TF@help bool@false");
 
     PRINTLN("STRI2INT TF@help TF@str TF@index");
     PRINTLN("PUSHS TF@help");
@@ -256,13 +259,13 @@ void generateFuncStrOrd(void) {
     PRINTLN("POPFRAME");
     PRINTLN("RETURN");
 
-    PRINTLN("LABEL function_ifj_ord_end");
+    PRINTLN("LABEL function_$ifj_ord_end");
     PRINTLN("PUSHS int@0");
     PRINTLN("POPFRAME");
     PRINTLN("RETURN");
 }
 void generateFuncStrChr(void) {
-    PRINTLN("LABEL function_ifj_chr");
+    PRINTLN("LABEL function_$ifj_chr");
     PRINTLN("INT2CHARS");
     PRINTLN("RETURN");
 }

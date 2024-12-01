@@ -22,6 +22,7 @@ static unsigned int tokenIndex = 0;
 static LinkedList *buffer = NULL;
 static SymTable *table = NULL; // TODO: vhodit do mainu table, pak parser, pak v mainu free
 static struct TOKEN token;
+enum ERR_CODES globalError = SUCCESS;
 
 // vnoreny funkce resi first pass
 // udelat parser dle good_asts.c
@@ -114,8 +115,7 @@ enum ERR_CODES parser_parse(FILE *input, struct Program *program) {
     DEBUG_PRINT("Current token: %s\n", currentToken()->value);
 
     if (!parse_program(program)) {
-        puts("Error in second pass");
-        return E_SYNTAX;
+        return (globalError == SUCCESS) ? E_SYNTAX : globalError;
     }
 
     return SUCCESS;
@@ -188,6 +188,7 @@ bool parse_functions(LinkedList *functions) {
 
         if (!parse_function(function))
             return false;
+
     }
 
     DEBUG_PRINT("Successfully parsed <functions>\n");
@@ -654,7 +655,7 @@ bool parse_else(IfStatement *if_statement) {
 
     if (currentToken()->type != TOKEN_ELSE) { // else
         DEBUG_PRINT("No else clause found\n");
-        return true;
+        return false;
     }
 
     getNextToken();
@@ -728,12 +729,12 @@ bool parse_ret_value(ReturnStatement *return_statement) {
 
     // Check for empty return
     if (currentToken()->type == TOKEN_SEMICOLON) {
-        return_statement->value.expr_type = IdentifierExpressionType;
-        //return_statement->value.data_type.data_type = dTypeNone;
-        return_statement->value.data.literal.data_type.data_type = dTypeNone;
+        return_statement->empty = true;
         DEBUG_PRINT("Empty return value\n");
         return true;
     }
+
+    return_statement->empty = false;
 
     if (!parse_no_truth_expr(&return_statement->value))
         return false;
@@ -756,11 +757,11 @@ bool parse_native_func_call(FunctionCall *function_call) {
         return false;
 	tokenIndex--; 
 
-    char *func_name = malloc(strlen(currentToken()->value) + 5);
+    char *func_name = malloc(strlen(currentToken()->value) + 6);
     if (!func_name)
         return false;
 
-    strcpy(func_name, "ifj_");
+    strcpy(func_name, "$ifj_");
     strcat(func_name, currentToken()->value);
 
     free(currentToken()->value);
@@ -859,11 +860,43 @@ bool parse_var_assign(AssigmentStatement *assign_statement) {
 
 bool parse_no_truth_expr(Expression *expr) {
     DEBUG_PRINT("Parsing <no_truth_expr>\n");
+    DEBUG_PRINT("Current token: %s\n", currentToken()->value);
 
-    if (currentToken()->type == TOKEN_IDENTIFIER) {
+    if (currentToken()->type == TOKEN_IDENTIFIER || isLiteral(currentToken()->type)) {
         TOKEN_PTR nextToken = getDataAtIndex(buffer, tokenIndex + 1);
 
-        if (nextToken && nextToken->type == TOKEN_LPAR) {
+        // = <identifier>; or = <literal>;
+        if (nextToken && nextToken->type == TOKEN_SEMICOLON) {
+            // = <identifier>;
+            if (currentToken()->type == TOKEN_IDENTIFIER) {
+                DEBUG_PRINT("Identifier ending with ;");
+                expr->expr_type = IdentifierExpressionType;
+                expr->data.identifier.name = currentToken()->value;
+                getNextToken(); // move to semicolon
+                return true;
+            }
+
+            // = <literal>;
+            if (isLiteral(currentToken()->type)) {
+                DEBUG_PRINT("Literar ending with ;");
+                expr->expr_type = LiteralExpressionType;
+                expr->data.literal.value = currentToken()->value;
+                if (currentToken()->type == TOKEN_NULL) { // handeling of null;
+                    expr->data.literal.data_type.is_nullable = true;
+                    expr->data.literal.data_type.data_type = dTypeNone;
+                    expr->data.literal.value = NULL;
+                } else {
+                    expr->data.literal.data_type.is_nullable = false;
+                    expr->data.literal.data_type.data_type = covertTokneDataType(currentToken()->type);
+                }
+
+                getNextToken(); // move to semicolon
+                return true;
+            }
+        }
+
+        // = <identifier>(...)
+        if (currentToken()->type == TOKEN_IDENTIFIER && nextToken && nextToken->type == TOKEN_LPAR) {
             expr->expr_type = FunctionCallExpressionType;
             return parse_user_func_call(&expr->data.function_call);
         }
@@ -886,6 +919,7 @@ bool parse_truth_expr(Expression *expr) {
     enum ERR_CODES err = startPrecedentAnalysis(buffer, &tokenIndex, false, expr);
     if (err != SUCCESS) {
         printf("Error in startPrecedentAnalysis: %d\n", err);
+        globalError = err;
         return false;
     }
 

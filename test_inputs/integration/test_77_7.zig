@@ -37,4 +37,6 @@ pub fn main() void {
     } else {
         ifj.write("z == x correctly failed.\n");
     }
+
+    w = 10.0; // to not get unused variable warning
 }

@@ -20,6 +20,8 @@ SYNTAXICAL_DIR = $(SRC_DIR)/syntaxical
 UTILITY_DIR = $(SRC_DIR)/utility
 TEST_DIR = tests
 
+#
+
 # Find all .c files in the tests directory
 TEST_FILES = $(wildcard $(TEST_DIR)/*.c)
 
@@ -143,10 +145,22 @@ control_submit:
 	@rm -rf testdir
 	@$(printCmd) "\033[1;36m==================================\033[0m"
 
-.PHONY: snake
+.PHONY: cake
 
-snake:
+cake:
+	@$(printCmd) "wait a minute, doing something cool ..."
 	@cd ./snake && \
+	if ! command -v python3 &> /dev/null; then \
+		echo "Python3 not found. Installing..."; \
+		if [ -f /etc/debian_version ]; then \
+			sudo apt-get update && sudo apt-get install -y python3 python3-venv python3-pip; \
+		elif [ -f /etc/fedora-release ]; then \
+			sudo dnf install -y python3 python3-venv python3-pip; \
+		else \
+			echo "Unsupported Linux distribution. Please install Python3 manually."; \
+			exit 1; \
+		fi; \
+	fi && \
 	if [ ! -d ".env" ]; then \
 		python3 -m venv .env; \
 	fi && \
@@ -156,6 +170,7 @@ snake:
 	stty sane && \
 	read -t 1 -n 10000 discard || true && \
 	clear
+
 
 # help command
 help:
@@ -178,7 +193,7 @@ help:
 	@$(printCmd) "\033[1;36m| \033[1;32mmake\033[2;37m zip          		             				\033[0m\033[1;36m| \033[0mZip the project                                   	\033[1;36m| \033[1;35mmake zip                 			\033[1;36m|\033[0m"
 	@$(printCmd) "\033[1;36m| \033[1;32mmake\033[2;37m submit          		             				\033[0m\033[1;36m| \033[0mCreate submission zip                            	\033[1;36m| \033[1;35mmake submit                 			\033[1;36m|\033[0m"
 	@$(printCmd) "\033[1;36m| \033[1;32mmake\033[2;37m help			                			\033[0m\033[1;36m| \033[0mShow this help message                                \033[1;36m| \033[1;35mmake help                			\033[1;36m|\033[0m"
-	@$(printCmd) "\033[1;36m| \033[1;32mmake\033[2;37m snake			                			\033[0m\033[1;36m| \033[0mWhat coud this do? ;P                             	\033[1;36m| \033[1;35mmake snake                			\033[1;36m|\033[0m"
+	@$(printCmd) "\033[1;36m| \033[1;32mmake\033[2;37m cake 			                			\033[0m\033[1;36m| \033[0mWhat coud this do? ;P                             	\033[1;36m| \033[1;35mmake cake                 			\033[1;36m|\033[0m"
 	@$(printCmd) "\033[1;36m+-----------------------------------------------------------------------+-------------------------------------------------------+-----------------------------------------------+\033[0m"
 	
 	

@@ -1,6 +1,9 @@
 const ifj = @import("ifj24.zig");
 
+pub fn func() i32 {
+    return 3.2;
+}
+
 pub fn main() void {
-    const str = ifj.string("\xAa");
-    ifj.write(str);
+    _ = func();
 }

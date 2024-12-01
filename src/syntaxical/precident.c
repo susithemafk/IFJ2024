@@ -60,7 +60,7 @@ int _getPrecedentIndex(enum TOKEN_TYPE token) {
     case TOKEN_IDENTIFIER:
     case TOKEN_INTEGER_LITERAL:
     case TOKEN_FLOAT_LITERAL:
-    case TOKEN_STRING_LITERAL:
+    //case TOKEN_STRING_LITERAL: // this should not be here, since ll1 grammer does not support it
     case TOKEN_NULL:
         return 4;
     case TOKEN_EQUALS:
@@ -423,11 +423,21 @@ enum ERR_CODES startPrecedentAnalysis(LinkedList *buffer, unsigned int *startIdx
                 return E_SYNTAX;
             }
 
-            if (!doExpresion && ((last->type == STACK_ITEM_TRUTH_EXPRESSION &&
-                                  last->content.stateTruthExpression != STATE_TEX_R) ||
-                                 last->type != STACK_ITEM_TRUTH_EXPRESSION)) {
-                removeStack(&stack);
-                return E_SYNTAX;
+            if (!doExpresion) {
+                DEBUG_PRINT("Last item: %d\n", last->type);
+                if (last->type == STACK_ITEM_TRUTH_EXPRESSION) {
+                    DEBUG_PRINT("Last inner type: %d\n", last->content.stateTruthExpression);
+                    if (last->content.stateTruthExpression == STATE_TEX_E) {
+                        DEBUG_PRINT("error\n");
+                        removeStack(&stack);
+                        return E_SEMANTIC_INCOMPATABLE_TYPES; // handle truth expression, with no R
+                    }
+                }
+
+                if (last->type != STACK_ITEM_TRUTH_EXPRESSION) {
+                    removeStack(&stack);
+                    return E_SYNTAX;
+                }
             }
 
             // correct check for expresion syntax

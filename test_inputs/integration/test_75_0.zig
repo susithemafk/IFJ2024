@@ -2,8 +2,7 @@ const ifj = @import("ifj24.zig");
 
 pub fn main() void {
     const y: i32 = 11; // Constant i32
-    const z: f64 = 10.0; // Constant f64
-    var w: f64 = 22.1; // Variable f64
+    const w: f64 = 22.1; // Variable f64
 
     // Implicit conversion examples
     if (10 == 10.0) {

@@ -166,12 +166,11 @@ enum ERR_CODES analyzeBinaryExpression(BinaryExpression *binary_expr, SymTable *
 bool nullCompatabilityCheck(bool nullMain, bool nullSecond);
 
 /**
- * Function to analyze a function call
+ * Function to check, if a f64 value can be converted to i32
  * 
- * @param function_call - the function call to analyze
- * @param table - the symbol table
- * @return enum ERR_CODES - the error code
+ * @param value - the value to check
+ * @return bool - if the value can be converted
  */
-enum COVERSION_FLAGS canCovertLiteral(Literal *literal, enum DATA_TYPES expectedType);
+bool f64valueCanBeCovertedToi32(char *value);
 
 #endif // SEM_ANALYZER_H

@@ -38,12 +38,97 @@ pub fn main() void {
     }
     ifj.write("\n");
 
+    const substring_result1 = ifj.substring(concatenated, 7, 7);
+    ifj.write("substring(\"Hello, world!\", 7, 7) -> ");
+    if (substring_result1) |sub| {
+        ifj.write(sub); // Should print ""
+    } else {
+        ifj.write("null");
+    }
+    ifj.write("\n");
+
+    const substring_result2 = ifj.substring(concatenated, 7, 6);
+    ifj.write("substring(\"Hello, world!\", 7, 6) -> ");
+    if (substring_result2) |sub| {
+        ifj.write(sub); // Should print "null"
+    } else {
+        ifj.write("null");
+    }
+    ifj.write("\n");
+
+    const neg_number: i32 = 0 - 1;
+    const substring_result3 = ifj.substring(concatenated, neg_number, 6);
+    ifj.write("substring(\"Hello, world!\", -1, 6) -> ");
+    if (substring_result3) |sub| {
+        ifj.write(sub); // Should print "null"
+    } else {
+        ifj.write("null");
+    }
+    ifj.write("\n");
+
+    const substring_result4 = ifj.substring(concatenated, 7, neg_number);
+    ifj.write("substring(\"Hello, world!\", 7, -1) -> ");
+    if (substring_result4) |sub| {
+        ifj.write(sub); // Should print "null"
+    } else {
+        ifj.write("null");
+    }
+    ifj.write("\n");
+
+    const substring_result5 = ifj.substring(concatenated, 7, 13);
+    ifj.write("substring(\"Hello, world!\", 7, 13) -> ");
+    if (substring_result5) |sub| {
+        ifj.write(sub); // Should print "world!"
+    } else {
+        ifj.write("null");
+    }
+    ifj.write("\n");
+
+    const substring_result6 = ifj.substring(concatenated, 7, 14);
+    ifj.write("substring(\"Hello, world!\", 7, 14) -> ");
+    if (substring_result6) |sub| {
+        ifj.write(sub);
+    } else {
+        ifj.write("null"); // Should print "null"
+    }
+    ifj.write("\n");
+
+    const substring_result7 = ifj.substring(concatenated, 13, 7);
+    ifj.write("substring(\"Hello, world!\", 13, 7) -> ");
+    if (substring_result7) |sub| {
+        ifj.write(sub);
+    } else {
+        ifj.write("null"); // Should print "null"
+    }
+    ifj.write("\n");
+
     // Test strcmp
     const str_cmp1 = ifj.string("apple");
     const str_cmp2 = ifj.string("banana");
     const cmp_result = ifj.strcmp(str_cmp1, str_cmp2);
     ifj.write("strcmp(\"apple\", \"banana\") -> ");
     ifj.write(cmp_result); // Should print -1
+    ifj.write("\n");
+
+    const cmp_result2 = ifj.strcmp(str_cmp2, str_cmp1);
+    ifj.write("strcmp(\"banana\", \"apple\") -> ");
+    ifj.write(cmp_result2); // Should print 1
+    ifj.write("\n");
+
+    const cmp_result3 = ifj.strcmp(str_cmp1, str_cmp1);
+    ifj.write("strcmp(\"apple\", \"apple\") -> ");
+    ifj.write(cmp_result3); // Should print 0
+    ifj.write("\n");
+
+    const str_cmp3 = ifj.string("appla");
+    const cmp_result4 = ifj.strcmp(str_cmp1, str_cmp3);
+    ifj.write("strcmp(\"apple\", \"appla\") -> ");
+    ifj.write(cmp_result4); // Should print 1
+    ifj.write("\n");
+
+    const cmp_result5 = ifj.strcmp(str_cmp3, str_cmp1);
+    ifj.write("strcmp(\"appla\", \"apple\") -> ");
+    ifj.write(cmp_result5); // Should print -1
     ifj.write("\n");
 
     // Test ord and chr
@@ -118,40 +203,69 @@ pub fn main() void {
 
     // Nested while loop with if statements
     ifj.write("Spoustim while cyklus s vnorenymi if prikazy:\n");
-    var b = 8; // Start from 8 and decrement
+    var b: i32 = 8; // Start from 8 and decrement
     while (b > 0) {
-        if (b >= 4) {
-            if (b >= 6) {
-                if (b == 7) {
-                    ifj.write("Hodnota b je 7.\n");
+        if (b >= 5) {
+            if (b >= 7) {
+                if (b == 8) {
+                    ifj.write("Hodnota b je 8.\n");
                 } else {
-                    ifj.write("Hodnota b je 6.\n");
+                    ifj.write("Hodnota b je 7.\n");
                 }
             } else {
-                if (b == 5) {
-                    ifj.write("Hodnota b je 5.\n");
+                if (b == 6) {
+                    ifj.write("Hodnota b je 6.\n");
                 } else {
-                    ifj.write("Hodnota b je 4.\n");
+                    ifj.write("Hodnota b je 5.\n");
                 }
             }
         } else {
-            if (b >= 2) {
-                if (b == 3) {
-                    ifj.write("Hodnota b je 3.\n");
+            if (b >= 3) {
+                if (b == 4) {
+                    ifj.write("Hodnota b je 4.\n");
                 } else {
-                    ifj.write("Hodnota b je 2.\n");
+                    ifj.write("Hodnota b je 3.\n");
                 }
             } else {
-                if (b == 1) {
-                    ifj.write("Hodnota b je 1.\n");
+                if (b == 2) {
+                    ifj.write("Hodnota b je 2.\n");
                 } else {
-                    ifj.write("Hodnota b je 0.\n");
+                    ifj.write("Hodnota b je 1.\n");
                 }
             }
         }
         b = b - 1; // Decrement a
     }
     ifj.write("Vnorene if prikazy ukonceny.\n");
+
+    ifj.write("\n");
+
+    // Example of `ifj.string`, `ifj.length`, and `ifj.concat`
+    const str_a: []u8 = ifj.string("Hello");
+    const str_b: []u8 = ifj.string(", World!");
+
+    // Example of `ifj.strcmp`
+    const comparisonResult: i32 = ifj.strcmp(str_a, str_b);
+    ifj.write("String comparison result (str_a vs str_b): ");
+    ifj.write(comparisonResult);
+    ifj.write("\n");
+
+    const comparisonResult2: i32 = ifj.strcmp(str_b, str_a);
+    ifj.write("String comparison result (str_b vs str_a): ");
+    ifj.write(comparisonResult2);
+    ifj.write("\n");
+
+    // Example of `ifj.ord`
+    const ordValue: i32 = ifj.ord(concatenated, 1); // Get ASCII of the 2nd character
+    ifj.write("Ordinal value of 2nd character in concatenated string: ");
+    ifj.write(ordValue);
+    ifj.write("\n");
+
+    // Example of `ifj.chr`
+    const charFromOrd: []u8 = ifj.chr(ordValue);
+    ifj.write("Character created from ordinal value: ");
+    ifj.write(charFromOrd);
+    ifj.write("\n");
 }
 
 // Pomocna funkce pro dekrementaci celeho cisla o zadane cislo

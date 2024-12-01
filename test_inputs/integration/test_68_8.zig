@@ -1,7 +1,7 @@
 const ifj = @import("ifj24.zig");
 
 pub fn main() void {
-    const str = 
+    const str =
         \\text1
         \\text2
     ;
