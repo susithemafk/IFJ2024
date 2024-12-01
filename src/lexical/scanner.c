@@ -230,6 +230,17 @@ enum ERR_CODES scanner_get_token(struct TOKEN *tokenPointer) {
             input = getc(file);
 
             while (input != EOF) {
+                
+                // realocate memoery if needed
+                if (string_index + 4 >= allocated_length) {
+                    allocated_length += ALLOC_SIZE;
+                    char *temp = realloc(tokenPointer->value, allocated_length);
+                    if (temp == NULL)
+                        return E_INTERNAL;
+
+                    tokenPointer->value = temp;
+                }
+
                 if (input == '\n') {
                     is_newline = true; 
                     tokenPointer->value[string_index++] = input;
@@ -255,11 +266,13 @@ enum ERR_CODES scanner_get_token(struct TOKEN *tokenPointer) {
 
                 if (input == '\\' && lookahead == '\\') {
                     lookahead = getc(file);
-                } else if (input == '/' && lookahead == '/') {
+
+                } /*else if (input == '/' && lookahead == '/') {
                     while (input != '\n') {
                         input = getc(file);
                     }
                 }
+                */
                 else if (input == ';' || input == ')') {
                     ungetc(lookahead, file);
                     break;
