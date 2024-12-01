@@ -12,6 +12,10 @@ substring("Hello, world!", 7, 13) -> world!
 substring("Hello, world!", 7, 14) -> null
 substring("Hello, world!", 13, 7) -> null
 strcmp("apple", "banana") -> -1
+strcmp("banana", "apple") -> 1
+strcmp("apple", "apple") -> 0
+strcmp("apple", "appla") -> 1
+strcmp("appla", "apple") -> -1
 ord("Z", 0) -> 90
 chr(65) -> A
 Vestavene funkce otestovany.
@@ -48,3 +52,8 @@ Hodnota b je 3.
 Hodnota b je 2.
 Hodnota b je 1.
 Vnorene if prikazy ukonceny.
+
+String comparison result (str_a vs str_b): 1
+String comparison result (str_b vs str_a): -1
+Ordinal value of 2nd character in concatenated string: 101
+Character created from ordinal value: e

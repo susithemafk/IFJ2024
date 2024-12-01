@@ -13,10 +13,10 @@
 #include "builtin_generator.h"
 #endif
 
-#define PRINTLN(...)                                                                               \
-    do {                                                                                           \
-        printf(__VA_ARGS__);                                                                       \
-        printf("\n");                                                                              \
+#define PRINTLN(...)                                                                                                                                                                                   \
+    do {                                                                                                                                                                                               \
+        printf(__VA_ARGS__);                                                                                                                                                                           \
+        printf("\n");                                                                                                                                                                                  \
     } while (0)
 
 void generateFuncWrite(void) {
@@ -190,18 +190,15 @@ void generateFuncStrCompare(void) {
     PRINTLN("STRLEN TF@len2 TF@str2");
 
     PRINTLN("DEFVAR TF@help");
-    PRINTLN("LT TF@help TF@len1 TF@len2");
-    PRINTLN("JUMPIFEQ function_$ifj_strcmp_str1_less TF@help bool@true");
-
-    PRINTLN("GT TF@help TF@len1 TF@len2");
-    PRINTLN("JUMPIFEQ function_$ifj_strcmp_str2_less TF@help bool@true");
-
     PRINTLN("DEFVAR TF@char1");
     PRINTLN("DEFVAR TF@char2");
 
     PRINTLN("LABEL function_$ifj_strcmp_cycle");
     PRINTLN("LT TF@help TF@index TF@len1");
-    PRINTLN("JUMPIFEQ function_$ifj_strcmp_equal TF@help bool@false");
+    PRINTLN("JUMPIFEQ function_$ifj_strcmp_str1_end TF@help bool@false");
+
+    PRINTLN("LT TF@help TF@index TF@len2");
+    PRINTLN("JUMPIFEQ function_$ifj_strcmp_str2_less TF@help bool@false");
 
     PRINTLN("GETCHAR TF@char1 TF@str1 TF@index");
     PRINTLN("GETCHAR TF@char2 TF@str2 TF@index");
@@ -214,6 +211,11 @@ void generateFuncStrCompare(void) {
 
     PRINTLN("ADD TF@index TF@index int@1");
     PRINTLN("JUMP function_$ifj_strcmp_cycle");
+
+    PRINTLN("LABEL function_$ifj_strcmp_str1_end");
+    PRINTLN("LT TF@help TF@len1 TF@len2");
+    PRINTLN("JUMPIFEQ function_$ifj_strcmp_str1_less TF@help bool@true");
+    PRINTLN("JUMP function_$ifj_strcmp_equal");
 
     PRINTLN("LABEL function_$ifj_strcmp_str1_less");
     PRINTLN("PUSHS int@-1");

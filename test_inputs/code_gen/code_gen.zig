@@ -110,6 +110,27 @@ pub fn main() void {
     ifj.write(cmp_result); // Should print -1
     ifj.write("\n");
 
+    const cmp_result2 = ifj.strcmp(str_cmp2, str_cmp1);
+    ifj.write("strcmp(\"banana\", \"apple\") -> ");
+    ifj.write(cmp_result2); // Should print 1
+    ifj.write("\n");
+
+    const cmp_result3 = ifj.strcmp(str_cmp1, str_cmp1);
+    ifj.write("strcmp(\"apple\", \"apple\") -> ");
+    ifj.write(cmp_result3); // Should print 0
+    ifj.write("\n");
+
+    const str_cmp3 = ifj.string("appla");
+    const cmp_result4 = ifj.strcmp(str_cmp1, str_cmp3);
+    ifj.write("strcmp(\"apple\", \"appla\") -> ");
+    ifj.write(cmp_result4); // Should print 1
+    ifj.write("\n");
+
+    const cmp_result5 = ifj.strcmp(str_cmp3, str_cmp1);
+    ifj.write("strcmp(\"appla\", \"apple\") -> ");
+    ifj.write(cmp_result5); // Should print -1
+    ifj.write("\n");
+
     // Test ord and chr
     const char_value = ifj.string("Z");
     const ascii_value = ifj.ord(char_value, 0);
@@ -216,6 +237,35 @@ pub fn main() void {
         b = b - 1; // Decrement a
     }
     ifj.write("Vnorene if prikazy ukonceny.\n");
+
+    ifj.write("\n");
+
+    // Example of `ifj.string`, `ifj.length`, and `ifj.concat`
+    const str_a: []u8 = ifj.string("Hello");
+    const str_b: []u8 = ifj.string(", World!");
+
+    // Example of `ifj.strcmp`
+    const comparisonResult: i32 = ifj.strcmp(str_a, str_b);
+    ifj.write("String comparison result (str_a vs str_b): ");
+    ifj.write(comparisonResult);
+    ifj.write("\n");
+
+    const comparisonResult2: i32 = ifj.strcmp(str_b, str_a);
+    ifj.write("String comparison result (str_b vs str_a): ");
+    ifj.write(comparisonResult2);
+    ifj.write("\n");
+
+    // Example of `ifj.ord`
+    const ordValue: i32 = ifj.ord(concatenated, 1); // Get ASCII of the 2nd character
+    ifj.write("Ordinal value of 2nd character in concatenated string: ");
+    ifj.write(ordValue);
+    ifj.write("\n");
+
+    // Example of `ifj.chr`
+    const charFromOrd: []u8 = ifj.chr(ordValue);
+    ifj.write("Character created from ordinal value: ");
+    ifj.write(charFromOrd);
+    ifj.write("\n");
 }
 
 // Pomocna funkce pro dekrementaci celeho cisla o zadane cislo
