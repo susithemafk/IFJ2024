@@ -77,6 +77,7 @@ else
         ls ./tests/*.c | sed 's|.*/||; s|\.c$||' | while read -r line; do
             echo -e "${WHITE_DARK}-${RESET} ${line}"
         done
+        echo -e "${CYAN}Or run with file ${YELLOW}integration${CYAN} for integration tests.${RESET}"
         exit 0
     fi
 fi
