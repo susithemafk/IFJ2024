@@ -225,68 +225,67 @@ enum ERR_CODES scanner_get_token(struct TOKEN *tokenPointer) {
             break;
 
 		case SCANNER_MULTILINE_STRING: 
-           
-
             input = getc(file);
+            DEBUG_PRINT("Multiline string\n");
+            string_index = 0;
 
             while (input != EOF) {
-                
-                // realocate memoery if needed
+                // Reallocate memory if needed
                 if (string_index + 4 >= allocated_length) {
                     allocated_length += ALLOC_SIZE;
                     char *temp = realloc(tokenPointer->value, allocated_length);
-                    if (temp == NULL)
+                    if (temp == NULL) {
                         return E_INTERNAL;
-
+                    }
                     tokenPointer->value = temp;
                 }
 
+                // Handle newlines
                 if (input == '\n') {
-                    is_newline = true; 
+                    is_newline = true;
                     tokenPointer->value[string_index++] = input;
-                }
-
-                if (is_newline && !isspace(input)) {
-                    is_newline = false;
-                } 
-
-                if (is_newline && isspace(input)) {
-                    input = getc(file); 
-                    continue; 
-                }
-
-                if (is_newline) {
-                    if (!(input == '\\' && lookahead == '\\')) {
-                        return E_LEXICAL; // po newlinu musi byt double zpetne lomitko
-                    }
-                }
-
-                lookahead = getc(file);
-                // printf("Current char + lookahead: %c %c\n", input, lookahead);
-
-                if (input == '\\' && lookahead == '\\') {
-                    lookahead = getc(file);
-
-                } /*else if (input == '/' && lookahead == '/') {
-                    while (input != '\n') {
+                    input = getc(file); // Fetch next character after newline
+                    while (input == ' ') { // Skip leading spaces
                         input = getc(file);
                     }
-                }
-                */
-                else if (input == ';' || input == ')') {
-                    ungetc(lookahead, file);
-                    break;
-                } else {
-                    tokenPointer->value[string_index++] = input;
+                    DEBUG_PRINT("New line detected: '%c'\n", input);
+                    continue;
                 }
 
-                input = lookahead;
+                // Validate newline escape sequence
+                if (is_newline) {
+                    // End of string conditions
+                    if (input == ';' || input == ')') {
+                        DEBUG_PRINT("input: %c\n", input);
+                        DEBUG_PRINT("END OF STRING");
+                        string_index--; // overwrite the newline character
+                        break;
+                    }
+
+                    lookahead = getc(file);
+
+                    if (input != '\\' || lookahead != '\\') {
+                        DEBUG_PRINT("Invalid multiline string format\n");
+                        DEBUG_PRINT("char1: %c, char2: %c\n", input, lookahead);
+                        return E_LEXICAL; // Invalid multiline string format
+                    }
+                    // Skip valid double backslashes after a newline
+                    is_newline = false;
+                    input = getc(file); // Fetch next character after backslashes
+                    continue;
+                }
+
+                // Append character to string
+                tokenPointer->value[string_index++] = input;
+
+                // Get the next character
+                input = getc(file);
             }
 
             if (input == EOF) {
                 return E_LEXICAL; 
             }
-
+            
             tokenPointer->type = TOKEN_STRING_LITERAL;
             return scanner_end(input, &nextCharacter, tokenPointer, string_index); 
 
