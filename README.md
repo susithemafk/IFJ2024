@@ -1,5 +1,9 @@
 # IFJ 2024
+<img src="./zzzshowcase_pictures/logo.jpg" alt="logo" align="right" width="80"/>
 Project for IFJ 2024
+
+
+Objective: Create a compiler for the language IFJ2024
 
 ## Authors
 
@@ -192,3 +196,4 @@ To do something cool ;) , use:
 ```sh
 make cake
 ```
+

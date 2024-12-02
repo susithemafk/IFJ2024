@@ -1,5 +1,4 @@
 #!/bin/bash
-#!/bin/bash
 # /** AUTHOR
 #  * 
 #  * @author <247581> Martin Mendl
