@@ -156,8 +156,6 @@ void generateCodeWhileStatement(WhileStatement *statement) {
     static int while_counter = 0;
     int while_id = while_counter++;
 
-    // TODO fix nested while loop redefinitions
-
     preGenerateBody(&statement->body);
 
     if (statement->non_nullable.name) {
