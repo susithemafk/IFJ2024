@@ -1,5 +1,5 @@
 # IFJ 2024
-<img src="./zzzshowcase_pictures/logo.jpg" alt="logo" align="right" width="80"/>
+<img src="./docs/pictures/logo.jpg" alt="logo" align="right" width="80"/>
 Project for IFJ 2024
 
 
@@ -101,25 +101,25 @@ To build the project (into an executable ./main), run:
 ```sh
 make
 ```
-![make](./zzzshowcase_pictures/make.jpg)
+![make](./docs/pictures/make.jpg)
 
 To prepare the test environment (givving all .sh file executable permissions), use:
 ```sh
 make prepare
 ```
-![make prepare](./zzzshowcase_pictures/make_prepare.jpg)
+![make prepare](./docs/pictures/make_prepare.jpg)
 
 To run the code generation test, use:
 ```sh
 make test_code_gen
 ```
-![make test_code_gen](./zzzshowcase_pictures/make_test_code_gen.jpg)
+![make test_code_gen](./docs/pictures/make_test_code_gen.jpg)
 
 To run a specific unit test file, use:
 ```sh
 make run file=<test_name>
 ```
-![make run](./zzzshowcase_pictures/make_run.jpg)
+![make run](./docs/pictures/make_run.jpg)
 
 To run a specific unit test file with debug macros enabled, use:
 ```sh
@@ -135,7 +135,7 @@ To run all integration tests, use:
 ```sh
 make run file=integration
 ```
-![make run file=integration](./zzzshowcase_pictures/make_run_file=integration.jpg)
+![make run file=integration](./docs/pictures/make_run_file=integration.jpg)
 
 To run all integration tests with debug macros enabled, use:
 ```sh
@@ -151,7 +151,7 @@ To run a specific integration test, use:
 ```sh
 make run file=integration testcase=<test_num> print=<bool>
 ```
-![make run file=integration testcase=96](./zzzshowcase_pictures/make_run_file=integration_testcase=96.jpg)
+![make run file=integration testcase=96](./docs/pictures/make_run_file=integration_testcase=96.jpg)
 
 To run a specific integration test with debug macros enabled, use:
 ```sh
@@ -167,19 +167,19 @@ To clean build files, use:
 ```sh
 make clean
 ```
-![make clean](./zzzshowcase_pictures/make_clean.jpg)
+![make clean](./docs/pictures/make_clean.jpg)
 
 To zip the project, use:
 ```sh
 make zip
 ```
-![make zip](./zzzshowcase_pictures/make_zip.jpg)
+![make zip](./docs/pictures/make_zip.jpg)
 
 To create a submission zip, use:
 ```sh
 make submit
 ```
-![make submit](./zzzshowcase_pictures/make_sumbit.jpg)
+![make submit](./docs/pictures/make_sumbit.jpg)
 
 To check if the submission file is correct, use: (this will run an .sh script, created by Zbynek Krivka for checking the correctness of the submition file)
 ```sh
@@ -190,7 +190,7 @@ To show the help message, use:
 ```sh
 make help
 ```
-![make help](./zzzshowcase_pictures/make_help.jpg)
+![make help](./docs/pictures/make_help.jpg)
 
 To do something cool ;) , use:
 ```sh
