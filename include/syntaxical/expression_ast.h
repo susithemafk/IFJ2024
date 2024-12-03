@@ -74,10 +74,40 @@ typedef struct Expression {
     } data;
 } Expression;
 
+/**
+ * Function to free a data type structure
+ *
+ * @param data_type - the data type structure to free
+ */
 void freeDataType(DataType *data_type);
+
+/**
+ * Function to free an identifier structure
+ *
+ * @param identifier - the identifier structure to free
+ */
 void freeIdentifier(Identifier *identifier);
+
+/**
+ * Function to free a function call structure
+ *
+ * @param func_call - the function call structure to free
+ */
 void freeFunctionCall(FunctionCall *func_call);
+
+/**
+ * Function to free an expression structure
+ *
+ * @param expr - the expression structure to free
+ */
 void freeExpression(Expression *expr);
+
+/**
+ * Function to free a literal structure
+ *
+ * @param literal - the literal structure to free
+ */
 void freeLiteral(Literal *literal);
+
 
 #endif // EXPRESSION_AST_H

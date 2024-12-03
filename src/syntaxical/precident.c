@@ -60,7 +60,6 @@ int _getPrecedentIndex(enum TOKEN_TYPE token) {
     case TOKEN_IDENTIFIER:
     case TOKEN_INTEGER_LITERAL:
     case TOKEN_FLOAT_LITERAL:
-    //case TOKEN_STRING_LITERAL: // this should not be here, since ll1 grammer does not support it
     case TOKEN_NULL:
         return 4;
     case TOKEN_EQUALS:
@@ -109,8 +108,7 @@ enum TOKEN_TYPE _findActiveElement(LinkedList *stack, int *index) {
     while (size > 0) {
         StackItemPtr rule = (StackItemPtr)getDataAtIndex(stack, size - 1);
         size--;
-        if (rule->type != STACK_ITEM_TOKEN)
-            continue;
+        if (rule->type != STACK_ITEM_TOKEN) continue;
         *index = size;
         return rule->content.operation;
     }
@@ -118,8 +116,7 @@ enum TOKEN_TYPE _findActiveElement(LinkedList *stack, int *index) {
     return -1;
 }
 
-// Function to find the index of the < form the right of the stack, returns the index of element
-// right after <
+// Function to find the index of the < form the right of the stack, returns the index of element right after <
 int _findStartIndexForRedux(LinkedList *stack) {
 
     unsigned int size = getSize(stack);
@@ -226,10 +223,8 @@ void printStack(LinkedList *stack) {
     printf("]\n");
 }
 
-// Function to start the precedent analysis (doExpresion is true, handeling expression, false ->
-// truth expression)
-enum ERR_CODES startPrecedentAnalysis(LinkedList *buffer, unsigned int *startIdx, bool doExpresion,
-                                      Expression *expr) {
+// Function to start the precedent analysis (doExpresion is true, handeling expression, false -> truth expression)
+enum ERR_CODES startPrecedentAnalysis(LinkedList *buffer, unsigned int *startIdx, bool doExpresion, Expression *expr) {
 
     // internal err check
     if (buffer == NULL)
@@ -261,10 +256,8 @@ enum ERR_CODES startPrecedentAnalysis(LinkedList *buffer, unsigned int *startIdx
     // go through the buffer
     while (1) {
 
-        if (!end)
-            token = (TOKEN_PTR)getDataAtIndex(buffer, *startIdx);
-        if (token == NULL)
-            break;
+        if (!end) token = (TOKEN_PTR)getDataAtIndex(buffer, *startIdx);
+        if (token == NULL) break;
 
         DEBUG_PRINT("Cycle start\n");
         DEBUG_STACK(stack);
@@ -276,15 +269,16 @@ enum ERR_CODES startPrecedentAnalysis(LinkedList *buffer, unsigned int *startIdx
                 token = &endOfStack;
                 end = true;
             }
-        } else if (!skipEndCheck) { // for truth expresions
-            if (token->type == TOKEN_LPAR)
-                count++;
-            if (token->type == TOKEN_RPAR)
-                count--;
+
+        // for truth expresions
+        } else if (!skipEndCheck) {
+            if (token->type == TOKEN_LPAR) count++;
+            if (token->type == TOKEN_RPAR) count--;
             if (count == 0) {
                 end = true;
                 token = &endOfStack;
             }
+
         } else {
             skipEndCheck = false;
         }
@@ -309,10 +303,7 @@ enum ERR_CODES startPrecedentAnalysis(LinkedList *buffer, unsigned int *startIdx
             if (rule == LESS) {
 
                 StackItemPtr less = __createStackItem(STACK_ITEM_OPERATION, (int)LESS);
-
-                if (!insertNodeAtIndex(stack, (void *)less,
-                                       (getSize(stack) - 1 == (unsigned int)index) ? -1
-                                                                                   : index + 1)) {
+                if (!insertNodeAtIndex(stack, (void *)less, (getSize(stack) - 1 == (unsigned int)index) ? -1: index + 1)) {
                     free(less);
                     removeStack(&stack);
                     return E_INTERNAL;
@@ -323,10 +314,8 @@ enum ERR_CODES startPrecedentAnalysis(LinkedList *buffer, unsigned int *startIdx
 
             }
 
-            if (!end)
-                (*startIdx)++;
-            if (token->type == TOKEN_NONE)
-                continue;
+            if (!end) (*startIdx)++;
+            if (token->type == TOKEN_NONE) continue;
 
             // adding the token to the stack
             StackItemPtr newToken = __createStackItem(STACK_ITEM_TOKEN, (int)token->type);
@@ -416,13 +405,13 @@ enum ERR_CODES startPrecedentAnalysis(LinkedList *buffer, unsigned int *startIdx
 
             StackItemPtr last = (StackItemPtr)getDataAtIndex(stack, 1);
 
-            // since Vanesa added the end rule here, we need to check if the last item is E fro
-            // expresion and R for truth expresion, otherwise it is an error
+            // if we ar solving expression, and the last item is not expression, we have a syntax error
             if (doExpresion && last->type != STACK_ITEM_EXPRESSION) {
                 removeStack(&stack);
                 return E_SYNTAX;
             }
 
+            // if we are solving truth expression, and the last item is not truth expression (R), we have a syntax error
             if (!doExpresion) {
                 DEBUG_PRINT("Last item: %d\n", last->type);
                 if (last->type == STACK_ITEM_TRUTH_EXPRESSION) {
@@ -441,14 +430,13 @@ enum ERR_CODES startPrecedentAnalysis(LinkedList *buffer, unsigned int *startIdx
             }
 
             // correct check for expresion syntax
-            if (expr)
-                *expr = last->ast_node;
+            if (expr) *expr = last->ast_node;
             removeList(&stack);
             return SUCCESS;
         }
     }
 
-    // should nnver happen, hopefully :D
+    // should never happen, hopefully :D
     removeStack(&stack);
     return E_SYNTAX;
 }

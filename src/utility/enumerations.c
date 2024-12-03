@@ -37,6 +37,7 @@ enum TOKEN_TYPE negateOperand(enum TOKEN_TYPE operand) {
     }
 }
 
+// Function to determin, if a token is a literal
 bool isLiteral(enum TOKEN_TYPE type) {
     switch(type) {
         case TOKEN_INTEGER_LITERAL:
@@ -47,8 +48,9 @@ bool isLiteral(enum TOKEN_TYPE type) {
         default:
             return false;
     }
-} // Function to print out a human-readable error code with colors
+} 
 
+// Function to determin, if a token is a data type
 bool isDataType(enum TOKEN_TYPE type) {
     switch(type) {
         case TOKEN_I32:
@@ -61,6 +63,7 @@ bool isDataType(enum TOKEN_TYPE type) {
     }
 }
 
+// Function to print out an error code
 void printErrCode(enum ERR_CODES errCode) {
     char errStr[100];
     const char *color = COLOR_RESET; // Default color
@@ -331,5 +334,3 @@ void testCase(TestInstancePtr testInstance, bool testResult, char *testName, cha
     }
     printf("\n");
 }
-
-

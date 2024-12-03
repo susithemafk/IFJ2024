@@ -359,7 +359,6 @@ void *getDataAtIndex(struct LinkedList *list, int index) {
     return list->lastAccessedNode->data;
 }
 
-
 // Function to replace data at index
 bool replaceDataAtIndex(struct LinkedList *list, int index, void *data, void **returnData) {
 
@@ -375,7 +374,6 @@ bool replaceDataAtIndex(struct LinkedList *list, int index, void *data, void **r
 
     return true;    
 }
-
 
 // Function to remove the list
 bool removeList(struct LinkedList **list) {
@@ -394,7 +392,6 @@ bool removeList(struct LinkedList **list) {
 
     return true;
 }
-
 
 // function to print list content
 void printList(struct LinkedList *list, void (*printFunc)(unsigned int, void *)) {

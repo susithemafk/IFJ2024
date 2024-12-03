@@ -35,7 +35,6 @@ typedef struct LinkedList {
     bool freeData; // Function pointer for freeing node data 
 } LinkedList;
 
-// >>>>>>>>>>>>>>>>> Function declarations <<<<<<<<<<<<<<<<<<<<
 
  /**
  * Allocates memory for a new LinkedList structure and assigns it to the pointer `list`.

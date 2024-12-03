@@ -15,17 +15,20 @@
 #include "expression_ast.h"
 #endif
 
+// Function to free the data type
 void freeDataType(DataType *data_type) {
     DEBUG_PRINT("Freeing data type");
     (void)data_type; // not needed?
 }
 
+// Function to free the identifier
 void freeIdentifier(Identifier *identifier) {
     DEBUG_PRINT("Freeing identifier");
     if (!identifier) return;
     // free(identifier->name); // not needed, stuff freed in the buffer
 }
 
+// Function to free a func call
 void freeFunctionCall(FunctionCall *func_call) {
     DEBUG_PRINT("Freeing function call");
     if (!func_call) return;
@@ -39,6 +42,7 @@ void freeFunctionCall(FunctionCall *func_call) {
     removeList(&func_call->arguments);
 }
 
+// Function to free Expression
 void freeExpression(Expression *expr) {
     DEBUG_PRINT("Freeing expression");
     if(!expr) return;
@@ -67,6 +71,7 @@ void freeExpression(Expression *expr) {
     }
 }
 
+// Function to free a literal
 void freeLiteral(Literal *literal) {
     DEBUG_PRINT("Freeing literal");
     if (!literal) return;

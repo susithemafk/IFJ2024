@@ -41,7 +41,6 @@ pub fn ifj.substring(s: []u8, i: i32, j: i32) ?[]u8;
 pub fn ifj.strcmp(s1: []u8, s2: []u8) i32;
 pub fn ifj.ord(s: []u8, i: i32) i32;
 pub fn ifj.chr(i: i32) []u8;
-
 */
 
 enum ERR_CODES err;
@@ -61,6 +60,11 @@ SymFunctionPtr ord;
 SymFunctionPtr chr;
 SymFunctionPtr var;
 
+/**
+ * Function to fill in the inbuild functions
+ * 
+ * @param table - the symbol table
+ */
 void fillInBuildInFuncions(SymTable *table);
 
 #endif // INBUILD_FUNCS_H

@@ -26,12 +26,9 @@
 // Wrapper function to get rid of all the function definitions
 void freeFuncDefsWrapper(void **data) {
 
-    if (data == NULL || *data == NULL)
-        return;
-
+    if (data == NULL || *data == NULL) return;
     LinkedList *list = (LinkedList *)*data;
-    if (list == NULL)
-        return;
+    if (list == NULL) return;
 
     SymFunctionPtr oneFunc;
     unsigned int size = getSize(list);
@@ -64,13 +61,8 @@ SymFunctionPtr symInitFuncDefinition(void) {
 // Function to free a function definition
 void symFreeFuncDefinition(SymFunctionPtr *func) {
 
-    if (func == NULL || *func == NULL)
-        return;
-
-    //if ((*func)->funcName != NULL)
-    //    free((*func)->funcName); // not needed, since all the names are build in or from the token buffer
-    if ((*func)->paramaters != NULL)
-        removeList(&(*func)->paramaters);
+    if (func == NULL || *func == NULL) return;
+    if ((*func)->paramaters != NULL) removeList(&(*func)->paramaters);
 
     free(*func);
     *func = NULL;
@@ -79,13 +71,11 @@ void symFreeFuncDefinition(SymFunctionPtr *func) {
 // Function to add a parameter to a function definition
 bool symAddParamToFunc(SymFunctionPtr func, enum DATA_TYPES type, bool nullable) {
 
-    if (func == NULL)
-        return false;
+    if (func == NULL) return false;
 
     // alocate the memory for the parameter
     SymFunctionParamPtr param = (SymFunctionParamPtr)malloc(sizeof(struct SymFunctionParam));
-    if (param == NULL)
-        return false;
+    if (param == NULL) return false;
 
     // fill the parameter
     param->type = type;
@@ -136,12 +126,10 @@ bool symEditFuncDef(SymFunctionPtr func, char *name, enum DATA_TYPES returnType,
 // Function to insert a new function definition into the symbol table
 enum ERR_CODES symTableAddFunction(SymTable *table, SymFunctionPtr function) {
 
-    if (table == NULL || function == NULL)
-        return E_INTERNAL;
+    if (table == NULL || function == NULL) return E_INTERNAL;
 
     // check if the function is already in the table
-    if (symTableFindFunction(table, function->funcName) != NULL)
-        return E_SEMANTIC_REDIFINITION;
+    if (symTableFindFunction(table, function->funcName) != NULL) return E_SEMANTIC_REDIFINITION;
 
     // insert the function into the table
     unsigned int hash = hashString(function->funcName);
@@ -149,8 +137,7 @@ enum ERR_CODES symTableAddFunction(SymTable *table, SymFunctionPtr function) {
     LinkedList *sameHashFuncs = (LinkedList *)bstSearchForNode(table->functionDefinitions, hash);
     if (sameHashFuncs == NULL) {
         sameHashFuncs = initLinkedList(false);
-        if (sameHashFuncs == NULL)
-            return E_INTERNAL;
+        if (sameHashFuncs == NULL) return E_INTERNAL;
         if (!insertNodeAtIndex(sameHashFuncs, (void *)function, -1)) {
             removeList(&sameHashFuncs);
             return E_INTERNAL;
@@ -172,14 +159,11 @@ enum ERR_CODES symTableAddFunction(SymTable *table, SymFunctionPtr function) {
 // Function to find a function definition
 SymFunctionPtr symTableFindFunction(SymTable *table, char *name) {
 
-    if (table == NULL || name == NULL)
-        return NULL;
+    if (table == NULL || name == NULL) return NULL;
 
     unsigned int hash = hashString(name);
     LinkedList *sameHashFuncs = (LinkedList *)bstSearchForNode(table->functionDefinitions, hash);
-
-    if (sameHashFuncs == NULL)
-        return NULL;
+    if (sameHashFuncs == NULL) return NULL;
 
     unsigned int size = getSize(sameHashFuncs);
     for (unsigned int i = 0; i < size; i++) {
@@ -198,15 +182,12 @@ SymFunctionPtr symTableFindFunction(SymTable *table, char *name) {
 bool _searchForVarSameHash(LinkedList *list, char *name) {
 
     // check if the list is not NULL
-    if (list == NULL)
-        return false;
+    if (list == NULL) return false;
 
     unsigned int size = getSize(list);
     for (unsigned int i = 0; i < size; i++) {
         SymVariable *variable = (SymVariable *)getDataAtIndex(list, i);
-        if (variable != NULL && strcmp(variable->name, name) == 0) {
-            return true;
-        }
+        if (variable != NULL && strcmp(variable->name, name) == 0) return true;
     }
     return false;
 }
@@ -223,9 +204,7 @@ SymTable *symTableInit(void) {
     SymTableNode *globalScope = (SymTableNode *)malloc(sizeof(SymTableNode));
 
     // check if the memory was allocated
-    if (table == NULL || globalScope == NULL) {
-        return NULL;
-    }
+    if (table == NULL || globalScope == NULL) return NULL;
 
     // fill the global scope
     globalScope->type = SYM_GLOBAL;
@@ -317,7 +296,6 @@ SymTable *symTableInit(void) {
 
     // need to also add all the function definitions that are build in
     fillInBuildInFuncions(table);
-
     return table;
 }
 
@@ -325,11 +303,7 @@ SymTable *symTableInit(void) {
 bool symTableMoveScopeDown(SymTable *table, enum SYMTABLE_NODE_TYPES type) {
 
     // check if the table is not NULL
-    if (table == NULL) {
-        return false;
-    }
-
-    // this need extra functtion variables
+    if (table == NULL) return false;
 
     // create the new scope
     SymTableNode *newScope = (SymTableNode *)malloc(sizeof(SymTableNode));
@@ -337,9 +311,7 @@ bool symTableMoveScopeDown(SymTable *table, enum SYMTABLE_NODE_TYPES type) {
 
     // check if the memory was allocated
 
-    if (newScope == NULL || variables == NULL) {
-        return false;
-    }
+    if (newScope == NULL || variables == NULL) return false;
 
     // fill the new scope
     newScope->type = type;
@@ -361,9 +333,7 @@ bool symTableMoveScopeDown(SymTable *table, enum SYMTABLE_NODE_TYPES type) {
 // helper function to find if all varaibles were accesed
 void _symTableTraverseVariables(TreeNode *node, bool *result) {
 
-    if (node == NULL || *result == false) {
-        return;
-    }
+    if (node == NULL || *result == false) return;
 
     // the linked list of the variables, with the same hash
     LinkedList *variables = (LinkedList *)node->data;
@@ -386,24 +356,19 @@ void _symTableTraverseVariables(TreeNode *node, bool *result) {
         if (variable == NULL || variable->modified == false || variable->accesed == false) {
 
             DEBUG_PRINT("Variable %s is not semanticaly correct\n - mutable: %d\n - modified: %d\n - accesed: %d\n", variable->name, variable->mutable, variable->modified, variable->accesed);
-
             *result = false;
             return;
         }
     }
 
-    if (variables == NULL)
-        *result = false;
-
+    if (variables == NULL) *result = false;
     return;
 }
 
 // Function to check if all variables in the symbol table were accesed
 bool _symTableAllVariablesAccesed(SymTableNode *node) {
 
-    if (node == NULL || node->type == SYM_GLOBAL || node->variables == NULL) {
-        return true;
-    }
+    if (node == NULL || node->type == SYM_GLOBAL || node->variables == NULL) return true;
 
     bool result = true;
     _symTableTraverseVariables(node->variables->root, &result);
@@ -415,8 +380,7 @@ bool _symTableAllVariablesAccesed(SymTableNode *node) {
 enum ERR_CODES symTableExitScope(SymTable *table) {
 
     // check if the table is not NULL
-    if (table == NULL)
-        return E_INTERNAL;
+    if (table == NULL) return E_INTERNAL;
 
     // need to remove the current scope
     SymTableNode *currentScope = table->currentScope;
@@ -446,20 +410,15 @@ enum ERR_CODES symTableExitScope(SymTable *table) {
 // Function to insert a new
 SymVariable *symTableDeclareVariable(SymTable *table, char *name, enum DATA_TYPES type, bool mutable, bool nullable, bool canBeConvertedToI32) {
     // Check if the table or current scope is invalid (if global scope declaration is disallowed)
-    if (table == NULL || table->currentScope->type == SYM_GLOBAL) {
-        return NULL;
-    }
+    if (table == NULL || table->currentScope->type == SYM_GLOBAL) return NULL;
 
     // Check if the variable already exists in the current scope
     SymVariable *var = symTableFindVariable(table, name);
-    if (var != NULL)
-        return NULL; // Variable already exists
+    if (var != NULL) return NULL; // Variable already exists
 
     // Allocate memory for a new variable
     SymVariable *newVariable = (SymVariable *)malloc(sizeof(SymVariable));
-    if (newVariable == NULL) {
-        return NULL;
-    }
+    if (newVariable == NULL) return NULL;
 
     // save the name of the variable
     newVariable->name = name;
@@ -515,8 +474,7 @@ SymVariable *symTableDeclareVariable(SymTable *table, char *name, enum DATA_TYPE
 SymVariable *symTableFindVariable(SymTable *table, char *name) {
 
     // Check if the table or name is null
-    if (table == NULL || name == NULL)
-        return NULL;
+    if (table == NULL || name == NULL) return NULL;
 
     // Hash the name to find the corresponding variables
     unsigned int hash = hashString(name);
@@ -539,12 +497,10 @@ SymVariable *symTableFindVariable(SymTable *table, char *name) {
             SymVariable *variable = (SymVariable *)getDataAtIndex((LinkedList *)sameHashVariables, i);
 
             // Skip null or mismatched variables
-            if (variable == NULL || strcmp(variable->name, name) != 0)
-                continue;
+            if (variable == NULL || strcmp(variable->name, name) != 0) continue;
 
             // Mark the variable as accessed if found
-
-            variable->accesed = true; // Mark, that the variable was accessed
+            variable->accesed = true;
 
             DEBUG_PRINT("Variable %s found in scope %d\nVariable ID: %d\nVariable name: %s\nVariable type: %d\nVariable mutable: %d\nVariable nullable: %d\n", name, currentScope->key, variable->id, variable->name, variable->type, variable->mutable, variable->nullable);
             return variable;
@@ -558,25 +514,18 @@ SymVariable *symTableFindVariable(SymTable *table, char *name) {
 
 // Function to check, if a variable can be mutated
 bool symTableCanMutate(SymVariable *variable) {
-    if (variable == NULL) {
-        return false;
-    }
-
+    if (variable == NULL) return false;
     return variable->mutable;
 }
 
 void _symTableFreeNode(SymTableNode *node) {
-    if (node == NULL) {
-        return;
-    }
+    if (node == NULL) return;
 
     _symTableFreeNode(node->innerScope);
 
     // free the variables
-    if (node->variables != NULL) {
-        bstFree(&node->variables);
-    }
-
+    if (node->variables != NULL) bstFree(&node->variables);
+    
     free(node);
     return;
 }
@@ -586,12 +535,10 @@ bool symTableFree(SymTable **table) {
 
     SymTable *tTable = *table;
 
-    if (table == NULL)
-        return false;
+    if (table == NULL) return false;
 
     // free the inner scopes
-    if (tTable->root != NULL)
-        _symTableFreeNode(tTable->root);
+    if (tTable->root != NULL) _symTableFreeNode(tTable->root);
 
     // free the variables
     for (unsigned int i = 0; i < getSize(tTable->data); i++) {
@@ -606,11 +553,11 @@ bool symTableFree(SymTable **table) {
     unsigned int size = getSize((*table)->tokenBuffer);
     for (unsigned int i = 0; i < size; i++) {
         TOKEN_PTR oneToken = (TOKEN_PTR)getDataAtIndex((*table)->tokenBuffer, i);
-
         free(oneToken->value);
         free(oneToken);
     }
 
+    // free the token buffer
     removeList(&(*table)->tokenBuffer);
     // free the variables
     removeList(&tTable->data);

@@ -19,6 +19,7 @@
         printf("\n");                                                                                                                                                                                  \
     } while (0)
 
+// Function to generate the code for the ifj.write function
 void generateFuncWrite(void) {
     PRINTLN("LABEL function_$ifj_write");
     PRINTLN("PUSHFRAME");
@@ -32,6 +33,7 @@ void generateFuncWrite(void) {
     PRINTLN("RETURN");
 }
 
+// Function to generate the code for the ifj.readstr function
 void generateFuncReadStr(void) {
     PRINTLN("LABEL function_$ifj_readstr");
     PRINTLN("PUSHFRAME");
@@ -44,6 +46,8 @@ void generateFuncReadStr(void) {
     PRINTLN("POPFRAME");
     PRINTLN("RETURN");
 }
+
+// Function to generate the code for the ifj.readi32 function
 void generateFuncReadInt(void) {
     PRINTLN("LABEL function_$ifj_readi32");
     PRINTLN("PUSHFRAME");
@@ -56,6 +60,8 @@ void generateFuncReadInt(void) {
     PRINTLN("POPFRAME");
     PRINTLN("RETURN");
 }
+
+// Function to generate the code for the ifj.readf64 function
 void generateFuncReadFloat(void) {
     PRINTLN("LABEL function_$ifj_readf64");
     PRINTLN("PUSHFRAME");
@@ -69,20 +75,27 @@ void generateFuncReadFloat(void) {
     PRINTLN("RETURN");
 }
 
+// Function to generate the code for the ifj.i2f function
 void generateFuncInt2Float(void) {
     PRINTLN("LABEL function_$ifj_i2f");
     PRINTLN("INT2FLOATS");
     PRINTLN("RETURN");
 }
+
+// Function to generate the code for the ifj.f2i function
 void generateFuncFloat2Int(void) {
     PRINTLN("LABEL function_$ifj_f2i");
     PRINTLN("FLOAT2INTS");
     PRINTLN("RETURN");
 }
+
+// Function to generate the code for the ifj.string function
 void generateFuncString(void) {
     PRINTLN("LABEL function_$ifj_string");
     PRINTLN("RETURN");
 }
+
+// Function to generate the code for the ifj.length function
 void generateFuncLength(void) {
     PRINTLN("LABEL function_$ifj_length");
     PRINTLN("PUSHFRAME");
@@ -97,6 +110,8 @@ void generateFuncLength(void) {
     PRINTLN("POPFRAME");
     PRINTLN("RETURN");
 }
+
+// Function to generate the code for the ifj.concat function
 void generateFuncConcat(void) {
     PRINTLN("LABEL function_$ifj_concat");
     PRINTLN("PUSHFRAME");
@@ -115,6 +130,8 @@ void generateFuncConcat(void) {
     PRINTLN("POPFRAME");
     PRINTLN("RETURN");
 }
+
+// Function to generate the code for the ifj.substring function
 void generateFuncSubStr(void) {
     PRINTLN("LABEL function_$ifj_substring");
     PRINTLN("PUSHFRAME");
@@ -170,6 +187,8 @@ void generateFuncSubStr(void) {
     PRINTLN("POPFRAME");
     PRINTLN("RETURN");
 }
+
+// Function to generate the code for the ifj.strcmp function
 void generateFuncStrCompare(void) {
     PRINTLN("LABEL function_$ifj_strcmp");
     PRINTLN("PUSHFRAME");
@@ -232,6 +251,8 @@ void generateFuncStrCompare(void) {
     PRINTLN("POPFRAME");
     PRINTLN("RETURN");
 }
+
+// Function to generate the code for the ifj.ord function
 void generateFuncStrOrd(void) {
     PRINTLN("LABEL function_$ifj_ord");
     PRINTLN("PUSHFRAME");
@@ -264,12 +285,15 @@ void generateFuncStrOrd(void) {
     PRINTLN("POPFRAME");
     PRINTLN("RETURN");
 }
+
+// Function to generate the code for the ifj.chr function
 void generateFuncStrChr(void) {
     PRINTLN("LABEL function_$ifj_chr");
     PRINTLN("INT2CHARS");
     PRINTLN("RETURN");
 }
 
+// Function to generate the builtin functions
 void generateBuiltins(void) {
     PRINTLN("\n# Builtin functions\n");
 

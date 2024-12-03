@@ -1,5 +1,5 @@
 /**
- * IFJ projeKT 2024
+ * IFJ projekt 2024
  *
  * @author <xsucha18> Marek Sucharda
  * @author <xsvobov00> Veronika Svobodová
@@ -38,7 +38,6 @@ int main(void) {
     status = parser_parse(stdin, &program);
 
     DEBUG_PRINT("parser parse status: %d", status); 
-
     if (status != SUCCESS) {
         DEBUG_PRINT("cleaning up");
         symTableFree(&table);
@@ -46,9 +45,9 @@ int main(void) {
         return status;
     }
 
-    // analyze program
     DEBUG_PRINT("Analyzing program");
 
+    // analyze program
     status = analyzeProgram(&program, table);
     if (status != SUCCESS) {
         DEBUG_PRINT("cleaning up");

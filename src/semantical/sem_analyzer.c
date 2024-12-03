@@ -428,7 +428,7 @@ enum ERR_CODES analyzeIfStatement(IfStatement *if_statement, SymTable *table, Sy
         DEBUG_PRINT_IF(type != dTypeBool, "If type is not bool");
         DEBUG_PRINT("If type valid\n");
 
-        if (type != dTypeBool) return E_SEMANTIC_INCOMPATABLE_TYPES; // this shoud never happen, we would have a syntax err
+        if (type != dTypeBool) return E_SEMANTIC_INCOMPATABLE_TYPES; // wrong expression type in the if or while
     }
 
     // analyze the if body
@@ -510,7 +510,6 @@ enum ERR_CODES analyzeAssigmentStatement(AssigmentStatement *statement, SymTable
     // check if the types are the same
     if (var->type != type) {
         // here, in case the value is 3.0, can be converted to 3, also for 3, we can convert it to 3.0
-        // comment this out???? start
         if (var->type == dTypeI32 && type == dTypeF64) {
             if (var->valueKnonwAtCompileTime) {
                 statement->value.conversion = FloatToInt;
@@ -527,7 +526,6 @@ enum ERR_CODES analyzeAssigmentStatement(AssigmentStatement *statement, SymTable
             return SUCCESS;
         }
 
-        // comment this out???? end
         return E_SEMANTIC_INCOMPATABLE_TYPES;
     }
     return SUCCESS;
@@ -593,7 +591,6 @@ enum ERR_CODES analyzeVariableDefinitionStatement(VariableDefinitionStatement *s
     // check if the types are the same
     if (var->type != type) {
         // here, in case the value is 3.0, can be converted to 3, also for 3, we can convert it to 3.0
-        // comment this out???? start
         if (var->type == dTypeI32 && type == dTypeF64) {
             if (canBeConvertedToI32) {
                 statement->value.conversion = FloatToInt;
@@ -609,7 +606,6 @@ enum ERR_CODES analyzeVariableDefinitionStatement(VariableDefinitionStatement *s
             DEBUG_PRINT("assigning NULL to nullable var");
             return SUCCESS;
         }
-        // comment this out???? end
         return E_SEMANTIC_INCOMPATABLE_TYPES;
     }
     return SUCCESS;
@@ -642,12 +638,9 @@ enum ERR_CODES analyzeExpression(Expression *expr, SymTable *table, enum DATA_TY
         // literal
         case LiteralExpressionType:
             DEBUG_PRINT("Analyzing literal");
-             // should be handelted in the syntaxical analysis
-            if (!expr->data.literal.value) {
-                DEBUG_PRINT("Literal is NULL");
-            }
+            DEBUG_PRINT_IF(!expr->data.literal.value, "Literal is NULL");
             *returnType = expr->data.literal.data_type.data_type;
-            *resultNullable = expr->data.literal.data_type.is_nullable; // since null literal is nullable i guess
+            *resultNullable = expr->data.literal.data_type.is_nullable;
             expr->conversion = NoConversion;
             break;
 
@@ -661,10 +654,8 @@ enum ERR_CODES analyzeExpression(Expression *expr, SymTable *table, enum DATA_TY
         case IdentifierExpressionType:
             DEBUG_PRINT("Analyzing identifier");
             var = symTableFindVariable(table, expr->data.identifier.name);
-            // check for NULL i guess, since null is and identifier
             if (!var) return E_SEMANTIC_UND_FUNC_OR_VAR;
             expr->data.identifier.var = var;
-
             *returnType = var->type;
             *resultNullable = var->nullable;
             expr->conversion = NoConversion;
@@ -678,7 +669,6 @@ enum ERR_CODES analyzeExpression(Expression *expr, SymTable *table, enum DATA_TY
 
     expr->data_type.data_type = *returnType;
     expr->data_type.is_nullable = *resultNullable;
-
     return err;
 }
 
@@ -693,7 +683,6 @@ bool f64valueCanBeCovertedToi32(char *value) {
     if (*p != '\0') return false;
 
     return true;
-
 }
 
 // Function to analyze a binary expression

@@ -22,6 +22,7 @@
         printf("\n");                                                                              \
     } while (0)
 
+// Function to generate the code for the whole program
 void generateCodeProgram(Program *program) {
     PRINTLN(".IFJcode24");
 
@@ -40,6 +41,7 @@ void generateCodeProgram(Program *program) {
     generateBuiltins();
 }
 
+// Function to generate the code for a function
 void generateCodeFunction(Function *function) {
     PRINTLN("\nLABEL function_%s", function->id.name);
     PRINTLN("PUSHFRAME");
@@ -60,6 +62,7 @@ void generateCodeFunction(Function *function) {
         PRINTLN("EXIT int@6");
 }
 
+// Function to generate the code for a body
 void generateCodeBody(Body *body) {
     int size = getSize(body->statements);
     for (int i = 0; i < size; i++) {
@@ -68,6 +71,7 @@ void generateCodeBody(Body *body) {
     }
 }
 
+// Function to generate the code for a statement
 void generateCodeStatement(Statement *statement) {
     switch (statement->type) {
     case FunctionCallStatementType:
@@ -93,11 +97,13 @@ void generateCodeStatement(Statement *statement) {
     }
 }
 
+// Function to generate the code for a parameter
 void generateCodeParam(Param *param) {
     PRINTLN("DEFVAR TF@%s_%d", param->id.name, param->id.var->id);
     PRINTLN("POPS TF@%s_%d", param->id.name, param->id.var->id);
 }
 
+// Function to pregenerate the code for a body
 void generateCodeVariableDefinitionStatement(VariableDefinitionStatement *statement) {
     if (!statement->code_gen_defined) {
         PRINTLN("DEFVAR TF@%s_%d", statement->id.name, statement->id.var->id);
@@ -108,6 +114,7 @@ void generateCodeVariableDefinitionStatement(VariableDefinitionStatement *statem
     PRINTLN("POPS TF@%s_%d", statement->id.name, statement->id.var->id);
 }
 
+// Function to generate code for an assignment statement
 void generateCodeAssigmentStatement(AssigmentStatement *statement) {
     generateCodeExpression(&statement->value);
 
@@ -117,6 +124,7 @@ void generateCodeAssigmentStatement(AssigmentStatement *statement) {
         PRINTLN("POPS TF@%s_%d", statement->id.name, statement->var->id);
 }
 
+// Function to generate code for an if statement
 void generateCodeIfStatement(IfStatement *statement) {
     static int if_counter = 0;
     int if_id = if_counter++;
@@ -143,6 +151,7 @@ void generateCodeIfStatement(IfStatement *statement) {
     PRINTLN("LABEL $if_%d_end", if_id);
 }
 
+// Function to generate code for a while statement
 void generateCodeWhileStatement(WhileStatement *statement) {
     static int while_counter = 0;
     int while_id = while_counter++;
@@ -175,13 +184,14 @@ void generateCodeWhileStatement(WhileStatement *statement) {
     PRINTLN("LABEL $while_%d_end", while_id);
 }
 
+// Function to generate code for a return statement
 void generateCodeReturnStatement(ReturnStatement *statement) {
-    if (!statement->empty) // note, I have modified this (martin), since i was getting seg faults
-        generateCodeExpression(&statement->value);
+    if (!statement->empty) generateCodeExpression(&statement->value);
     PRINTLN("POPFRAME");
     PRINTLN("RETURN");
 }
 
+// Function to generate code for an expression
 void generateCodeExpression(Expression *expression) {
     switch (expression->expr_type) {
     case IdentifierExpressionType:
@@ -212,6 +222,7 @@ void generateCodeExpression(Expression *expression) {
     }
 }
 
+// Function to generate code for a function call
 void generateCodeFunctionCall(FunctionCall *function_call) {
     int size = getSize(function_call->arguments);
     for (int i = 0; i < size; i++) {
@@ -222,10 +233,12 @@ void generateCodeFunctionCall(FunctionCall *function_call) {
     PRINTLN("CALL function_%s", function_call->func_id.name);
 }
 
+// Function to generate code for an identifier
 void generateCodeIdentifier(Identifier *identifier) {
     PRINTLN("PUSHS TF@%s_%d", identifier->name, identifier->var->id);
 }
 
+// Function to generate code for a literal
 void generateCodeLiteral(Literal *literal) {
     switch (literal->data_type.data_type) {
     case dTypeI32:
@@ -260,6 +273,7 @@ void generateCodeLiteral(Literal *literal) {
     }
 }
 
+// Function to generate code for a binary expression
 void generateCodeBinaryExpression(BinaryExpression *binary_expression) {
     generateCodeExpression(binary_expression->left);
     generateCodeExpression(binary_expression->right);
@@ -307,6 +321,7 @@ void generateCodeBinaryExpression(BinaryExpression *binary_expression) {
     }
 }
 
+// Function to pregenerate the code for a body
 void preGenerateBody(Body *body) {
     int size = getSize(body->statements);
     for (int i = 0; i < size; i++) {
@@ -315,6 +330,7 @@ void preGenerateBody(Body *body) {
     }
 }
 
+// Function to pregenerate the code for a statement
 void preGenerateStatement(Statement *statement) {
     switch (statement->type) {
     case IfStatementType:
@@ -332,6 +348,7 @@ void preGenerateStatement(Statement *statement) {
     }
 }
 
+// Function to pregenerate variable definition statement
 void preGenerateVariableDefinitionStatement(VariableDefinitionStatement *statement) {
     if (statement->code_gen_defined)
         return;
@@ -339,6 +356,7 @@ void preGenerateVariableDefinitionStatement(VariableDefinitionStatement *stateme
     statement->code_gen_defined = true;
 }
 
+// Function to pregenerate if statement
 void preGenerateIfStatement(IfStatement *statement) {
     if (statement->non_nullable.name && !statement->code_gen_defined) {
         PRINTLN("DEFVAR TF@%s_%d", statement->non_nullable.name, statement->non_nullable.var->id);
@@ -348,6 +366,7 @@ void preGenerateIfStatement(IfStatement *statement) {
     preGenerateBody(&statement->else_body);
 }
 
+// Function to pregenerate while statement
 void preGenerateWhileStatement(WhileStatement *statement) {
     if (statement->non_nullable.name && !statement->code_gen_defined) {
         PRINTLN("DEFVAR TF@%s_%d", statement->non_nullable.name, statement->non_nullable.var->id);

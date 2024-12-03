@@ -24,40 +24,7 @@ static FILE *file;
 static int nextCharacter;
 static struct TOKEN nextToken;
 
-enum ERR_CODES scanner_unget_token(struct TOKEN token) {
-    nextToken = token;
-    return SUCCESS;
-}
-
-enum ERR_CODES scanner_peek_token(struct TOKEN *tokenPointer) {
-    if (nextToken.type != TOKEN_NONE) {
-        *tokenPointer = nextToken;
-        return SUCCESS;
-    }
-
-    struct TOKEN tempToken;
-    enum ERR_CODES result = scanner_get_token(&tempToken);
-
-    if (result != SUCCESS) {
-        return result;
-    }
-
-    nextToken = tempToken;
-    *tokenPointer = tempToken;
-
-    return SUCCESS;
-}
-
-enum ERR_CODES scanner_token_free(TOKEN_PTR tokenPointer) {
-    free(tokenPointer->value);
-    return SUCCESS;
-}
-
-enum ERR_CODES scanner_destroy(void) {
-    fclose(file);
-    return SUCCESS;
-}
-
+// Function to init the scanner
 enum ERR_CODES scanner_init(FILE *input) {
     file = input;
     nextCharacter = EOF;
@@ -66,13 +33,14 @@ enum ERR_CODES scanner_init(FILE *input) {
     return SUCCESS;
 }
 
-enum ERR_CODES scanner_end(char input, int *nextCharacter, struct TOKEN *tokenPointer,
-                           int string_index) {
+// Function to end the scanner
+enum ERR_CODES scanner_end(char input, int *nextCharacter, struct TOKEN *tokenPointer, int string_index) {
     tokenPointer->value[string_index] = '\0';
     *nextCharacter = input;
     return SUCCESS;
 }
 
+// Function to get the next token
 enum ERR_CODES scanner_get_token(struct TOKEN *tokenPointer) {
     SCANNER_STATUS state = SCANNER_START;
     unsigned string_index = 0;

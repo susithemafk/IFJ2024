@@ -3,13 +3,6 @@
  * @date 3. 10. 2024
  * @brief Header file for scanner.c
  * @author Marek Sucharda xsucha18
- *
- * Jak to funguje:
- * 		token type je typ tokenu se kterým pak dále pracujeme
- * 		token value je hodnota tokenu, např. type je TOKEN_IDENTIFIER, value je "mojePromenna"
- * 		token status je stav scanneru, podle kterého se scanner rozhoduje, co dělat dál,
- * 			je to pouze interní věc scanneru, pro funkčnost ostatních částí stačí jen používat již
- * 			vygenerované tokeny.
  */
 
 #ifndef SCANNER_H
@@ -81,11 +74,20 @@ typedef enum
 	SCANNER_AT,
 } SCANNER_STATUS;
 
+/**
+ * Function to initialize the scanner
+ *
+ * @param input - the input file to initialize the scanner with
+ * @return enum ERR_CODES - the error code resulting from the operation
+ */
 enum ERR_CODES scanner_init(FILE *input);
+
+/**
+ * Function to retrieve the next token
+ *
+ * @param tokenPointer - pointer to the token structure to populate
+ * @return enum ERR_CODES - the error code resulting from the operation
+ */
 enum ERR_CODES scanner_get_token(struct TOKEN *tokenPointer);
-enum ERR_CODES scanner_unget_token(struct TOKEN token);
-enum ERR_CODES scanner_peek_token(struct TOKEN *tokenPointer);
-enum ERR_CODES scanner_token_free(TOKEN_PTR tokenPointer);
-enum ERR_CODES scanner_destroy(void);
 
 #endif

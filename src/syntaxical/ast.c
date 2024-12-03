@@ -15,6 +15,7 @@
 #include "ast.h"
 #endif
 
+// Function to free the program
 void freeProgram(Program *program) {
     DEBUG_PRINT("Freeing program");
     if (!program) return;
@@ -27,6 +28,7 @@ void freeProgram(Program *program) {
     removeList(&program->functions);
 }
 
+// Function to free the function
 void freeFunction(Function *function) {
     DEBUG_PRINT("Freeing function");
     if (!function) return;
@@ -43,6 +45,7 @@ void freeFunction(Function *function) {
     removeList(&function->params);
 }
 
+// Function to free the body
 void freeBody(Body *body) {
     DEBUG_PRINT("Freeing body");
     if (!body) return;
@@ -55,6 +58,7 @@ void freeBody(Body *body) {
     removeList(&body->statements);
 }
 
+// Function to free param
 void freeParam(Param *param) {
     DEBUG_PRINT("Freeing param");
     if (!param) return;
@@ -62,6 +66,7 @@ void freeParam(Param *param) {
     freeDataType(&param->type);
 }
 
+// Function to free Variable definition
 void freeVariableDefinitionStatement(VariableDefinitionStatement *statement) {
     DEBUG_PRINT("Freeing variable definition statement");
     if (!statement) return;
@@ -70,6 +75,7 @@ void freeVariableDefinitionStatement(VariableDefinitionStatement *statement) {
     freeExpression(&statement->value);
 }
 
+// Function to free assigment statement
 void freeAssigmentStatement(AssigmentStatement *statement) {
     DEBUG_PRINT("Freeing assigment statement");
     if (!statement) return;
@@ -77,6 +83,7 @@ void freeAssigmentStatement(AssigmentStatement *statement) {
     freeExpression(&statement->value);
 }
 
+// Function to free if statement
 void freeIfStatement(IfStatement *statement) {
     DEBUG_PRINT("Freeing if statement");
     if (!statement) return;
@@ -86,6 +93,7 @@ void freeIfStatement(IfStatement *statement) {
     freeIdentifier(&statement->non_nullable);
 }
 
+// Function to free while statement
 void freeWhileStatement(WhileStatement *statement) {
     DEBUG_PRINT("Freeing while statement");
     if (!statement) return;
@@ -94,12 +102,14 @@ void freeWhileStatement(WhileStatement *statement) {
     freeIdentifier(&statement->non_nullable);
 }
 
+// Function to free return statement
 void freeReturnStatement(ReturnStatement *statement) {
     DEBUG_PRINT("Freeing return statement");
     if (!statement) return;
     freeExpression(&statement->value);
 }
 
+// Function to free statement
 void freeStatement(Statement *statement) {
     DEBUG_PRINT("Freeing statement");
     if (!statement) return;

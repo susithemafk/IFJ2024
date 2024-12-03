@@ -70,6 +70,7 @@ char *Strcmp_name = "$ifj_strcmp";
 char *ord_name = "$ifj_ord";
 char *chr_name = "$ifj_chr";
 
+// Function to fill in the inbuild functions
 void fillInBuildInFuncions(SymTable* table) {
 
     //pub fn ifj.readstr() ?[]u8;

@@ -14,11 +14,13 @@
 #include "my_utils.h"
 #endif
 
+// Function to check, if a character is a digit
 bool isDigit(char input)
 {
 	return (input >= '0' && input <= '9');
 }
 
+// Function to check, if a character is a letter
 int hex_to_int(char hex)
 {
 	if (hex >= '0' && hex <= '9')
@@ -30,7 +32,7 @@ int hex_to_int(char hex)
 	return -1;
 }
 
-
+// Function to copy a string
 char *copyString(char *string) {
     char *newString = malloc(strlen(string) + 1);
     if (!newString) {

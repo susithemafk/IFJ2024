@@ -91,6 +91,11 @@ typedef struct StackItem {
     Expression ast_node;
 } *StackItemPtr;
 
+/**
+ * Function to remove the stack
+ * 
+ * @param stack - pointer to the stack
+ */
 void removeStack(LinkedList **stack);
 
 /**

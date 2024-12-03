@@ -41,7 +41,6 @@ enum ERR_CODES analyzeProgram(Program *program, SymTable *table);
  * 
  * @param param - the param to analyze
  * @param table - the symbol table
- * @param arg - the current arg form the symtable
  * @return enum ERR_CODES - the error code
  */
 enum ERR_CODES analyzeParam(Param *param, SymTable *table);
@@ -82,10 +81,10 @@ enum ERR_CODES analyzeReturnStatement(ReturnStatement *return_statement, SymTabl
 /**
  * Function to analyze a binary expression
  * 
- * @param binary_expr - the binary expression to analyze
+ * @param while_statement - the statement to analyze
  * @param table - the symbol table
- * @param returnType - the return type
- * @param resultNullable - the result nullable
+ * @param currentFunc - the current function
+ * @param retCount - the return count ptr
  * @return enum ERR_CODES - the error code
  */
 enum ERR_CODES analyzeWhileStatement(WhileStatement *while_statement, SymTable *table, SymFunctionPtr currentFunc, int* retCount);
@@ -104,10 +103,8 @@ enum ERR_CODES analyzeIfStatement(IfStatement *if_statement, SymTable *table, Sy
 /**
  * Function to analyze a binary expression
  * 
- * @param binary_expr - the binary expression to analyze
+ * @param statement - the statement to analyze
  * @param table - the symbol table
- * @param returnType - the return type
- * @param resultNullable - the result nullable
  * @return enum ERR_CODES - the error code
  */
 enum ERR_CODES analyzeAssigmentStatement(AssigmentStatement *statement, SymTable *table);
@@ -115,10 +112,8 @@ enum ERR_CODES analyzeAssigmentStatement(AssigmentStatement *statement, SymTable
 /**
  * Function to analyze a binary expression
  * 
- * @param binary_expr - the binary expression to analyze
+ * @param statement - the statement to analyze
  * @param table - the symbol table
- * @param returnType - the return type
- * @param resultNullable - the result nullable
  * @return enum ERR_CODES - the error code
  */
 enum ERR_CODES analyzeVariableDefinitionStatement(VariableDefinitionStatement *statement, SymTable *table);
@@ -157,11 +152,9 @@ enum ERR_CODES analyzeBinaryExpression(BinaryExpression *binary_expr, SymTable *
 /**
  * Function to analyze a unary expression
  * 
- * @param unary_expr - the unary expression to analyze
- * @param table - the symbol table
- * @param returnType - the return type
- * @param resultNullable - the result nullable
- * @return enum ERR_CODES - the error code
+ * @param nullMain - the main nullable value
+ * @param nullSecond - the second nullable value
+ * @return bool
  */
 bool nullCompatabilityCheck(bool nullMain, bool nullSecond);
 

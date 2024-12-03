@@ -167,13 +167,4 @@ TreeNode *_bstRotLeft(TreeNode *root);
  */
 LinkedList *bstGetNodes(BST *tree);
 
-/**
- * Function to traverse the tree and add all nodes to the linked list
- * 
- * @param node - pointer to the tree node
- * @param list - pointer to the linked list
- * @note this function is internal, and recursive
- */
-void _bstTraverseNodes(TreeNode *node, LinkedList *list);
-
 #endif // BINARY_SEARCH_TREE_H

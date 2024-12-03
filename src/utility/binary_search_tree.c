@@ -34,9 +34,7 @@ BST *bstInit(void (*freeFunction)(void **data)) {
 
     BST *tree = (BST *)malloc(sizeof(BST));
 
-    if (tree == NULL) {
-        return NULL;
-    }
+    if (tree == NULL) return NULL;
 
     tree->size = 0;
     tree->root = NULL;
@@ -47,9 +45,7 @@ BST *bstInit(void (*freeFunction)(void **data)) {
 
 // Internal function to calculate the height of a node.
 int _bstCalculateHeight(TreeNode *node) {
-    if (node == NULL) {
-        return -1; // Return -1 for an empty node (base case for height)
-    }
+    if (node == NULL) return -1; // Return -1 for an empty node (base case for height)
 
     // Recursively calculate height of left and right subtrees
     int leftHeight = _bstCalculateHeight(node->left);
@@ -61,9 +57,7 @@ int _bstCalculateHeight(TreeNode *node) {
 
 // External function to calculate the height of the tree
 int bstCalculateHeight(BST *tree) {
-    if (tree == NULL) {
-        return -1; // Empty tree, return -1
-    }
+    if (tree == NULL)  return -1; // Empty tree, return -1
 
     // Internal call to calculate height from the root
     return _bstCalculateHeight(tree->root);
@@ -89,9 +83,7 @@ TreeNode * _bstRotRight(TreeNode *root) {
 
 // Internal function to get the balance factor of a node
 int _bstGetBalanceFactor(TreeNode *node) {
-    if (node == NULL) {
-        return 0; // Balance factor for an empty node is 0
-    }
+    if (node == NULL) return 0; // Balance factor for an empty node is 0
 
     // Difference between left and right subtree heights
     return _bstCalculateHeight(node->left) - _bstCalculateHeight(node->right);
@@ -101,9 +93,7 @@ int _bstGetBalanceFactor(TreeNode *node) {
 // Function to balance the tree (after insertion/deletion)
 bool bstBalanceTree(BST *tree) {
 
-    if (tree == NULL) {
-        return false; // Handle null pointer case
-    }
+    if (tree == NULL) return false; // Handle null pointer case
 
     int balanceFactor = _bstGetBalanceFactor(tree->root);
 
@@ -133,16 +123,12 @@ bool bstBalanceTree(BST *tree) {
 // Function to insert a node, to the tree
 bool bstInsertNode(BST *tree, unsigned int key, void *data) {
 
-    if (tree == NULL) {
-        return false;
-    }
+    if (tree == NULL) return false;
 
     // Allocate memory for the new node
     TreeNode *newNode = (TreeNode *)malloc(sizeof(TreeNode));
 
-    if (newNode == NULL) {
-        return false;
-    }
+    if (newNode == NULL) return false;
 
     // Set the key and data in the new node
     newNode->key = key;
@@ -187,9 +173,7 @@ bool bstInsertNode(BST *tree, unsigned int key, void *data) {
 }
 
 bool bstPopNode(BST *tree, unsigned int key, void **returnData) {
-    if (tree == NULL || tree->root == NULL) {
-        return false; // Handle null tree
-    }
+    if (tree == NULL || tree->root == NULL) return false; // Handle null tree
 
     TreeNode *current = tree->root;
     TreeNode *parent = NULL;
@@ -209,9 +193,7 @@ bool bstPopNode(BST *tree, unsigned int key, void **returnData) {
         }
     }
 
-    if (current == NULL) {
-        return false; // Key not found
-    }
+    if (current == NULL) return false; // Key not found
 
     *returnData = current->data; // Set the returnData to the node's data
 
@@ -269,9 +251,7 @@ bool bstRemoveNode(BST *tree, unsigned int key) {
     void *data = NULL;
     bool result = bstPopNode(tree, key, &data);
 
-    if (result && tree->freeFunction != NULL) {
-        tree->freeFunction(&data); // Free the data if a free function is provided
-    }
+    if (result && tree->freeFunction != NULL) tree->freeFunction(&data); // Free the data if a free function is provided
 
     return result;
 }
@@ -279,9 +259,7 @@ bool bstRemoveNode(BST *tree, unsigned int key) {
 // Function to search for a node in the tree
 void *bstSearchForNode(BST *tree, unsigned int key) {
 
-    if (tree == NULL || tree->root == NULL) {
-        return NULL; // Handle null tree
-    }
+    if (tree == NULL || tree->root == NULL) return NULL; // Handle null tree
 
     TreeNode *current = tree->root;
 
@@ -303,9 +281,7 @@ void *bstSearchForNode(BST *tree, unsigned int key) {
 
 // Internal function for freeing a node with a freeFunction that accepts void **
 bool _bstFreeNode(TreeNode *node, void (*freeFunction)(void **data)) {
-    if (node == NULL) {
-        return true; // Base case: nothing to free
-    }
+    if (node == NULL) return true; // Base case: nothing to free
 
     // Recursively free the left and right subtrees
     if (!_bstFreeNode(node->left, freeFunction) || !_bstFreeNode(node->right, freeFunction)) {
@@ -326,9 +302,7 @@ bool _bstFreeNode(TreeNode *node, void (*freeFunction)(void **data)) {
 
 // Function to free the tree and all of its nodes
 bool bstFree(BST **tree) {
-    if (tree == NULL || *tree == NULL) {
-        return false; // Handle null tree or null pointer to tree
-    }
+    if (tree == NULL || *tree == NULL) return false; // Handle null tree or null pointer to tree
 
     // Free the root node (and all sub-nodes) with a free function that accepts void **
     bool result = _bstFreeNode((*tree)->root, (*tree)->freeFunction);
@@ -336,17 +310,13 @@ bool bstFree(BST **tree) {
     // Free the tree structure itself
     free(*tree);
 
-
     *tree = NULL; // Set the original tree pointer to NULL
-
     return result; // Return the result of freeing nodes
 }
 
 // Helper function to get all nodes inOrder traversal
 void _bstGetNodesInOrder(TreeNode *node, LinkedList *list) {
-    if (node == NULL) {
-        return; // Base case: empty node
-    }
+    if (node == NULL) return; // Base case: empty node
 
     // Recursively traverse the left subtree
     _bstGetNodesInOrder(node->left, list);

@@ -215,6 +215,7 @@ void printDebug(const char *function_name, const char *format, ...);
  */
 unsigned int hashString(const char *str);
 
+
 typedef struct TestInstance {
     char *testName;
     unsigned int testNumber;
@@ -246,8 +247,7 @@ void finishTestInstance(TestInstancePtr testInstance);
  * @param testResultPassMsg The message to print if the test passes
  * @param testResultFailMsg The message to print if the test fails
  */
-void testCase(TestInstancePtr testInstance, bool testResult, char *testName,
-              char *testResultPassMsg, char *testResultFailMsg);
+void testCase(TestInstancePtr testInstance, bool testResult, char *testName, char *testResultPassMsg, char *testResultFailMsg);
 
 /**
  * Function to print the error code

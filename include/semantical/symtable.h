@@ -23,7 +23,7 @@
 
 // ####################### SYMTABLE #######################
 
-// this might hvae to change in the future
+// types of scopes
 enum SYMTABLE_NODE_TYPES {
     SYM_GLOBAL = 1,
     SYM_FUNCTION = 2,
@@ -31,6 +31,7 @@ enum SYMTABLE_NODE_TYPES {
     SYM_WHILE = 4,
 };
 
+// Function definition
 typedef struct SymFunction {
     char *funcName;
     enum DATA_TYPES returnType;
@@ -38,19 +39,13 @@ typedef struct SymFunction {
     LinkedList *paramaters; 
 } *SymFunctionPtr;
 
+// Function Param
 typedef struct SymFunctionParam {
     enum DATA_TYPES type;
     bool nullable;
 } *SymFunctionParamPtr;
 
-/**
- * @brief Struct for the symTable Node
- * @param type - type of the node
- * @param key - key of the node
- * @param parent - pointer to the parent node
- * @param variables - pointer to the BST of the variables
- * @param innerScopes - pointer to the linked list of the inner scopes
-*/
+// SymTable node
 typedef struct SymTableNode {
     enum SYMTABLE_NODE_TYPES type;
     unsigned int key;
@@ -59,12 +54,7 @@ typedef struct SymTableNode {
     struct SymTableNode *innerScope;
 } SymTableNode;
 
-/**
- * @brief Struct for the symbol table
- * @param root - pointer to the root of the tree
- * @param innerScopesCount - amount of inner scopes in the tree
- * @param data - linked list, where all the data is stored
-*/
+// Symbol table ADT
 typedef struct SymTable {
     SymTableNode *root; // root of the tree
     unsigned int varCount; // amoutn of variables (for making unique ids)
@@ -110,6 +100,7 @@ bool symAddParamToFunc(SymFunctionPtr func, enum DATA_TYPES type, bool nullable)
 /**
  * Function to edit a function definition
  * 
+ * @param func - pointer to the function definition
  * @param name - name of the function
  * @param returnType - return type of the function
  * @param nullable - if the return value can be null
@@ -117,6 +108,7 @@ bool symAddParamToFunc(SymFunctionPtr func, enum DATA_TYPES type, bool nullable)
 */
 bool symEditFuncDef(SymFunctionPtr func, char *name, enum DATA_TYPES returnType, bool nullable);
 
+// SymTable Variable
 typedef struct SymVariable {
     unsigned int id; // id of the variable (id is valid, inside of the scope)
     char *name; // the name of the variable
@@ -128,7 +120,6 @@ typedef struct SymVariable {
     bool valueKnonwAtCompileTime; // pointer to the value, should be null, if the value is not known, at compile time
 } SymVariable;
 
-
 /**
  * Function to add a function definition to the symbol table
  * 
@@ -138,10 +129,10 @@ typedef struct SymVariable {
 */
 enum ERR_CODES symTableAddFunction(SymTable *table, SymFunctionPtr function);
 
-
 /**
  * Function to find a function definition
  * 
+ * @param table - pointer to the symbol table
  * @param name - name of the called function
  * @return pointer to the function definition, if the function was found, NULL otherwise
 */
@@ -178,6 +169,8 @@ enum ERR_CODES symTableExitScope(SymTable *table);
  * @param name - name of the variable to insert
  * @param type - type of the variable to insert
  * @param mutable - flag, if the variable is mutable
+ * @param nullable - flag, if the variable can be null
+ * @param canBeConvertedToI32 - flag, if the variable can be converted to i32
  * @return pointer to the variable, if the variable was successfully inserted, NULL otherwise
 */
 SymVariable *symTableDeclareVariable(SymTable *table, char *name, enum DATA_TYPES type, bool mutable, bool nullable, bool canBeConvertedToI32);
@@ -197,7 +190,6 @@ bool _searchForVarSameHash(LinkedList *list, char *name);
  * 
  * @param table - pointe to the symbol table
  * @param name - name of the variable to search for
- * @param returnData - pointer to which the data will be stored, if not NULL
  * @return true, if the variable was found, false otherwise
 */
 SymVariable *symTableFindVariable(SymTable *table, char *name);
@@ -230,6 +222,7 @@ void _symTableFreeNode(SymTableNode *node);
  * Function to check, if all the variables in the node ware accessed
  * 
  * @param node - pointer to the symTableNode
+ * @return true, if all the variables were accessed, false otherwise
 */
 bool _symTableAllVariablesAccesed(SymTableNode *node);
 
@@ -242,7 +235,6 @@ bool _symTableAllVariablesAccesed(SymTableNode *node);
  * @return void
 */
 void _symTableTraverseVariables(TreeNode *node, bool *result);
-
 
 /**
  * Helper function to free the function definitions
@@ -259,7 +251,5 @@ void _freeFuncDefinitions(struct LinkedList **listPtr);
  * @return bool
 */
 void _freeFuncCalls(struct LinkedList **listPtr);
-
-
 
 #endif // SYMTABLE_H
