@@ -1,1 +1,0 @@
-# Zde se nachází dokumentace

@@ -28,8 +28,8 @@ for FILE in $FILES; do
 done
 
 # Add additional required files
-cp rozdeleni "$SUBMIT_DIR/rozdeleni"
-cp dokumentace.pdf "$SUBMIT_DIR/dokumentace.pdf"
+cp ./docs/rozdeleni "$SUBMIT_DIR/rozdeleni"
+cp ./docs/dokumentace.pdf "$SUBMIT_DIR/dokumentace.pdf"
 
 # Generate the new Makefile in the submit directory
 cat << 'EOF' > "$SUBMIT_DIR/Makefile"

@@ -1,6 +1,5 @@
 Numerické výrazy:
 
-S -> E
 E -> id
 E -> E + E
 E -> E - E
@@ -10,7 +9,6 @@ E -> ( E )
 
 Pravdivostní výrazy:
 
-S -> R
 R -> E < E
 R -> E > E
 R -> E >= E
