@@ -57,11 +57,11 @@ typedef struct SymTableNode {
 // Symbol table ADT
 typedef struct SymTable {
     SymTableNode *root; // root of the tree
-    unsigned int varCount; // amoutn of variables (for making unique ids)
+    unsigned int varCount; // amount of variables (for making unique ids)
     unsigned int scopeCount; // amount of scopes in the tree
     SymTableNode *currentScope; // pointer to the current scope
     BST *functionDefinitions; // pointer to the function definitions BST
-    LinkedList *data; // for staring variables
+    LinkedList *data; // for storing variables
     LinkedList *tokenBuffer; // for storing the tokens
 } SymTable;
 
@@ -117,7 +117,7 @@ typedef struct SymVariable {
     int nullable; // Indicates if the variable can hold a null value -1 unknown, 0 not nullable, 1 nullable
     bool accesed; // if the variable was accessed
     bool modified; // if the variable was modified
-    bool valueKnonwAtCompileTime; // pointer to the value, should be null, if the value is not known, at compile time
+    bool valueKnonwAtCompileTime; // if the value of the variable is known at compile time and can be converted to i32
 } SymVariable;
 
 /**
@@ -235,21 +235,5 @@ bool _symTableAllVariablesAccesed(SymTableNode *node);
  * @return void
 */
 void _symTableTraverseVariables(TreeNode *node, bool *result);
-
-/**
- * Helper function to free the function definitions
- * 
- * @param list - pointer to the linked list
- * @return bool
-*/
-void _freeFuncDefinitions(struct LinkedList **listPtr);
-
-/**
- * Helper function to free the function calls
- * 
- * @param list - pointer to the linked list
- * @return bool
-*/
-void _freeFuncCalls(struct LinkedList **listPtr);
 
 #endif // SYMTABLE_H
