@@ -148,10 +148,10 @@ bool parse_prolog(void) {
     if (!match(TOKEN_LPAR)) return false; // const ifj = @import(
     if (!match(TOKEN_STRING_LITERAL)) return false; // const ifj = @import("string")
     tokenIndex--; // go back to the string literal
-    if (strcmp(currentToken()->value, "ifj24.zig") != 0) return false; // const ifj = @import("string")
+    if (strcmp(currentToken()->value, "ifj24.zig") != 0) return false; // const ifj = @import("ifj24.zig"
     tokenIndex++; // go to the next token
-    if (!match(TOKEN_RPAR)) return false; // const ifj = @import("string")
-    if (!match(TOKEN_SEMICOLON)) return false; // const ifj = @import("string");
+    if (!match(TOKEN_RPAR)) return false; // const ifj = @import("ifj24.zig")
+    if (!match(TOKEN_SEMICOLON)) return false; // const ifj = @import("ifj24.zig");
 
     DEBUG_PRINT("Successfully parsed <prolog>\n");
     return true;
