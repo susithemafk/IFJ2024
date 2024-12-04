@@ -432,17 +432,6 @@ enum ERR_CODES scanner_get_token(struct TOKEN *tokenPointer) {
             }
             break;
 
-        case SCANNER_EXP_I64:
-            if (isDigit(input)) {
-                if (input == 'e' || input == 'E') {
-                    state = SCANNER_EXP_BASE;
-                } else {
-                    tokenPointer->type = TOKEN_FLOAT_LITERAL;
-                    return scanner_end(input, &nextCharacter, tokenPointer, string_index);
-                }
-            }
-            break;
-
         case SCANNER_EXP_BASE:
             if (isDigit(input)) {
                 state = SCANNER_EXP;
