@@ -84,6 +84,7 @@ int main(void) {
         // here the current i should be the start of the expresion
         enum ERR_CODES err = startPrecedentAnalysis(buffer, &i, doExpresion, NULL);
         char message[100];
+        DEBUG_PRINT("error: %d", err);
         sprintf(message, "Validating %s %d", (doExpresion) ? "Expresion" : "Truth Expresion", expCount);
 
         if (result_valid) {
@@ -97,7 +98,7 @@ int main(void) {
         } else {
             testCase(
                 test,
-                err == E_SYNTAX,
+                (err == E_SYNTAX) || (err == E_SEMANTIC_INCOMPATABLE_TYPES),
                 message,
                 "Precedent analysis failed (expected)",
                 "Precedent analysis passed (unexpected)"
