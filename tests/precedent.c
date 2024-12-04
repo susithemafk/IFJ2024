@@ -2,7 +2,7 @@
  * 
  * @author  <247581> Martin Mendl  
  * @author <xsvobov00> Veronika Svobodová
- * @file precident.c
+ * @file precedent.c
  * @date 17.11. 2024
  * @brief test file for the precedent analysis
  */
@@ -12,7 +12,7 @@
 #include <stdbool.h>
 #include "utility/linked_list.h"
 #include "utility/enumerations.h"
-#include "syntaxical/precident.h"
+#include "syntaxical/precedent.h"
 
 // ####################### TEST CASES #######################
 

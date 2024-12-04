@@ -3,7 +3,7 @@
  * @author <247581> Martin Mendl   
  * @author <xsvobov00> Veronika Svobodová
  * @author <253171> Vanesa Zimmermannová
- * @file precident.c
+ * @file precedent.c
  * @date 17.11. 2024
  * @brief main src file for the precedent analysis
  */
@@ -14,10 +14,10 @@
 #include <string.h>
 
 #ifdef USE_CUSTOM_STRUCTURE
-#include "syntaxical/precident.h"
+#include "syntaxical/precedent.h"
 #include "utility/my_utils.h"
 #else
-#include "precident.h"
+#include "precedent.h"
 #include "my_utils.h"
 #endif
 

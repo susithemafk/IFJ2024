@@ -10,11 +10,11 @@
 
 #ifdef USE_CUSTOM_STRUCTURE
 #include "syntaxical/parser.h"
-#include "syntaxical/precident.h"
+#include "syntaxical/precedent.h"
 #include "utility/my_utils.h"
 #else
 #include "parser.h"
-#include "precident.h"
+#include "precedent.h"
 #include "my_utils.h"
 #endif
 
